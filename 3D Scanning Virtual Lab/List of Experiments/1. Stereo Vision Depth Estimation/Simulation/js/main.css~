@@ -1,0 +1,108 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+body {
+    background-color: #eef2f5; 
+    color: #2c3e50;
+    min-height: 100vh;
+    padding: 20px;
+    overflow: auto; 
+}
+
+/* Base Card Styling (10px padding, 20px radius, 10px shadow) */
+.card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.card-title {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin: 5px 0 10px 10px; 
+}
+
+/* Canvas Containers inside Cards */
+.canvas-container, .chart-container {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* Layout Structure - FORCED DESKTOP MONITOR VIEW */
+.layout-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; 
+    max-width: 1800px;
+    /* This forces the page to act like a monitor. It will not shrink below 1200px */
+    min-width: 1200px; 
+    margin: 0 auto;
+}
+
+.app-header {
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.app-header h1 { font-size: 1.5rem; color: #2c3e50; margin-bottom: 5px; }
+.app-header p { font-size: 1rem; color: #7f8c8d; }
+
+/* ==============================================================
+   THE FIX: STRICT CSS GRID
+   This guarantees the exact proportions and cannot wrap or stack
+================================================================= */
+.top-row { 
+    display: grid; 
+    /* 65% / 35% Split */
+    grid-template-columns: 65fr 35fr; 
+    gap: 20px; 
+    height: 48vh; 
+    min-height: 400px; 
+}
+
+.bottom-row { 
+    display: grid; 
+    /* 40% / 30% / 30% Split */
+    grid-template-columns: 40fr 30fr 30fr; 
+    gap: 20px; 
+    height: 35vh; 
+    min-height: 300px; 
+}
+
+/* Metrics Panel Internal Layout */
+.metrics-content { display: flex; flex-direction: column; gap: 15px; padding: 10px; height: 100%; justify-content: center; }
+.metric-item { display: flex; justify-content: space-between; align-items: center; background: #f0f4f8; padding: 15px 20px; border-radius: 12px; }
+.metric-label { font-size: 1.1rem; font-weight: 600; color: #34495e; }
+.metric-value { font-size: 1.8rem; font-weight: 700; color: #0056b3; font-variant-numeric: tabular-nums; }
+.warning-box { background: #e74c3c; color: #fff; padding: 15px; border-radius: 12px; font-weight: bold; text-align: center; }
+.hidden { display: none; }
+
+/* Sliders Internal Layout */
+.sliders-content { padding: 10px; display: flex; flex-direction: column; justify-content: space-around; height: 100%; }
+.slider-group { margin-bottom: 10px; }
+.slider-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
+
+/* Dynamic Slider Styling */
+input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; outline: none; cursor: pointer;
+    background: #3498db; 
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 2px solid #2c3e50; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}

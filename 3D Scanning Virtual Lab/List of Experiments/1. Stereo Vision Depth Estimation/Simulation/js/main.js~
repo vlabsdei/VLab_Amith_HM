@@ -1,0 +1,200 @@
+const DOM = {
+    b: document.getElementById('baseline'), f: document.getElementById('focalLength'),
+    z: document.getElementById('objectDistance'), noise: document.getElementById('noiseLevel'),
+    bVal: document.getElementById('baseline-val'), fVal: document.getElementById('focal-val'),
+    zVal: document.getElementById('distance-val'), nVal: document.getElementById('noise-val'),
+    disp: document.getElementById('disparity-display'), uncert: document.getElementById('uncertainty-display'),
+    warn: document.getElementById('blind-zone-warning'),
+    appCanvas: document.getElementById('apparatusCanvas'),
+    camCanvas: document.getElementById('cameraCanvas')
+};
+
+const ctxApp = DOM.appCanvas.getContext('2d');
+const ctxCam = DOM.camCanvas.getContext('2d');
+let errorChart;
+let currentB = 0.10, currentZ = 2.0, targetB = 0.10, targetZ = 2.0;
+
+const calcDisparity = (f, B, Z) => (f * B) / Z;
+const calcUncertainty = (Z, noise, f, B) => (Math.pow(Z, 2) * noise) / (f * B);
+const lerp = (start, end, factor) => start + (end - start) * factor;
+
+function resetSimulation() {
+    DOM.b.value = "0.10"; DOM.f.value = "700"; DOM.z.value = "2.0"; DOM.noise.value = "2";
+    currentB = 0.10; targetB = 0.10; currentZ = 2.0; targetZ = 2.0;
+}
+
+function initChart() {
+    errorChart = new Chart(document.getElementById('errorChart').getContext('2d'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Error (m)', data: [], borderColor: '#0056b3', backgroundColor: 'rgba(0, 86, 179, 0.1)', borderWidth: 2, fill: true, pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { title: { display: true, text: 'Distance (m)' } } } }
+    });
+}
+
+function getPercent(val, min, max) { return Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100)); }
+
+function updateSliderColors(B, f, Z) {
+    const minB = (2 * Z) / f; const bPer = getPercent(minB, 0.01, 0.50);
+    DOM.b.style.background = `linear-gradient(to right, #e74c3c ${bPer}%, #3498db ${bPer}%)`;
+
+    const minf = (2 * Z) / B; const fPer = getPercent(minf, 300, 1200);
+    DOM.f.style.background = `linear-gradient(to right, #e74c3c ${fPer}%, #3498db ${fPer}%)`;
+
+    const maxZ = (f * B) / 2; const zPer = getPercent(maxZ, 0.5, 15.0);
+    DOM.z.style.background = `linear-gradient(to right, #3498db ${zPer}%, #e74c3c ${zPer}%)`;
+
+    DOM.noise.style.background = '#3498db';
+}
+
+function updateUI() {
+    targetB = parseFloat(DOM.b.value); targetZ = parseFloat(DOM.z.value);
+    const f = parseFloat(DOM.f.value), noise = parseFloat(DOM.noise.value);
+
+    DOM.bVal.innerText = targetB.toFixed(2); DOM.fVal.innerText = f;
+    DOM.zVal.innerText = targetZ.toFixed(1); DOM.nVal.innerText = noise.toFixed(1);
+
+    updateSliderColors(targetB, f, targetZ);
+
+    const disp = calcDisparity(f, targetB, targetZ);
+    const uncert = calcUncertainty(targetZ, noise, f, targetB);
+
+    DOM.disp.innerText = disp.toFixed(1) + " px";
+    DOM.uncert.innerText = "± " + uncert.toFixed(3) + " m";
+
+    if (disp < 2) { 
+        DOM.warn.classList.remove('hidden'); DOM.disp.style.color = '#e74c3c'; 
+    } else { 
+        DOM.warn.classList.add('hidden'); DOM.disp.style.color = '#0056b3'; 
+    }
+
+    const dists = [], uncerts = [];
+    for (let d = 0.5; d <= 15; d += 0.5) { dists.push(d.toFixed(1)); uncerts.push(calcUncertainty(d, noise, f, targetB).toFixed(3)); }
+    errorChart.data.labels = dists; errorChart.data.datasets[0].data = uncerts; errorChart.update();
+}
+
+function resizeCanvases() {
+    [DOM.appCanvas, DOM.camCanvas].forEach(canvas => {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+        canvas.style.width = `${rect.width}px`; canvas.style.height = `${rect.height}px`;
+        canvas.getContext('2d').scale(dpr, dpr);
+    });
+}
+
+function drawDiamond(ctx, x, y, colorStr) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = colorStr;
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(15, 0); ctx.lineTo(0, 20); ctx.lineTo(-15, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(15, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(-15, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+}
+
+function drawCameraPOV(w, h, disp, Z) {
+    ctxCam.clearRect(0, 0, w, h);
+    let hue = ((Z - 0.5) / (15.0 - 0.5)) * 240;
+    hue = Math.max(0, Math.min(240, hue));
+    const diamondColor = disp < 2 ? '#555' : `hsl(${hue}, 80%, 50%)`;
+    const halfW = w / 2;
+    
+    // Backgrounds
+    ctxCam.fillStyle = '#1e272e'; ctxCam.fillRect(0, 0, halfW - 5, h);
+    ctxCam.fillStyle = '#1e272e'; ctxCam.fillRect(halfW + 5, 0, halfW - 5, h);
+
+    // Labels
+    ctxCam.fillStyle = '#fff'; ctxCam.font = '12px sans-serif'; ctxCam.textAlign = 'left';
+    ctxCam.fillText("LEFT SENSOR", 10, 20); ctxCam.fillText("RIGHT SENSOR", halfW + 15, 20);
+
+    // Diamonds
+    const centerY = h / 2 - 10; 
+    const centerLeftCam = (halfW - 5) / 2, centerRightCam = halfW + 5 + (halfW - 5) / 2;
+    drawDiamond(ctxCam, centerLeftCam + (disp/2), centerY, diamondColor);
+    drawDiamond(ctxCam, centerRightCam - (disp/2), centerY, diamondColor);
+
+    // Crosshairs
+    ctxCam.strokeStyle = 'rgba(255,255,255,0.2)'; ctxCam.beginPath();
+    ctxCam.moveTo(centerLeftCam, 0); ctxCam.lineTo(centerLeftCam, h);
+    ctxCam.moveTo(centerRightCam, 0); ctxCam.lineTo(centerRightCam, h);
+    ctxCam.stroke();
+
+    // --- HEATMAP LEGEND ---
+    if (disp >= 2) {
+        const legendW = w * 0.7;
+        const legendX = (w - legendW) / 2;
+        const legendY = h - 20;
+
+        // Draw Gradient Bar
+        const grad = ctxCam.createLinearGradient(legendX, 0, legendX + legendW, 0);
+        grad.addColorStop(0, 'hsl(0, 80%, 50%)');   
+        grad.addColorStop(1, 'hsl(240, 80%, 50%)'); 
+        
+        ctxCam.fillStyle = grad;
+        ctxCam.fillRect(legendX, legendY, legendW, 6);
+        
+        // Draw Legend Text
+        ctxCam.fillStyle = '#aaa';
+        ctxCam.font = '10px sans-serif';
+        ctxCam.textAlign = 'right';
+        ctxCam.fillText('CLOSE (0.5m)', legendX - 8, legendY + 7);
+        ctxCam.textAlign = 'left';
+        ctxCam.fillText('FAR (15m)', legendX + legendW + 8, legendY + 7);
+        
+        // Draw little marker triangle to show current depth on the scale
+        const markerX = legendX + ((Z - 0.5) / (15.0 - 0.5)) * legendW;
+        ctxCam.fillStyle = '#fff';
+        ctxCam.beginPath();
+        ctxCam.moveTo(markerX, legendY - 2);
+        ctxCam.lineTo(markerX - 4, legendY - 8);
+        ctxCam.lineTo(markerX + 4, legendY - 8);
+        ctxCam.fill();
+    }
+
+    // Blind Zone Override
+    if (disp < 2) {
+        ctxCam.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctxCam.fillRect(0, 0, w, h);
+        ctxCam.fillStyle = '#fff'; ctxCam.font = 'bold 16px sans-serif'; ctxCam.textAlign = 'center';
+        ctxCam.fillText("TARGET LOST", w/2, h/2);
+    }
+}
+
+function animate(time) {
+    requestAnimationFrame(animate);
+    currentB = lerp(currentB, targetB, 0.08); currentZ = lerp(currentZ, targetZ, 0.08);
+    const f = parseFloat(DOM.f.value);
+    
+    const wA = parseFloat(DOM.appCanvas.style.width) || DOM.appCanvas.width;
+    const hA = parseFloat(DOM.appCanvas.style.height) || DOM.appCanvas.height;
+    ctxApp.clearRect(0, 0, wA, hA);
+
+    const cx = wA / 2, groundY = hA - 60, scaleX = (wA * 0.5) / 0.50, scaleY = (hA * 0.65) / 15.0; 
+    const camLeftX = cx - (currentB / 2) * scaleX, camRightX = cx + (currentB / 2) * scaleX;
+    const objectX = cx, objectY = groundY - (currentZ * scaleY);
+
+    ctxApp.beginPath(); ctxApp.setLineDash([8, 8]); ctxApp.lineDashOffset = -time / 20;
+    ctxApp.moveTo(camLeftX, groundY); ctxApp.lineTo(objectX, objectY);
+    ctxApp.moveTo(camRightX, groundY); ctxApp.lineTo(objectX, objectY);
+    ctxApp.strokeStyle = 'rgba(52, 152, 219, 0.6)'; ctxApp.lineWidth = 2; ctxApp.stroke(); ctxApp.setLineDash([]);
+
+    drawDiamond(ctxApp, objectX, objectY, '#9b59b6');
+
+    ctxApp.fillStyle = '#2c3e50';
+    ctxApp.fillRect(camLeftX - 15, groundY - 10, 30, 20); ctxApp.fillRect(camRightX - 15, groundY - 10, 30, 20);
+
+    ctxApp.fillStyle = '#34495e'; ctxApp.font = 'bold 14px sans-serif'; ctxApp.textAlign = 'center';
+    ctxApp.fillText(`Target (Z = ${targetZ.toFixed(1)}m)`, objectX, objectY - 35);
+    ctxApp.fillText(`Baseline (B) = ${targetB.toFixed(2)}m`, cx, groundY + 40);
+
+    const wC = parseFloat(DOM.camCanvas.style.width) || DOM.camCanvas.width;
+    const hC = parseFloat(DOM.camCanvas.style.height) || DOM.camCanvas.height;
+    drawCameraPOV(wC, hC, calcDisparity(f, currentB, currentZ), currentZ);
+}
+
+[DOM.b, DOM.f, DOM.z, DOM.noise].forEach(input => input.addEventListener('input', updateUI));
+window.addEventListener('resize', resizeCanvases);
+
+document.addEventListener('DOMContentLoaded', () => {
+    resetSimulation(); initChart(); resizeCanvases(); updateUI(); requestAnimationFrame(animate); 
+});

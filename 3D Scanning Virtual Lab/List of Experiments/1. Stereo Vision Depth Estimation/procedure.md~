@@ -1,0 +1,44 @@
+# Stereo Vision Depth Estimation: Simulation Guide
+
+## Dashboard Navigation Guide
+
+Before beginning the experiment, familiarize yourself with the five main zones of your workstation:
+
+* **The Workstation (Top Left):** Displays a 2D top-down view of the physical setup with two virtual cameras and a 3D diamond target. Animated lines represent optical data flowing from the cameras to the object.
+* **Real-Time Metrics (Top Right):** Displays the live mathematical calculations for Disparity ($d$) and Depth Uncertainty ($\Delta Z$). This panel will flash a red error warning if your object enters the stereo blind zone.
+* **Variable Controls (Bottom Left):** The slider zone where you adjust Baseline ($B$), Focal Length ($f$), Object Distance ($Z$), and Noise ($\Delta d$). The sliders feature dynamic blue (recommended) and red (caution) color gradients that physically expand and contract as you change related variables.
+* **Error Curve (Bottom Middle):** A live graph plotting distance against depth error to visualize uncertainty limits.
+* **Camera POV (Bottom Right):** Shows the simulated left and right sensor feeds. A heatmap scale at the bottom maps colors to depth (Red = Close/Warm, Blue = Far/Cool).
+
+---
+
+## Experimental Procedure
+
+### Step 1: Initial State Observation
+1. Ensure your variables are set to the default baseline: **Baseline (B)** = `0.10 m`, **Focal Length (f)** = `700 px`, **Distance (Z)** = `2.0 m`, and **Noise ($\Delta d$)** = `2.0 px`.
+2. Look at the **Camera POV** panel. Observe that the object appears shifted slightly to the right in the Left Sensor, and slightly to the left in the Right Sensor. This horizontal shift is the *Disparity*.
+
+### Step 2: The Inverse Relationship of Distance & Disparity
+1. Slowly drag the **Distance (Z)** slider to the right, moving the object from `2.0 m` to `5.0 m`.
+2. Observe the **Camera POV**: Watch the shapes move closer to the center crosshairs in both sensor views. 
+3. Observe the **Metrics Panel**: Note how the calculated Disparity ($d$) shrinks as the distance increases, demonstrating the inverse relationship $d \propto \frac{1}{Z}$.
+
+### Step 3: Visualizing Exponential Error Growth
+1. Leave the **Noise** set to `2.0 px`. 
+2. Slowly drag the **Distance (Z)** slider from `0.5 m` up to `6.0 m` and watch the **Error Curve** graph. 
+3. Notice that the graph is not a straight line—it sweeps upward. Check the **Uncertainty ($\Delta Z$)** readout. Because depth error grows with the *square* of the distance ($Z^2$), an object at 6 meters has drastically higher depth uncertainty than an object at 1 meter.
+
+### Step 4: Triggering the Stereo Blind Zone
+1. Push the **Distance (Z)** slider further right, beyond `8.0 m`.
+2. Keep watching the Disparity metric. Once it drops below `2.0 px`, the system triggers an **OUT OF BOUNDS** warning.
+3. Look at the **Camera POV**. The feeds will instantly black out and display a **TARGET LOST** message. This demonstrates the far-range blind zone where the pixel shift is too small for the system to reliably triangulate depth.
+
+### Step 5: Hardware Recovery (The Baseline Fix)
+1. Leave the object in the blind zone (e.g., at `10.0 m`).
+2. To recover the target without moving it closer, drag the **Baseline (B)** slider to the right (e.g., to `0.40 m`) to physically widen the gap between the cameras.
+3. Observe how increasing the baseline directly increases the disparity, clearing the "Target Lost" warning and roughly halving the depth uncertainty, bringing the object back into a reliable measurement range.
+
+### Step 6: Analyzing the Focal Length Trade-off
+1. Reset the simulation.
+2. Reduce the **Focal Length (f)** from `700 px` to `350 px` while keeping the baseline fixed.
+3. Observe the slider gradients. Notice how the blue "recommended" zones shrink. Shorter focal lengths provide a wider field of view, but the math dictates that depth errors will noticeably increase across all distances.

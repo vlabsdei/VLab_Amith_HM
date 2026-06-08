@@ -1,0 +1,193 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. During the simulation, you set $B = 10$ cm, $f = 700$ px, and $Z = 2$ m. The disparity was approximately 35 px. You then moved the object to $Z = 4$ m without changing any other setting. What disparity value did the simulation display?",
+      "answers": {
+        "a": "70 px",
+        "b": "35 px",
+        "c": "17.5 px",
+        "d": "140 px"
+      },
+      "explanations": {
+        "a": "No — 70 px is the disparity at $Z = 1$ m for these settings. Depth and disparity are inversely related ($Z = fB/d$), so doubling the distance halves the disparity — it doesn't double it.",
+        "b": "Not quite. 35 px was the disparity at $Z = 2$ m. Moving the object farther always reduces disparity. If it stayed at 35 px, the computed depth would still be 2 m, not 4 m.",
+        "c": "Exactly. Using $d = (f \\times B) / Z$: $d = (700 \\times 0.10) / 4 = 70 / 4 = 17.5$ px. When depth doubles from 2 m to 4 m, disparity halves from 35 px to 17.5 px. This is the inverse relationship you directly observed in the simulation when dragging the object depth slider.",
+        "d": "That's a common mix-up. 140 px corresponds to an object at $Z = 0.5$ m — four times closer than the original 2 m. Moving the object to 4 m (twice the distance) reduces disparity by half, not increases it. You've got the direction of the inverse relationship backwards."
+      },
+      "correctAnswer": "c",
+      "difficulty": "medium"
+    },
+    
+    
+    {
+      "question": "Q2. In the simulation, you compared two runs at $Z = 3$ m, $f = 700$ px, $\\sigma = 2$ px with different baselines — Run A used $B = 5$ cm and Run B used $B = 15$ cm. Which observation correctly describes what you saw on the uncertainty map?",
+      "answers": {
+        "a": "Run A showed lower uncertainty because a smaller baseline reduces occlusion at the edges",
+        "b": "Both runs showed identical uncertainty because the object distance Z did not change",
+        "c": "Run B showed lower uncertainty because a larger baseline produces larger disparities, reducing relative error",
+        "d": "Run A showed lower uncertainty because more of the scene is visible with a narrower baseline"
+      },
+      "explanations": {
+        "a": "Think again — occlusion affects the blind zone at image edges, not depth accuracy for visible objects. Depth uncertainty is governed by $\\Delta Z = Z^2 \\Delta d / (fB)$, where $B$ is in the denominator. A smaller $B$ means larger $\\Delta Z$, so Run A actually has worse accuracy.",
+        "b": "Not exactly — $Z$ was the same in both runs, but $B$ was different. Since $B$ appears in the denominator of $\\Delta Z = Z^2 \\Delta d / (fB)$, a different $B$ produces a different $\\Delta Z$ even when $Z$ is constant. The uncertainty maps are visibly different in the simulation.",
+        "c": "Right. With $B = 15$ cm, the denominator $(f \\times B) = 700 \\times 0.15 = 105$, versus $700 \\times 0.05 = 35$ for Run A. The uncertainty formula $\\Delta Z = Z^2 \\Delta d / (fB)$ gives Run B three times lower error than Run A. Run B's uncertainty map showed a noticeably cooler, less intense colour over the object, confirming better accuracy. Wider baseline → larger disparity → smaller relative error.",
+        "d": "Incorrect. A narrower baseline does provide a wider shared scene overlap in theory, but scene visibility and depth accuracy are separate concerns. Depth accuracy on a per-pixel basis is determined by the uncertainty formula, not by how much of the scene is visible. The uncertainty map measures measurement reliability, not scene coverage."
+      },
+      "correctAnswer": "c",
+      "difficulty": "medium"
+    },
+    
+    
+    {
+      "question": "Q3. You set $\\sigma = 4$ px noise on disparity. The depth map at $Z = 1$ m looked acceptable, but at $Z = 5$ m the same noise level made the depth map practically unusable. Which formula correctly explains why the same disparity noise causes much larger problems at greater distances?",
+      "answers": {
+        "a": "$Z = (f \\times B) / d$ — depth is inversely proportional to disparity",
+        "b": "$\\Delta Z = Z^2 \\cdot \\Delta d \\,/\\, (f \\times B)$ — depth uncertainty grows with the square of distance",
+        "c": "$X = (u - c_x) \\cdot Z \\,/\\, f_x$ — back-projection scales XY coordinates with depth",
+        "d": "$Z_{\\min} = (f \\times B) / d_{\\max}$ — minimum measurable depth defines the near range limit"
+      },
+      "explanations": {
+        "a": "Close, but not right. This formula computes the nominal depth from disparity, but it doesn't explain noise propagation. You need the error propagation formula to understand why the same $\\sigma$ causes larger damage at greater distances.",
+        "b": "Correct! $\\Delta Z = Z^2 \\Delta d / (fB)$ directly shows that depth uncertainty scales with $Z^2$. At $Z = 1$ m: $\\Delta Z = (1 \\times 4)/(700 \\times 0.10) \\approx 0.057$ m. At $Z = 5$ m: $\\Delta Z = (25 \\times 4)/(700 \\times 0.10) \\approx 1.43$ m — 25 times larger for the exact same 4 px noise. This matches what you saw: the far depth map became unreliable while the near one remained clean.",
+        "c": "No — this is the back-projection formula that converts 2D pixel coordinates and depth into 3D XY positions. It explains point cloud construction, not how disparity noise propagates into depth uncertainty.",
+        "d": "Not quite. This formula defines the closest object a stereo system can measure — a near-range constraint. You observed a far-range degradation problem, and the $Z_{\\min}$ formula addresses the opposite end entirely."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    
+    
+    {
+      "question": "Q4. You set Z = 9 m and observed large black patches over the object area in the depth map. What do these black patches indicate, and which slider adjustment would most directly recover valid depth readings at this distance?",
+      "answers": {
+        "a": "Black means the object surface is absorbing all projected light; increase scene brightness to fix it",
+        "b": "Black means disparity dropped below the minimum detectable threshold; increase baseline B to recover disparity at this range",
+        "c": "Black means the object moved outside the camera field of view; reduce focal length to widen the view",
+        "d": "Black means depth values exceeded the display colour scale; increase the maximum display range to reveal them"
+      },
+      "explanations": {
+        "a": "Incorrect. Black pixels in a depth map indicate unmeasurable depth, not photometric absorption. The stereo simulation doesn't model light absorption — that's a structured light concept. In stereo vision, the depth map is based on pixel matching geometry, not light intensity.",
+        "b": "Spot on. At $Z = 9$ m with $B = 10$ cm and $f = 700$ px, the disparity is $d = fB/Z = 70/9 \\approx 7.8$ px. With added noise, this falls below the reliable threshold and gets marked invalid (black). Increasing baseline $B$ increases the disparity for the same $Z$: at $B = 20$ cm, $d \\approx 15.6$ px — back above the reliable threshold. The simulation confirms this: widening the baseline slider reduces or eliminates the black patches at 9 m.",
+        "c": "Think again — an object at 9 m does not exit the field of view. Field of view is an angular property set by focal length and sensor size. The object is still in front of both cameras. Reducing focal length actually reduces disparity sensitivity, making depth measurement worse at long range.",
+        "d": "No — a display range issue would show the object in an unintended colour, not as black. Black is specifically the invalid pixel marker in depth maps — it means the disparity computation failed, not that a valid value is just out of display range."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    
+    
+    {
+      "question": "Q5. You ran the simulation twice with identical settings except focal length — Run 1 used $f = 400$ px and Run 2 used $f = 800$ px, both at $Z = 2$ m and $B = 10$ cm. Which pair of observations correctly describes both runs?",
+      "answers": {
+        "a": "Run 2 produced smaller disparity and higher depth error than Run 1",
+        "b": "Run 2 produced larger disparity and lower depth error than Run 1, but with a narrower field of view",
+        "c": "Run 1 produced larger disparity and lower depth error than Run 2, but with a wider field of view",
+        "d": "Both runs produced identical disparity because baseline and object distance were unchanged"
+      },
+      "explanations": {
+        "a": "Not exactly — a higher focal length produces larger disparity, not smaller. For Run 2: $d = (800 \\times 0.10)/2 = 40$ px. For Run 1: $d = (400 \\times 0.10)/2 = 20$ px. Run 2 has double the disparity and therefore lower depth error — the opposite of what this option claims.",
+        "b": "Yes — Run 2 ($f = 800$ px) gives $d = 40$ px versus Run 1's $d = 20$ px. More disparity means the depth formula operates with a stronger geometric signal, reducing proportional error. However, higher focal length also means a more zoomed-in field of view — you saw the scene appear more magnified in Run 2. This is the key trade-off: better depth precision at the cost of seeing less of the scene per frame.",
+        "c": "Incorrect. Run 1 has lower focal length ($f = 400$ px) and therefore produces smaller disparity (20 px vs 40 px) and higher depth error — not lower. The wider field of view part is correct, but the claim about lower depth error for Run 1 is wrong.",
+        "d": "That's a common mix-up. Focal length $f$ appears directly in the disparity formula $d = fB/Z$. Changing $f$ from 400 to 800 px doubles the disparity even when $B$ and $Z$ are unchanged. The simulation clearly shows different disparity values and depth map appearances for the two runs."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    
+    
+    {
+      "question": "Q6. You set $f = 700$ px, $B = 8$ cm, $\\sigma = 2$ px, $Z = 6$ m and observed RMSE = 34.7 cm — unacceptably high. Without changing $Z$, which single adjustment or combination reduces depth error most effectively, and by approximately what factor?",
+      "answers": {
+        "a": "Reduce $\\sigma$ from 2 px to 1 px — error reduces by factor of 2",
+        "b": "Increase $B$ from 8 cm to 24 cm — error reduces by factor of 3",
+        "c": "Increase $f$ from 700 px to 1400 px — error reduces by factor of 2",
+        "d": "Apply both option b and option c together — error reduces by factor of 6"
+      },
+      "explanations": {
+        "a": "Not wrong in isolation, but not the best answer. The formula $\\Delta Z = Z^2 \\Delta d / (fB)$ shows that halving noise $\\Delta d$ halves error — factor of 2. But physical disparity noise can't be reduced below a hardware minimum, and factor of 2 is less powerful than combining options b and c.",
+        "b": "Close, but not right. Tripling $B$ from 8 cm to 24 cm triples the denominator: $\\Delta Z = (36 \\times 2)/(700 \\times 0.24) = 72/168 \\approx 0.429$ m per noise pixel — factor of 3 improvement over the original $700 \\times 0.08 = 56$ denominator. Better than option a, but still not the maximum possible reduction.",
+        "c": "Not quite. Doubling $f$ from 700 to 1400 px doubles the denominator: $\\Delta Z = (36 \\times 2)/(1400 \\times 0.08) = 72/112 \\approx 0.643$ m per noise pixel — factor of 2 improvement. Same gain as reducing noise, but nowhere near factor of 6.",
+        "d": "You got it. Applying both $B \\times 3$ and $f \\times 2$ multiplies the denominator by 6: new $\\Delta Z = (36 \\times 2)/(1400 \\times 0.24) = 72/336 \\approx 0.214$ m per noise pixel. Error reduces by factor of 6, bringing 34.7 cm down to approximately 5.8 cm. Since $B$ and $f$ are both in the denominator, their improvements multiply rather than add. Adjusting both sliders simultaneously produces the sharpest uncertainty map reduction."
+      },
+      "correctAnswer": "d",
+      "difficulty": "hard"
+    },
+    
+    
+    {
+      "question": "Q7. In the simulation, you noticed a persistent black strip along the left edge of the depth map regardless of object placement or scene content. You tried varying focal length, noise, and object distance — the strip remained but changed width. Which explanation is correct, and which parameter most directly controls the strip width?",
+      "answers": {
+        "a": "The black strip is caused by dead pixels on the simulated sensor; it is a fixed hardware defect and no parameter can change its width",
+        "b": "The black strip is the stereo blind zone caused by occlusion — the left camera sees a region the right camera cannot; its width grows as baseline B increases",
+        "c": "The black strip is a colour scale rendering artefact; adjusting the depth display minimum value removes it completely",
+        "d": "The black strip appears because the focal length is set too high, cropping the image at the edges; reducing f removes the strip"
+      },
+      "explanations": {
+        "a": "No — dead pixels produce fixed isolated dots at the same pixel positions every time, unaffected by any optical parameter. The simulation shows a strip whose width changes with baseline — that's geometric behaviour, not a sensor defect.",
+        "b": "That's it. The left camera can see a region near the left edge of the scene that the right camera cannot — because the right camera is displaced to the right, it physically cannot look far enough left to see that region. In this zone, stereo matching fails because one image is missing. Wider baseline = larger angular separation between cameras = wider region where one camera cannot see what the other sees = wider black strip. When you drag baseline toward zero, the strip vanishes. When you increase baseline, the strip grows. This is the geometric trade-off of stereo vision.",
+        "c": "Not exactly — a colour scale issue would make all pixels below a depth threshold appear black uniformly across the image, shifting as you change object distance. The actual strip stays fixed at the image edge regardless of depth values, confirming it's a matching failure zone, not a display issue.",
+        "d": "Incorrect. Focal length zooms in or out, but both cameras zoom equally, so the stereo geometry scales proportionally. A high focal length narrows the field of view but does not create an occlusion zone at one specific edge. The edge strip grows with baseline, not with focal length."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    
+    
+    {
+      "question": "Q8. You ran three simulation trials at $Z = 3$ m with these settings: Trial 1 — $f = 700$ px, $B = 10$ cm, $\\sigma = 1$ px. Trial 2 — $f = 350$ px, $B = 20$ cm, $\\sigma = 1$ px. Trial 3 — $f = 700$ px, $B = 10$ cm, $\\sigma = 3$ px. Without calculating exact values, which ordering of RMSE values is correct?",
+      "answers": {
+        "a": "$\\text{RMSE}_1 = \\text{RMSE}_2 = \\text{RMSE}_3$ — all settings cancel out to the same result",
+        "b": "$\\text{RMSE}_1 < \\text{RMSE}_2$ and $\\text{RMSE}_1 < \\text{RMSE}_3$ — Trial 1 has the best accuracy",
+        "c": "$\\text{RMSE}_1 = \\text{RMSE}_2$ and both are less than $\\text{RMSE}_3$ — Trials 1 and 2 tie, both better than Trial 3",
+        "d": "$\\text{RMSE}_2 < \\text{RMSE}_1 < \\text{RMSE}_3$ — Trial 2 has the best accuracy because it uses the widest baseline"
+      },
+      "explanations": {
+        "a": "Think again — Trial 3 has $\\sigma = 3$ px versus $\\sigma = 1$ px in Trials 1 and 2. Even though the $f \\times B$ products are identical, the noise term $\\Delta d$ in $\\Delta Z = Z^2 \\Delta d / (fB)$ is three times larger in Trial 3. The three RMSE values cannot all be equal.",
+        "b": "No — Trial 1 and Trial 2 have different individual $f$ and $B$ values but identical products: $f \\times B = 700 \\times 0.10 = 70$ and $f \\times B = 350 \\times 0.20 = 70$. Since the uncertainty formula depends on $f \\times B$ as a product, not individually, $\\text{RMSE}_1 = \\text{RMSE}_2$ exactly. Trial 1 is not better than Trial 2.",
+        "c": "Correct! The depth uncertainty formula $\\Delta Z = Z^2 \\Delta d / (fB)$ depends on the product $f \\times B$, not on $f$ and $B$ separately. Trial 1: $700 \\times 0.10 = 70$. Trial 2: $350 \\times 0.20 = 70$. Identical products → identical uncertainty → $\\text{RMSE}_1 = \\text{RMSE}_2$. Trial 3 has the same $f \\times B = 70$ but three times the noise, giving three times the uncertainty. The simulation confirms: swapping $f$ and $B$ inversely produces the same quality depth map. This is a key insight — you can achieve equivalent depth accuracy with a narrow-lens wide-baseline camera or a telephoto narrow-baseline camera.",
+        "d": "Not quite. Trial 2's wider baseline is exactly compensated by its halved focal length. The product $f \\times B$ remains 70 for both Trial 1 and Trial 2 — the depth formula treats them as equivalent. $\\text{RMSE}_2 = \\text{RMSE}_1$, not $\\text{RMSE}_2 < \\text{RMSE}_1$."
+      },
+      "correctAnswer": "c",
+      "difficulty": "hard"
+    },
+    
+    
+    {
+      "question": "Q9. With $\\sigma = 0$ px and $d_{\\min} = 1$ px, you found the maximum measurable depth was approximately 70 m at $B = 10$ cm, $f = 700$ px. You then doubled baseline to $B = 20$ cm with everything else unchanged. How did $Z_{\\max}$ change, and what design insight does this reveal?",
+      "answers": {
+        "a": "$Z_{\\max}$ decreased by half because a wider baseline creates more occlusion and reduces effective range",
+        "b": "$Z_{\\max}$ stayed the same because $d_{\\min} = 1$ px is a fixed property and does not change with baseline",
+        "c": "$Z_{\\max}$ doubled to approximately 140 m because $Z_{\\max} = fB/d_{\\min}$ and $B$ was doubled while $d_{\\min}$ stayed at 1 px",
+        "d": "$Z_{\\max}$ quadrupled to approximately 280 m because depth range scales with $B^2$"
+      },
+      "explanations": {
+        "a": "No — occlusion affects the blind zone at the near edge of the depth map, not maximum measurable range. Max range is limited by minimum detectable disparity, which is independent of occlusion. Wider baseline actually extends max range.",
+        "b": "The logic sounds reasonable, but it's wrong. While $d_{\\min} = 1$ px remains constant, $Z_{\\max} = (f \\times B) / d_{\\min}$ contains $B$ in the numerator. When $B$ doubles, the numerator doubles, and $Z_{\\max}$ doubles. The $d_{\\min}$ being constant doesn't freeze $Z_{\\max}$; it means $Z_{\\max}$ scales linearly with whatever else changes in the numerator.",
+        "c": "Exactly. $Z_{\\max} = (f \\times B) / d_{\\min} = (700 \\times 0.20) / 1 = 140$ m versus the original $(700 \\times 0.10) / 1 = 70$ m. After doubling baseline, valid depth readings appeared at distances where only black existed before. This reveals a critical design insight — if you need to scan objects at 100 m instead of 50 m, double your baseline. Autonomous vehicle stereo cameras use baselines of 30–60 cm specifically for this reason.",
+        "d": "This confuses two different formulas. $Z_{\\max}$ scales linearly with $B$, not with $B^2$. The formula $Z_{\\max} = fB/d_{\\min}$ shows $B$ in the first power. The $Z^2$ relationship appears only in the uncertainty formula $\\Delta Z = Z^2 \\Delta d / (fB)$ — a completely different aspect of stereo performance."
+      },
+      "correctAnswer": "c",
+      "difficulty": "hard"
+    },
+    
+    
+    {
+      "question": "Q10. Suppose a stereo system has true parameters $f = 700$ px, $B = 10$ cm, and the object is at $Z = 2$ m with $\\sigma = 2$ px disparity noise. However, during calibration the focal length was mistakenly estimated as $f = 735$ px (a 5% overestimate). Which outcome best describes the depth map result, and why does this matter for real scanning practice?",
+      "answers": {
+        "a": "The depth map shows random noise similar to high $\\sigma$ settings because calibration errors behave like disparity noise",
+        "b": "The depth map shows a systematic 5% overestimation of all depth values on top of the random noise from $\\sigma = 2$ px",
+        "c": "The depth map shows a systematic 5% underestimation of all depth values on top of the random noise from $\\sigma = 2$ px",
+        "d": "The depth map shows no visible change because the 5% focal length error falls within the noise margin of $\\sigma = 2$ px"
+      },
+      "explanations": {
+        "a": "A calibration error is systematic — it shifts every pixel in the same direction by the same proportion. That's fundamentally different from random noise, which causes independent pixel-by-pixel fluctuations. The depth map patterns look completely different: systematic error gives a smooth but incorrectly scaled map, while noise gives a speckled irregular one.",
+        "b": "Right. $Z_{\\text{computed}} = (f_{\\text{wrong}} \\times B) / d = (735 \\times 0.10) / d$. Since $f_{\\text{wrong}} = 700 \\times 1.05$, every computed depth is exactly $1.05 \\times$ the true depth — a uniform 5% overestimation across the entire scene, simultaneously with the random $\\sigma = 2$ px scatter. This demonstrates why camera calibration must be performed accurately — even small calibration errors cause systematic measurement errors that cannot be corrected by taking more samples.",
+        "c": "Not quite. Using $f_{\\text{wrong}} = 735$ px (larger than the true 700 px) in $Z = fB/d$ produces larger $Z$ values — that's overestimation, not underestimation. To get underestimation, you'd need a focal length smaller than the true value (e.g., $f = 665$ px would underestimate by 5%).",
+        "d": "Think again — a 5% systematic error at $Z = 2$ m produces a 10 cm shift in every depth reading — all pixels show ~2.1 m instead of ~2.0 m. The $\\sigma = 2$ px noise contributes approximately $\\pm 5.7$ cm scatter at this range. The systematic error (10 cm) is clearly larger than the noise scatter and easily visible as a consistent offset."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}

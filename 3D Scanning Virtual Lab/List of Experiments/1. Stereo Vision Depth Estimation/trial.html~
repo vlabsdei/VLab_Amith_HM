@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stereo Vision Depth Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background-color: #eef2f5; 
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 20px;
+            /* Force the body to never shrink below a monitor's width */
+            min-width: 1200px; 
+            overflow-x: auto; 
+        }
+
+        /* ---------------------------------------------------
+           THE UNBREAKABLE LAYOUT 
+           Using flex-wrap: nowrap makes stacking impossible 
+        ---------------------------------------------------- */
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; 
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: nowrap; /* FORCES elements to stay side-by-side */
+            gap: 20px;
+            width: 100%;
+        }
+
+        .top-row { height: 45vh; min-height: 400px; }
+        .bottom-row { height: 35vh; min-height: 300px; }
+
+        /* Exact Proportions (Subtracting the 20px gaps) */
+        .w-65 { width: calc(65% - 10px); }
+        .w-35 { width: calc(35% - 10px); }
+        .w-40 { width: calc(40% - 13.33px); }
+        .w-30 { width: calc(30% - 13.33px); }
+
+        /* ---------------------------------------------------
+           CARD & COMPONENT STYLES
+        ---------------------------------------------------- */
+        .app-header { background: #ffffff; padding: 20px 25px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .app-header h1 { font-size: 1.5rem; color: #2c3e50; margin-bottom: 5px; }
+        .app-header p { font-size: 1rem; color: #7f8c8d; }
+
+        .card {
+            background: #ffffff; border-radius: 20px; padding: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            height: 100%;
+        }
+
+        .card-title { font-size: 0.95rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin: 5px 0 10px 10px; }
+
+        .canvas-container, .chart-container {
+            flex-grow: 1; position: relative; width: 100%; background: #f8f9fa;
+            border-radius: 12px; overflow: hidden; min-height: 200px;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+        .metrics-content { display: flex; flex-direction: column; gap: 15px; padding: 10px; height: 100%; justify-content: center; }
+        .metric-item { display: flex; justify-content: space-between; align-items: center; background: #f0f4f8; padding: 15px 20px; border-radius: 12px; }
+        .metric-label { font-size: 1.1rem; font-weight: 600; color: #34495e; }
+        .metric-value { font-size: 1.8rem; font-weight: 700; color: #0056b3; font-variant-numeric: tabular-nums; }
+        .warning-box { background: #e74c3c; color: #fff; padding: 15px; border-radius: 12px; font-weight: bold; text-align: center; }
+        .hidden { display: none !important; }
+
+        .sliders-content { padding: 10px; display: flex; flex-direction: column; justify-content: space-around; height: 100%; }
+        .slider-group { margin-bottom: 10px; }
+        .slider-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
+
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; outline: none; cursor: pointer; background: #3498db; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid #2c3e50; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="layout-container">
+        
+        <header class="app-header">
+            <h1>Experiment 1: Stereo Depth Vision</h1>
+            <p>Adjust variables below to see real-time depth calculation, camera disparity, and limitations.</p>
+        </header>
+
+        <div class="row top-row">
+            <section class="card w-65">
+                <h2 class="card-title">Workstation (Top-Down)</h2>
+                <div class="canvas-container"><canvas id="apparatusCanvas"></canvas></div>
+            </section>
+
+            <section class="card w-35">
+                <h2 class="card-title">Real-Time Matrix</h2>
+                <div class="metrics-content">
+                    <div class="metric-item">
+                        <span class="metric-label">Disparity (d)</span>
+                        <span class="metric-value" id="disparity-display">-- px</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Uncertainty (ΔZ)</span>
+                        <span class="metric-value" id="uncertainty-display">-- m</span>
+                    </div>
+                    <div id="blind-zone-warning" class="warning-box hidden">
+                        ⚠️ OUT OF BOUNDS: Disparity < 2px. The target is in the Stereo Blind Zone.
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="row bottom-row">
+            <section class="card w-40">
+                <h2 class="card-title">Variables</h2>
+                <div class="sliders-content">
+                    <div class="slider-group">
+                        <div class="slider-labels"><label>Baseline (B)</label><span><span id="baseline-val">0.10</span> m</span></div>
+                        <input type="range" id="baseline" min="0.01" max="0.50" step="0.01" value="0.10">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-labels"><label>Focal Length (f)</label><span><span id="focal-val">700</span> px</span></div>
+                        <input type="range" id="focalLength" min="300" max="1200" step="10" value="700">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-labels"><label>Distance (Z)</label><span><span id="distance-val">2.0</span> m</span></div>
+                        <input type="range" id="objectDistance" min="0.5" max="15.0" step="0.1" value="2.0">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-labels"><label>Noise (Δd)</label><span><span id="noise-val">2.0</span> px</span></div>
+                        <input type="range" id="noiseLevel" min="0" max="5" step="0.5" value="2.0">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card w-30">
+                <h2 class="card-title">Error Curve</h2>
+                <div class="chart-container"><canvas id="errorChart"></canvas></div>
+            </section>
+
+            <section class="card w-30">
+                <h2 class="card-title">Camera POV</h2>
+                <div class="canvas-container"><canvas id="cameraCanvas"></canvas></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const DOM = {
+            b: document.getElementById('baseline'), f: document.getElementById('focalLength'),
+            z: document.getElementById('objectDistance'), noise: document.getElementById('noiseLevel'),
+            bVal: document.getElementById('baseline-val'), fVal: document.getElementById('focal-val'),
+            zVal: document.getElementById('distance-val'), nVal: document.getElementById('noise-val'),
+            disp: document.getElementById('disparity-display'), uncert: document.getElementById('uncertainty-display'),
+            warn: document.getElementById('blind-zone-warning'),
+            appCanvas: document.getElementById('apparatusCanvas'),
+            camCanvas: document.getElementById('cameraCanvas')
+        };
+
+        const ctxApp = DOM.appCanvas.getContext('2d');
+        const ctxCam = DOM.camCanvas.getContext('2d');
+        let errorChart;
+        let currentB = 0.10, currentZ = 2.0, targetB = 0.10, targetZ = 2.0;
+
+        const calcDisparity = (f, B, Z) => (f * B) / Z;
+        const calcUncertainty = (Z, noise, f, B) => (Math.pow(Z, 2) * noise) / (f * B);
+        const lerp = (start, end, factor) => start + (end - start) * factor;
+
+        function resetSimulation() {
+            DOM.b.value = "0.10"; DOM.f.value = "700"; DOM.z.value = "2.0"; DOM.noise.value = "2";
+            currentB = 0.10; targetB = 0.10; currentZ = 2.0; targetZ = 2.0;
+        }
+
+        function initChart() {
+            errorChart = new Chart(document.getElementById('errorChart').getContext('2d'), {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Error (m)', data: [], borderColor: '#0056b3', backgroundColor: 'rgba(0, 86, 179, 0.1)', borderWidth: 2, fill: true, pointRadius: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { title: { display: true, text: 'Distance (m)' } } } }
+            });
+        }
+
+        function getPercent(val, min, max) { return Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100)); }
+
+        function updateSliderColors(B, f, Z) {
+            const minB = (2 * Z) / f; const bPer = getPercent(minB, 0.01, 0.50);
+            DOM.b.style.background = `linear-gradient(to right, #e74c3c ${bPer}%, #3498db ${bPer}%)`;
+
+            const minf = (2 * Z) / B; const fPer = getPercent(minf, 300, 1200);
+            DOM.f.style.background = `linear-gradient(to right, #e74c3c ${fPer}%, #3498db ${fPer}%)`;
+
+            const maxZ = (f * B) / 2; const zPer = getPercent(maxZ, 0.5, 15.0);
+            DOM.z.style.background = `linear-gradient(to right, #3498db ${zPer}%, #e74c3c ${zPer}%)`;
+
+            DOM.noise.style.background = '#3498db';
+        }
+
+        function updateUI() {
+            targetB = parseFloat(DOM.b.value); targetZ = parseFloat(DOM.z.value);
+            const f = parseFloat(DOM.f.value), noise = parseFloat(DOM.noise.value);
+
+            DOM.bVal.innerText = targetB.toFixed(2); DOM.fVal.innerText = f;
+            DOM.zVal.innerText = targetZ.toFixed(1); DOM.nVal.innerText = noise.toFixed(1);
+
+            updateSliderColors(targetB, f, targetZ);
+
+            const disp = calcDisparity(f, targetB, targetZ);
+            const uncert = calcUncertainty(targetZ, noise, f, targetB);
+
+            DOM.disp.innerText = disp.toFixed(1) + " px";
+            DOM.uncert.innerText = "± " + uncert.toFixed(3) + " m";
+
+            if (disp < 2) { 
+                DOM.warn.classList.remove('hidden'); DOM.disp.style.color = '#e74c3c'; 
+            } else { 
+                DOM.warn.classList.add('hidden'); DOM.disp.style.color = '#0056b3'; 
+            }
+
+            const dists = [], uncerts = [];
+            for (let d = 0.5; d <= 15; d += 0.5) { dists.push(d.toFixed(1)); uncerts.push(calcUncertainty(d, noise, f, targetB).toFixed(3)); }
+            errorChart.data.labels = dists; errorChart.data.datasets[0].data = uncerts; errorChart.update();
+        }
+
+        function resizeCanvases() {
+            [DOM.appCanvas, DOM.camCanvas].forEach(canvas => {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+                canvas.style.width = `${rect.width}px`; canvas.style.height = `${rect.height}px`;
+                canvas.getContext('2d').scale(dpr, dpr);
+            });
+        }
+
+        function drawDiamond(ctx, x, y, colorStr) {
+            ctx.save(); ctx.translate(x, y);
+            ctx.fillStyle = colorStr;
+            ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(15, 0); ctx.lineTo(0, 20); ctx.lineTo(-15, 0); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(15, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(-15, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawCameraPOV(w, h, disp, Z) {
+            ctxCam.clearRect(0, 0, w, h);
+            let hue = ((Z - 0.5) / (15.0 - 0.5)) * 240;
+            hue = Math.max(0, Math.min(240, hue));
+            const diamondColor = disp < 2 ? '#555' : `hsl(${hue}, 80%, 50%)`;
+            const halfW = w / 2;
+            
+            ctxCam.fillStyle = '#1e272e'; ctxCam.fillRect(0, 0, halfW - 5, h);
+            ctxCam.fillStyle = '#1e272e'; ctxCam.fillRect(halfW + 5, 0, halfW - 5, h);
+
+            ctxCam.fillStyle = '#fff'; ctxCam.font = '12px sans-serif'; ctxCam.textAlign = 'left';
+            ctxCam.fillText("LEFT SENSOR", 10, 20); ctxCam.fillText("RIGHT SENSOR", halfW + 15, 20);
+
+            const centerY = h / 2, centerLeftCam = (halfW - 5) / 2, centerRightCam = halfW + 5 + (halfW - 5) / 2;
+            drawDiamond(ctxCam, centerLeftCam + (disp/2), centerY, diamondColor);
+            drawDiamond(ctxCam, centerRightCam - (disp/2), centerY, diamondColor);
+
+            ctxCam.strokeStyle = 'rgba(255,255,255,0.2)'; ctxCam.beginPath();
+            ctxCam.moveTo(centerLeftCam, 0); ctxCam.lineTo(centerLeftCam, h);
+            ctxCam.moveTo(centerRightCam, 0); ctxCam.lineTo(centerRightCam, h);
+            ctxCam.stroke();
+
+            if (disp < 2) {
+                ctxCam.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctxCam.fillRect(0, 0, w, h);
+                ctxCam.fillStyle = '#fff'; ctxCam.font = 'bold 16px sans-serif'; ctxCam.textAlign = 'center';
+                ctxCam.fillText("TARGET LOST", w/2, h/2);
+            }
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            currentB = lerp(currentB, targetB, 0.08); currentZ = lerp(currentZ, targetZ, 0.08);
+            const f = parseFloat(DOM.f.value);
+            
+            const wA = parseFloat(DOM.appCanvas.style.width) || DOM.appCanvas.width;
+            const hA = parseFloat(DOM.appCanvas.style.height) || DOM.appCanvas.height;
+            ctxApp.clearRect(0, 0, wA, hA);
+
+            const cx = wA / 2, groundY = hA - 60, scaleX = (wA * 0.5) / 0.50, scaleY = (hA * 0.65) / 15.0; 
+            const camLeftX = cx - (currentB / 2) * scaleX, camRightX = cx + (currentB / 2) * scaleX;
+            const objectX = cx, objectY = groundY - (currentZ * scaleY);
+
+            ctxApp.beginPath(); ctxApp.setLineDash([8, 8]); ctxApp.lineDashOffset = -time / 20;
+            ctxApp.moveTo(camLeftX, groundY); ctxApp.lineTo(objectX, objectY);
+            ctxApp.moveTo(camRightX, groundY); ctxApp.lineTo(objectX, objectY);
+            ctxApp.strokeStyle = 'rgba(52, 152, 219, 0.6)'; ctxApp.lineWidth = 2; ctxApp.stroke(); ctxApp.setLineDash([]);
+
+            drawDiamond(ctxApp, objectX, objectY, '#9b59b6');
+
+            ctxApp.fillStyle = '#2c3e50';
+            ctxApp.fillRect(camLeftX - 15, groundY - 10, 30, 20); ctxApp.fillRect(camRightX - 15, groundY - 10, 30, 20);
+
+            ctxApp.fillStyle = '#34495e'; ctxApp.font = 'bold 14px sans-serif'; ctxApp.textAlign = 'center';
+            ctxApp.fillText(`Target (Z = ${targetZ.toFixed(1)}m)`, objectX, objectY - 35);
+            ctxApp.fillText(`Baseline (B) = ${targetB.toFixed(2)}m`, cx, groundY + 40);
+
+            const wC = parseFloat(DOM.camCanvas.style.width) || DOM.camCanvas.width;
+            const hC = parseFloat(DOM.camCanvas.style.height) || DOM.camCanvas.height;
+            drawCameraPOV(wC, hC, calcDisparity(f, currentB, currentZ), currentZ);
+        }
+
+        [DOM.b, DOM.f, DOM.z, DOM.noise].forEach(input => input.addEventListener('input', updateUI));
+        window.addEventListener('resize', resizeCanvases);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            resetSimulation(); initChart(); resizeCanvases(); updateUI(); requestAnimationFrame(animate); 
+        });
+    </script>
+</body>
+</html>
