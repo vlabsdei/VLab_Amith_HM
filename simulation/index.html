@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stereo Vision Depth Estimation</title>
+  <meta name="description" content="Interactive stereo vision rig setup wizard. Mount cameras and calibration target before proceeding to simulation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+  <!-- ================= SETUP VIEW ================= -->
+  <div id="setup-view" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <main id="app-main">
+      <!-- ═══ LEFT PANEL ═══ -->
+      <aside id="wizard-panel">
+        <!-- Step Info with real-world reference -->
+        <div id="wizard-info">
+          <div class="step-badge" id="step-badge">STEP 1 OF 5</div>
+          <h2 id="wizard-title">Mount the Rail Assembly</h2>
+          <p id="wizard-text">Deploy the aluminum T-slot rail system onto the optical breadboard. The horizontal rail controls camera baseline spacing (0–50 cm), while the perpendicular depth rail guides the target (0–10 m).</p>
+          <div id="wizard-task" class="task-box">
+            Select <strong>Rail Assembly</strong> from the apparatus list → Click <strong>Mount Component</strong>.
+          </div>
+          <!-- Real-world reference image -->
+          <div class="ref-image-box" id="ref-image-box">
+            <img id="ref-image" src="images/rail_assembly.png" alt="Rail Assembly" class="ref-image" />
+            <p class="ref-caption" id="ref-caption">Anodized aluminum T-slot optical rail with linear carriages.</p>
+          </div>
+        </div>
+        <!-- 3D View Controls -->
+        <div id="view-controls">
+          <div class="legend-title">3D View Controls</div>
+          <div class="control-hints desktop-controls">
+            <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="control-hints mobile-controls">
+            <div class="hint-row"><span class="hint-key">👆 1 Finger</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">✌️ 2 Fingers</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">🤏 Pinch</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+          <div class="preset-btns">
+            <button class="btn-preset active" id="preset-iso">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+              Isometric
+            </button>
+            <button class="btn-preset" id="preset-top">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+              Top
+            </button>
+            <button class="btn-preset" id="preset-front">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+              Front
+            </button>
+            <button class="btn-preset" id="preset-side">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+              Side
+            </button>
+          </div>
+        </div>
+      </aside>
+      <!-- ═══ CENTER PANEL — 3D CANVAS + OBSERVATIONS ═══ -->
+      <section id="canvas-area">
+        <div class="top-row" style="display: flex; flex-direction: row; flex: 2; gap: 6px; min-height: 0;">
+          <div class="canvas-card" id="card-3d" style="flex: 4;">
+            <div class="card-header">
+              <span class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                3D Rig Setup — Interactive View
+              </span>
+              <span class="card-sub" id="canvas-status">Mount components sequentially to build the stereo rig</span>
+            </div>
+            <div id="setup-canvas-container">
+              <canvas id="setup-canvas-webgl"></canvas>
+              <canvas id="setup-canvas-2d"></canvas>
+            </div>
+          </div>
+          <!-- Disparity Measurement Visualization (Right side) -->
+          <div class="disparity-card" id="disparity-card" style="display:none; flex: 1; height: auto;">
+            <div class="obs-header">
+              <span class="obs-dot" style="background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,0.4)"></span>
+              <span class="obs-label" style="color: #334155; font-weight: 600;">Disparity Measurement</span>
+            </div>
+            <canvas id="disparity-canvas" style="width: 100%; height: 100%; min-height: 0;"></canvas>
+          </div>
+        </div>
+        <!-- Camera Raw Observations (visible after all components mounted) -->
+        <div class="obs-row" id="obs-row" style="display:none">
+          <div class="obs-card">
+            <div class="obs-header">
+              <span class="obs-dot obs-dot-blue"></span>
+              <span class="obs-label">Camera L — Raw Observation</span>
+            </div>
+            <canvas id="obs-canvas-L"></canvas>
+          </div>
+          <div class="obs-card">
+            <div class="obs-header">
+              <span class="obs-dot obs-dot-teal"></span>
+              <span class="obs-label">Camera R — Raw Observation</span>
+            </div>
+            <canvas id="obs-canvas-R"></canvas>
+          </div>
+        </div>
+      </section>
+      <!-- ═══ RIGHT PANEL ═══ -->
+      <aside id="controls-panel">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Apparatus
+        </h3>
+        <div class="apparatus-list">
+          <div class="apparatus-card selected" data-comp="rails">
+            <svg viewBox="0 0 24 24" fill="#64748b" class="apparatus-thumb" style="padding: 6px;">
+              <rect x="10" y="2" width="4" height="20" rx="1.5" />
+              <rect x="2" y="10" width="20" height="4" rx="1.5" />
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Rail Assembly</span>
+              <span class="apparatus-status" id="state-rails">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="camL">
+            <svg viewBox="0 0 24 24" fill="#3b82f6" class="apparatus-thumb cam-l-thumb" style="padding: 8px;">
+              <path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Camera L <small>(Blue)</small></span>
+              <span class="apparatus-status" id="state-camL">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="camR">
+            <svg viewBox="0 0 24 24" fill="#06b6d4" class="apparatus-thumb cam-r-thumb" style="padding: 8px;">
+              <path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Camera R <small>(Teal)</small></span>
+              <span class="apparatus-status" id="state-camR">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="target">
+            <img src="images/checkerboard_cube.png" alt="Target" class="apparatus-thumb" />
+            <div class="apparatus-info">
+              <span class="apparatus-name">Target Cube</span>
+              <span class="apparatus-status" id="state-target">Unmounted</span>
+            </div>
+          </div>
+        </div>
+        <!-- Mount Button -->
+        <button id="btn-mount" class="btn-primary btn-mount-anim">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+          Mount Component
+        </button>
+        <p id="mount-warning" class="mount-warning"></p>
+        <div class="divider"></div>
+        <!-- Component Specifications -->
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Component Specs
+        </h3>
+        <div id="spec-content" class="spec-content">
+          <p class="specs-placeholder">Select a component to view specifications.</p>
+        </div>
+        <!-- Live Readouts -->
+        <div id="setup-live-params" class="live-params-box" style="display:none">
+          <div class="divider"></div>
+          <h3 class="panel-heading">
+            <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            Live Readouts
+          </h3>
+          <div class="readout-grid">
+            <div class="readout-card">
+              <span class="rc-label">Baseline <em>B</em></span>
+              <span class="rc-value" id="live-B">&mdash;</span>
+              <span class="rc-unit">cm</span>
+            </div>
+            <div class="readout-card">
+              <span class="rc-label">Depth <em>Z</em></span>
+              <span class="rc-value" id="live-Z">&mdash;</span>
+              <span class="rc-unit">m</span>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <a href="#" id="btn-go-sim" class="btn-primary btn-sim" disabled style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Go To Simulation
+        </a>
+        <button id="btn-reset" class="btn-reset">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset Setup
+        </button>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ================= SIMULATION VIEW ================= -->
+  <div id="simulation-view" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+    <main id="app-main">
+      <!-- LEFT: WIZARD PANEL -->
+      <aside id="wizard-panel">
+        <div id="wizard-icon" class="wizard-icon-svg">
+          <!-- SVG camera icon injected by JS -->
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <h2 id="wizard-title">Welcome</h2>
+        <p id="wizard-text"></p>
+        <div id="wizard-task" class="task-box hidden"></div>
+        <div class="wizard-btns">
+          <button id="btn-next" class="btn-primary">Next Step</button>
+          <button id="btn-skip" class="btn-ghost">Skip to Simulation</button>
+          <button id="btn-go-setup" class="btn-ghost" onclick="window.location.reload()">Go to Setup</button>
+        </div>
+        <!-- Camera View Legend -->
+        <div class="legend-box" id="camera-legend">
+          <div class="legend-title">Camera View Legend</div>
+          <div class="legend-row">
+            <span class="legend-swatch obj-swatch"></span>
+            <span>Orange rectangle = Object</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch centre-swatch"></span>
+            <span>Dashed line = Image centre</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch disparity-swatch"></span>
+            <span>Gold bracket = Disparity (d)</span>
+          </div>
+        </div>
+        <div class="legend-box" id="legend-box">
+          <div class="legend-title">Depth Map Key</div>
+          <div class="legend-row">
+            <span class="legend-swatch near"></span>
+            <span>Near object</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch far"></span>
+            <span>Far / background</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch invalid"></span>
+            <span>Invalid (d &lt; 1 px)</span>
+          </div>
+          <div class="legend-title" style="margin-top:8px">Uncertainty Map Key</div>
+          <div class="legend-row">
+            <span class="legend-swatch reliable"></span>
+            <span>Reliable depth</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch unreliable"></span>
+            <span>Unreliable depth</span>
+          </div>
+        </div>
+      </aside>
+      <!-- CENTER: CANVAS AREA -->
+      <section id="canvas-area">
+        <!-- Row 1: Scene overview + Camera views -->
+        <div class="canvas-row" id="row-top">
+          <div class="canvas-card" id="card-scene">
+            <div class="card-header">
+              <span class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                Scene — Top View
+              </span>
+              <span class="card-sub">Cameras looking down the Z-axis</span>
+            </div>
+            <canvas id="cvs-scene"></canvas>
+          </div>
+          <div class="canvas-card" id="card-cameras">
+            <div class="card-header">
+              <span class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Camera Views
+              </span>
+              <span class="card-sub">Disparity bracket shown in gold</span>
+            </div>
+            <div class="dual-cam">
+              <div class="cam-wrap">
+                <div class="cam-label left-label">Left Camera</div>
+                <canvas id="cvs-left" width="280" height="210"></canvas>
+              </div>
+              <div class="cam-wrap">
+                <div class="cam-label right-label">Right Camera</div>
+                <canvas id="cvs-right" width="280" height="210"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Row 2: Depth map + Uncertainty map -->
+        <div class="canvas-row" id="row-bottom" style="display: flex; gap: 8px;">
+          <!-- Depth Map 3D Solid -->
+          <div class="canvas-card" id="card-depth3d" style="flex: 1;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  Depth Map (3D Mesh)
+                </span>
+                <span class="card-sub">Interactive: Orbit &bull; Pan &bull; Zoom</span>
+              </div>
+              <div class="info-tooltip">
+                <div class="info-btn">i</div>
+                <div class="tooltip-content">
+                  <strong>Depth Map</strong>
+                  This is a 3D visualization of how far objects are from the cameras.
+                  <br><br>&bull; <span style="color:#ea580c; font-weight:bold;">Orange (High Peaks)</span>: Objects are closer.
+                  <br>&bull; <span style="color:#22c55e; font-weight:bold;">Green (Low Valleys)</span>: Objects are farther away.
+                  <br><br><em style="color:#94a3b8;">Rotate and zoom to explore the 3D shape of the target!</em>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-depth3d" style="width: 100%; height: 100%; cursor: grab;"></canvas>
+            <div class="colorbar-row">
+              <span class="cb-label">Near</span>
+              <div class="colorbar pc-bar" style="background: linear-gradient(to right, #ea580c, #22c55e); opacity: 0.8; margin: 0 8px;"></div>
+              <span class="cb-label">Far</span>
+            </div>
+          </div>
+          <!-- Uncertainty 3D Wireframe -->
+          <div class="canvas-card" id="card-unc3d" style="flex: 1;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Uncertainty Map (Topographic)
+                </span>
+                <span class="card-sub">Interactive: Orbit &bull; Pan &bull; Zoom</span>
+              </div>
+              <div class="info-tooltip">
+                <div class="info-btn">i</div>
+                <div class="tooltip-content">
+                  <strong>Uncertainty Map</strong>
+                  This shows how confident the system is about the depth at each point.
+                  <br><br>&bull; <span style="color:#22c55e; font-weight:bold;">Flat & Green</span>: High confidence (very accurate).
+                  <br>&bull; <span style="color:#ef4444; font-weight:bold;">Spiky & Red</span>: High uncertainty (system is guessing).
+                  <br><br><em style="color:#94a3b8;">Watch how the uncertainty spikes change when you adjust the Baseline!</em>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-unc3d" style="width: 100%; height: 100%; cursor: grab;"></canvas>
+            <div class="colorbar-row">
+              <span class="cb-label">Flat = Reliable</span>
+              <div class="colorbar pc-bar" style="background: linear-gradient(to right, #22c55e, #ef4444); opacity: 0.8; margin: 0 8px;"></div>
+              <span class="cb-label">Spikes = Unreliable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- RIGHT: CONTROLS -->
+      <aside id="controls-panel">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Parameters
+        </h3>
+        <!-- Baseline -->
+        <div class="ctrl-group" id="grp-baseline">
+          <div class="ctrl-top">
+            <span class="ctrl-name">Baseline <em>B</em></span>
+            <span class="ctrl-val" id="lbl-B">10 cm</span>
+          </div>
+          <div class="slider-track" id="track-B">
+            <input type="range" id="rng-B" min="2" max="50" step="0.5" value="10" />
+          </div>
+          <div class="ctrl-range-row">
+            <span>2 cm</span><span>50 cm</span>
+          </div>
+          <p class="ctrl-hint">Wider = better accuracy at distance; larger blind zone at edges</p>
+        </div>
+        <!-- Focal Length -->
+        <div class="ctrl-group" id="grp-focal">
+          <div class="ctrl-top">
+            <span class="ctrl-name">Focal Length <em>f</em></span>
+            <span class="ctrl-val" id="lbl-f">700 px</span>
+          </div>
+          <div class="slider-track" id="track-f">
+            <input type="range" id="rng-f" min="200" max="1000" step="10" value="700" />
+          </div>
+          <div class="ctrl-range-row">
+            <span>200 px</span><span>1000 px</span>
+          </div>
+          <p class="ctrl-hint">Higher f = better precision but narrower field of view</p>
+        </div>
+        <!-- Object Distance -->
+        <div class="ctrl-group" id="grp-Z">
+          <div class="ctrl-top">
+            <span class="ctrl-name">Object Distance <em>Z</em></span>
+            <span class="ctrl-val" id="lbl-Z">2.00 m</span>
+          </div>
+          <div class="slider-track" id="track-Z">
+            <input type="range" id="rng-Z" min="0.3" max="10" step="0.05" value="2" />
+          </div>
+          <div class="ctrl-range-row">
+            <span>0.3 m</span><span>10 m</span>
+          </div>
+          <p class="ctrl-hint">Moves the object closer or farther from the camera pair</p>
+        </div>
+        <!-- Noise -->
+        <div class="ctrl-group" id="grp-noise">
+          <div class="ctrl-top">
+            <span class="ctrl-name">Disparity Noise <em>&sigma;</em></span>
+            <span class="ctrl-val" id="lbl-s">0.0 px</span>
+          </div>
+          <div class="slider-track" id="track-s">
+            <input type="range" id="rng-s" min="0" max="8" step="0.1" value="0" />
+          </div>
+          <div class="ctrl-range-row">
+            <span>0 px</span><span>8 px</span>
+          </div>
+          <p class="ctrl-hint">Gaussian noise on disparity — watch RMSE grow with distance</p>
+        </div>
+        <div class="divider"></div>
+        <!-- Live Readouts -->
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Live Readouts
+        </h3>
+        <div class="readout-grid">
+          <div class="readout-card" id="rc-d">
+            <span class="rc-label">Disparity <em>d</em></span>
+            <span class="rc-value" id="out-d">&mdash;</span>
+            <span class="rc-unit">px</span>
+          </div>
+          <div class="readout-card">
+            <span class="rc-label">Computed <em>Z</em></span>
+            <span class="rc-value" id="out-Z">&mdash;</span>
+            <span class="rc-unit">m</span>
+          </div>
+          <div class="readout-card" id="rc-dz">
+            <span class="rc-label">Uncertainty <em>&Delta;Z</em></span>
+            <span class="rc-value" id="out-dZ">&mdash;</span>
+            <span class="rc-unit">cm</span>
+          </div>
+          <div class="readout-card" id="rc-rmse">
+            <span class="rc-label">RMSE</span>
+            <span class="rc-value" id="out-rmse">&mdash;</span>
+            <span class="rc-unit">cm</span>
+          </div>
+        </div>
+        <!-- Formula display -->
+        <div class="formula-card">
+          <div class="formula-line">
+            <span class="f-eq">Z&nbsp;=&nbsp;(f &times; B)&nbsp;/&nbsp;d</span>
+            <span class="f-live" id="f-Z">= &mdash;</span>
+          </div>
+          <div class="formula-line">
+            <span class="f-eq">&Delta;Z&nbsp;=&nbsp;Z&sup2;&middot;&sigma;&nbsp;/&nbsp;(f&times;B)</span>
+            <span class="f-live" id="f-dZ">= &mdash;</span>
+          </div>
+        </div>
+        <button id="btn-reset" class="btn-reset">Reset Defaults</button>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+
+  <script>
+    document.getElementById('btn-go-sim').addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const setupView = document.getElementById('setup-view');
+      if (setupView) setupView.remove();
+      
+      document.getElementById('simulation-view').style.display = 'flex';
+      
+      // Start the simulation engine
+      if (typeof init === 'function') init();
+    });
+  </script>
+</body>
+</html>
