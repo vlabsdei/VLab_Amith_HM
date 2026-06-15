@@ -1,0 +1,194 @@
+{
+  "version": 2.0,
+  "questions": [
+  
+    {
+      "question": "Q1. What is disparity in the context of stereo vision?",
+      "answers": {
+        "a": "The difference in brightness between the left and right camera images",
+        "b": "The horizontal pixel shift of the same scene point between the left and right camera images",
+        "c": "The vertical distance between the two cameras",
+        "d": "The difference in focal length between the two cameras"
+      },
+      "explanations": {
+        "a": "No — brightness difference relates to exposure or lighting, not depth. Disparity is purely geometric, based on pixel position, not image intensity.",
+        "b": "Exactly. Disparity is the horizontal difference in pixel position of the same point as seen by the left and right cameras. A nearby object shifts more between the two views than a distant object. This shift is what allows depth to be calculated using the formula $Z = (f \\times B) / d$.",
+        "c": "Not quite. The physical separation between the cameras is called the baseline ($B$), measured in metres, not pixels. Disparity refers to the horizontal pixel shift of a point between the two images.",
+        "d": "Think again — both cameras use the same focal length in a stereo system. Disparity isn't a lens property; it's the measured horizontal pixel difference of the same point appearing in both images."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q2. A nearby object has a disparity of 80 pixels. If the object is moved farther away from the camera, what happens to the disparity?",
+      "answers": {
+        "a": "It increases because the object is harder to see at a distance",
+        "b": "It stays the same because the cameras do not move",
+        "c": "It decreases because the two camera views become more similar for distant objects",
+        "d": "It doubles because depth increases"
+      },
+      "explanations": {
+        "a": "Not exactly — difficulty of seeing has nothing to do with disparity. Disparity is a geometric measurement of pixel shift, and moving an object farther actually decreases it.",
+        "b": "That's a common mix-up. Even though the cameras are fixed, the object's projected position in each view changes as it moves. Farther objects cause both views to converge, reducing disparity.",
+        "c": "Spot on. As an object moves farther away, each camera sees it from a more similar angle, and the horizontal shift between the two images shrinks. At infinite distance, disparity approaches zero. The formula $d = (f \\times B) / Z$ confirms this: as $Z$ increases, $d$ decreases proportionally.",
+        "d": "No — it's the opposite. From $Z = (f \\times B) / d$, if depth $Z$ doubles, disparity $d$ halves — not doubles. Disparity and depth have an inverse relationship."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q3. Using the depth formula $Z = (f \\times B) / d$, if focal length $f = 700$ px, baseline $B = 0.10$ m, and disparity $d = 35$ px, what is the depth $Z$?",
+      "answers": {
+        "a": "0.5 m",
+        "b": "1.0 m",
+        "c": "2.0 m",
+        "d": "4.0 m"
+      },
+      "explanations": {
+        "a": "Close, but not right. $Z = (700 \\times 0.10) / 35 = 70 / 35 = 2.0$ m, not 0.5 m. To get 0.5 m the disparity would need to be 140 px, which corresponds to an object four times closer.",
+        "b": "Not quite. $Z = 1.0$ m would require disparity of 70 px at these settings. Since the given disparity is 35 px — exactly half of 70 — the depth is twice as large, giving 2.0 m.",
+        "c": "Right. $Z = (f \\times B) / d = (700 \\times 0.10) / 35 = 70 / 35 = 2.0$ m. Numerator: $700 \\times 0.10 = 70$. Denominator: 35. Result: 2.0 m.",
+        "d": "No — $Z = 4.0$ m would require a disparity of only 17.5 px. With disparity at 35 px — double 17.5 — the depth is half of 4.0 m, giving 2.0 m."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q4. What does the baseline of a stereo camera refer to?",
+      "answers": {
+        "a": "The minimum depth the camera can measure",
+        "b": "The horizontal physical separation between the left and right camera lenses",
+        "c": "The bottom edge of the camera image sensor",
+        "d": "The default focal length setting of the camera"
+      },
+      "explanations": {
+        "a": "This confuses two related concepts. Minimum measurable depth is $Z_{\\min} = (f \\times B) / d_{\\max}$ — it depends on baseline but is a derived value, not the definition of baseline. Baseline is a physical measurement, not a performance spec.",
+        "b": "Yes — the baseline $B$ is the real-world physical distance between the optical centres of the two cameras, measured in metres. It's the key geometric parameter enabling triangulation. A wider baseline produces larger disparities, improving depth accuracy for far objects.",
+        "c": "No — the bottom edge of the sensor is a physical dimension related to sensor height and field of view. It has nothing to do with the separation between two cameras in a stereo pair.",
+        "d": "Not exactly — focal length is a property of the lens, determined by its optical design. Baseline and focal length are two separate parameters — both appear in the depth formula but represent completely different physical quantities."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q5. A stereo camera measures depth at 1 metre with an error of ±2 mm. If the same object is moved to 2 metres, approximately what will the depth error be?",
+      "answers": {
+        "a": "±2 mm — same, because the camera settings did not change",
+        "b": "±4 mm — doubles, because the distance doubled",
+        "c": "±8 mm — quadruples, because error grows with the square of distance",
+        "d": "±1 mm — halves, because the cameras have a better combined view at 2 metres"
+      },
+      "explanations": {
+        "a": "Think again — depth error is not constant with distance. The formula $\\Delta Z = Z^2 \\cdot \\Delta d \\,/\\, (f \\times B)$ clearly shows error depends on $Z^2$. Moving an object farther significantly increases depth uncertainty even when the camera settings stay exactly the same.",
+        "b": "The uncertainty formula has $Z^2$ in the numerator, not $Z$. Doubling $Z$ from 1 m to 2 m means $Z^2$ increases from 1 to 4, so error quadruples, not doubles.",
+        "c": "You got it. From $\\Delta Z = Z^2 \\cdot \\Delta d \\,/\\, (f \\times B)$: at $Z = 2$ m, $Z^2 = 4$. At $Z = 1$ m, $Z^2 = 1$. All other parameters are unchanged, so error is $4\\times$ larger at 2 m. If error was $\\pm 2$ mm at 1 m, it becomes $\\pm 8$ mm at 2 m. This $Z^2$ growth is why stereo cameras are unreliable at long range.",
+        "d": "No — at greater distances each pixel covers a larger area and disparity values get smaller and noisier. Measurement becomes less precise, not more precise, with increasing distance."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q6. In a colour-coded depth map, a pixel shown in bright red most likely represents:",
+      "answers": {
+        "a": "A region where depth measurement failed and the reading is invalid",
+        "b": "An object that is very far from the camera",
+        "c": "An object that is very close to the camera",
+        "d": "A region where the surface is perfectly flat"
+      },
+      "explanations": {
+        "a": "Not quite. Failed depth readings (like zero-disparity pixels) are shown as black, not red. Red is assigned to pixels with high disparity — close objects with reliable depth readings.",
+        "b": "Incorrect. Far objects appear in cool colours (blue, cyan) because they have low disparity values. The mapping goes warm (red, orange = near) to cool (blue, green = far). Red indicates the opposite of far.",
+        "c": "That's it. The standard depth map colour convention assigns warm colours (red, orange) to close objects with high disparity values. A bright red pixel means the object is very close to the camera, producing a large disparity that computes to a small Z value.",
+        "d": "Think again — colour encodes distance from the camera, not surface geometry. A flat surface close to the camera appears uniformly red; a flat one far away appears uniformly blue."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q7. What happens to a pixel on the depth map when its disparity value is exactly zero?",
+      "answers": {
+        "a": "The depth is calculated as zero metres, placing the object at the camera position",
+        "b": "The depth cannot be calculated and the pixel is shown as invalid (black)",
+        "c": "The pixel is automatically assigned the average depth of its surrounding pixels",
+        "d": "The camera switches to a single-camera estimation method for that pixel"
+      },
+      "explanations": {
+        "a": "That's a common mix-up. Zero disparity does not mean zero depth — $Z = fB/0$ is division by zero, which is undefined, not zero. It actually means both cameras see the point at the same pixel position, implying the object is at essentially infinite distance.",
+        "b": "Correct! When disparity $d = 0$, the depth formula $Z = (f \\times B) / d$ requires division by zero, which has no valid numerical result. The simulation marks this pixel as invalid and renders it black. This situation occurs for very distant objects where both cameras see them from nearly identical angles, and the horizontal shift falls below one pixel.",
+        "c": "No — filling invalid pixels with neighbour averages (hole-filling / inpainting) is an optional post-processing step. By default, stereo depth maps leave invalid pixels black rather than inserting potentially false depth values.",
+        "d": "Incorrect. There is no automatic fallback to single-camera depth estimation in standard stereo algorithms. The system operates entirely on disparity matching between two cameras, and pixels with zero disparity simply remain unmeasured."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q8. A student doubles the baseline of a stereo camera from 5 cm to 10 cm while keeping all other settings identical. What effect does this have on depth measurement accuracy?",
+      "answers": {
+        "a": "Accuracy gets worse because the two cameras are harder to synchronise with a wider gap",
+        "b": "Accuracy stays the same because baseline does not appear in the error formula",
+        "c": "Accuracy improves because a larger baseline produces larger disparities for the same object distance",
+        "d": "Accuracy gets worse because a larger baseline means each camera sees a different part of the scene"
+      },
+      "explanations": {
+        "a": "Not exactly — synchronisation is a hardware engineering concern, not a factor in the mathematical stereo model. The accuracy gain from a wider baseline is determined entirely by geometry.",
+        "b": "Close, but not right. Baseline $B$ appears directly in both the depth formula $Z = fB/d$ and the uncertainty formula $\\Delta Z = Z^2 \\Delta d / (fB)$. Since $B$ is in the denominator of the error formula, larger $B$ means smaller $\\Delta Z$.",
+        "c": "A wider baseline means larger disparity for the same object distance, so small errors in measuring disparity have less relative impact — that's exactly right. Doubling baseline approximately halves the depth error at any given distance, as confirmed by the uncertainty formula $\\Delta Z = Z^2 \\Delta d / (fB)$.",
+        "d": "While very wide baselines can cause occlusion at image edges (the blind zone), that doesn't reduce accuracy for objects visible in both cameras. In the normal operating range, wider baseline consistently improves depth accuracy."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q9. Which of the following correctly describes the stereo blind zone?",
+      "answers": {
+        "a": "The area directly behind the cameras where no objects can be detected by either camera",
+        "b": "The region far in front of the cameras where disparity becomes too small to measure reliably",
+        "c": "The region very close to the cameras where one camera cannot see an object that is visible to the other",
+        "d": "The central strip of the depth map that always produces incorrect depth readings"
+      },
+      "explanations": {
+        "a": "No — the area behind the cameras is just outside their field of view, not the blind zone. The blind zone is a specific geometric phenomenon related to baseline separation, occurring in front of the cameras.",
+        "b": "This confuses two different concepts. What you're describing is the far-range limitation where disparity approaches zero (sometimes called stereo maximum range). The blind zone is a near-camera region caused by a different geometric effect entirely.",
+        "c": "Right. The stereo blind zone occurs close to the camera where an object may be visible to one camera but physically blocked from the other by the baseline separation. Stereo matching fails because both views are needed but only one sees the object. It appears as a black strip at one edge of the depth map, widening as baseline increases.",
+        "d": "Not quite. The central strip is typically one of the most accurate regions because objects there are well-centred in both cameras' views. There's no systematic error in the centre caused by stereo geometry."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    
+    
+    {
+      "question": "Q10. Why is a stereo vision system preferred over a single camera when estimating depth?",
+      "answers": {
+        "a": "A single camera produces too many pixels for the processor to handle efficiently",
+        "b": "A single 2D camera image contains no direct geometric information about the depth of objects",
+        "c": "A single camera lens introduces too much distortion to be useful for measurement",
+        "d": "A single camera can only capture black-and-white images, which lack depth cues"
+      },
+      "explanations": {
+        "a": "Processing power isn't the issue here. A single high-resolution camera still cannot recover depth geometrically no matter how fast the processor is — the limitation is fundamental, not computational.",
+        "b": "Exactly. A 2D image is a projection of the 3D world onto a flat sensor, and during that projection depth is completely collapsed — a point at 1 m and a point at 10 m can map to the same pixel. Without a second viewpoint at a known position, there is no geometric way to determine depth. The second camera provides the missing constraint needed for triangulation.",
+        "c": "Not quite. Lens distortion is corrected through calibration, which applies equally to single and stereo cameras. But even a perfectly calibrated single camera can't measure depth — that requires a second viewpoint.",
+        "d": "Modern cameras capture full colour, and colour can provide monocular depth cues (perspective, texture gradients, shading). But those cues are ambiguous and imprecise. Stereo is preferred because of mathematical triangulation, not colour — so this isn't the right answer."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}

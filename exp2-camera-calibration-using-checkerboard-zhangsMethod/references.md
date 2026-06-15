@@ -1,0 +1,10 @@
+| # | Reference | Year | Section Used |
+|---|---|---|---|
+| 1 | Zhang, Z. — A flexible new technique for camera calibration. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 22(11), 1330–1334. DOI: 10.1109/34.888718 | 2000 | Zhang's method, homography estimation, SVD-based K recovery, reprojection error |
+| 2 | Hartley, R. & Zisserman, A. — *Multiple View Geometry in Computer Vision* (2nd ed.). Cambridge University Press. ISBN: 978-0-521-54051-3 | 2004 | Camera projection model $x = K [R \mid t] X$, intrinsic matrix K, distortion model |
+| 3 | Tsai, R. Y. — A versatile camera calibration technique for high-accuracy 3D machine vision metrology. *IEEE Journal on Robotics and Automation*, 3(4), 323–344. DOI: 10.1109/JRA.1987.1087109 | 1987 | Radial distortion coefficients k1 k2, lens distortion model, calibration error analysis |
+| 4 | Faugeras, O. — *Three-Dimensional Computer Vision: A Geometric Viewpoint*. MIT Press. ISBN: 978-0-262-06158-2 | 1993 | Camera intrinsic parameters, perspective projection geometry, principal point |
+| 5 | Bradski, G. & Kaehler, A. — *Learning OpenCV: Computer Vision with the OpenCV Library*. O'Reilly Media. ISBN: 978-0-596-51613-0 | 2008 | Practical calibration pipeline, checkerboard corner detection, stereoCalibrate reference |
+| 6 | Heikkila, J. & Silven, O. — A four-step camera calibration procedure with implicit image correction. *IEEE Conference on Computer Vision and Pattern Recognition*, pp. 1106–1112. DOI: 10.1109/CVPR.1997.609468 | 1997 | Tangential distortion coefficients p1 p2, four-step calibration refinement |
+| 7 | Sturm, P. & Maybank, S. — On plane-based camera calibration: A general algorithm, singularities, applications. *IEEE CVPR*, pp. 432–437. DOI: 10.1109/CVPR.1999.786974 | 1999 | Theoretical basis of planar calibration, singularity conditions, pose diversity requirement |
+| 8 | Golub, G. H. & Van Loan, C. F. — *Matrix Computations* (4th ed.). Johns Hopkins University Press. ISBN: 978-1-4214-0794-4 | 2013 | SVD decomposition used in Zhang's method to solve the linear calibration system |

@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is the main purpose of camera calibration?",
+      "answers": {
+        "a": "To make the camera take sharper photographs",
+        "b": "To mathematically determine the internal optical properties of a camera so that accurate real-world measurements can be made from its images",
+        "c": "To adjust the brightness and colour balance of the camera sensor",
+        "d": "To connect the camera to a computer via a USB cable"
+      },
+      "explanations": {
+        "a": "Incorrect. Image sharpness depends on focus and lens quality, rather than calibration. Calibration recovers geometric parameters (like focal length and distortion coefficients) that let you extract 3D measurements from 2D images, rather than affecting the sharpness.",
+        "b": "Correct. Camera calibration recovers the intrinsic matrix K (which includes focal length and the principal point) as well as distortion coefficients (k1, k2, p1, p2) that define how the lens bends light. Without knowing these parameters, any depth or 3D position measurement from the camera will carry systematic errors that you can't correct later. <a href='https://en.wikipedia.org/wiki/Camera_resectioning'>Learn more about camera calibration</a>",
+        "c": "Incorrect. Brightness and colour balance are managed by the camera's auto-exposure and white balance systems. Those are photometric properties, whereas camera calibration deals strictly with the geometry of how 3D points project onto a 2D sensor.",
+        "d": "Incorrect. Connecting a camera to a computer is simply a hardware setup task. Calibration is a mathematical procedure run on the images captured by the camera, not the physical connection process itself."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. The camera intrinsic matrix K contains which of the following parameters?",
+      "answers": {
+        "a": "The camera's GPS position and compass heading in the world",
+        "b": "The rotation matrix R and translation vector t describing camera pose",
+        "c": "The focal lengths fx and fy, and the principal point cx and cy",
+        "d": "The image width, image height, and frame rate of the camera"
+      },
+      "explanations": {
+        "a": "Incorrect. GPS position and compass heading describe the camera's location in the world, making them extrinsic parameters rather than internal optical properties. They belong in the extrinsic matrix [R|t].",
+        "b": "Incorrect. Rotation R and translation t are the extrinsic parameters of the camera because they describe its orientation and position relative to the world coordinate system. The intrinsic matrix K is exclusively for the lens and sensor's internal properties.",
+        "c": "Correct. The intrinsic matrix K is a 3×3 matrix containing the focal lengths (fx and fy) along with the principal point (cx and cy). Since these properties rely strictly on the physical lens and sensor arrangement, they stay fixed even when the camera moves around.",
+        "d": "Incorrect. Image width, height, and frame rate are general hardware and operational specs of the camera sensor. The intrinsic matrix K specifically holds the optical and geometric parameters derived from the lens and sensor alignment."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. What is the principal point (cx, cy) in the camera model?",
+      "answers": {
+        "a": "The centre of the checkerboard pattern used for calibration",
+        "b": "The pixel coordinate where the optical axis of the lens intersects the image sensor",
+        "c": "The highest-brightness pixel in the captured image",
+        "d": "The corner pixel at position (0, 0) in the top-left of the image"
+      },
+      "explanations": {
+        "a": "Incorrect. The centre of the checkerboard acts as a world coordinate during calibration, but the principal point is an inherent property of the camera itself, regardless of what object is in the frame.",
+        "b": "Correct. The principal point (cx, cy) indicates the exact pixel location where the lens's central optical axis hits the image plane. While we ideally want it exactly at the image centre (width/2, height/2), manufacturing quirks usually offset it a bit. Getting the principal point wrong means all projected 3D points will appear shifted, introducing a systematic error in your measurements. <a href='https://en.wikipedia.org/wiki/Camera_matrix'>More on camera matrix parameters</a>",
+        "c": "Incorrect. The highest-brightness pixel simply depends on the scene's lighting, which has nothing to do with the camera's optical geometry. The principal point is fixed based on the physical lens-sensor alignment.",
+        "d": "Incorrect. By convention, the top-left corner pixel (0, 0) is just the origin of the image coordinates. The principal point usually sits near the centre of the image. If it were at (0, 0), the optical axis would pass through the very edge of the sensor, which isn't physically possible for a normal camera."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. What is radial distortion in a camera lens?",
+      "answers": {
+        "a": "The delay in the camera shutter response when taking fast-moving photos",
+        "b": "A geometric error where straight lines in the world appear curved in the image, caused by the lens bending light unevenly from centre to edge",
+        "c": "The colour fringing effect seen around high-contrast edges in photographs",
+        "d": "The reduction in image brightness from the centre toward the corners of the image"
+      },
+      "explanations": {
+        "a": "Incorrect. Shutter delay relates to the timing of the mechanical or electronic shutter system, causing motion blur, but it has no connection to the geometric bending of light rays.",
+        "b": "Correct. Radial distortion is a geometric aberration that happens because the lens bends light rays differently depending on their distance from the optical axis. Points near the image edges are either pulled inward (barrel distortion) or pushed outward (pincushion distortion). This effect causes straight lines in the real world to look curved in your captured image.",
+        "c": "Incorrect. Colour fringing around edges is a separate optical defect known as chromatic aberration, where different wavelengths of light focus at slightly different points. Radial distortion strictly affects geometry (where points appear), not their colour.",
+        "d": "Incorrect. The darkening of an image from the centre to the corners is called vignetting. It's a photometric effect caused by light hitting the sensor at an angle. Radial distortion is purely about the physical positioning of pixels."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. In Zhang's calibration method, what is a homography?",
+      "answers": {
+        "a": "A type of camera with two lenses placed side by side",
+        "b": "The checkerboard pattern printed on paper used during calibration",
+        "c": "A 3x3 mathematical matrix that describes the mapping between the flat checkerboard plane and its appearance in one camera image",
+        "d": "The physical distance between the camera and the checkerboard during calibration"
+      },
+      "explanations": {
+        "a": "Incorrect. A camera with two lenses is a stereo camera. A homography is a mathematical concept rather than a physical device.",
+        "b": "Incorrect. The checkerboard is your physical calibration target. A homography is the mathematical relationship derived from the checkerboard image—it's an abstract 3×3 matrix, not the pattern itself.",
+        "c": "Correct. A homography H is a 3×3 matrix that translates the perspective transformation between a flat plane (like the checkerboard where Z = 0) and the 2D camera image. It's written as H = K[r1 r2 t]. Each pose of the board gives you one homography, and by stacking several of them, you can solve for the intrinsic matrix K. <a href='https://en.wikipedia.org/wiki/Homography_(computer_vision)'>Learn about homography</a>",
+        "d": "Incorrect. The physical distance between the camera and the checkerboard is the translation t, which makes up part of the extrinsic parameters inside the homography. The homography itself is the mathematical mapping computed from the image data."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What does reprojection error measure in camera calibration?",
+      "answers": {
+        "a": "The physical distance between the camera and the checkerboard in metres",
+        "b": "How far the detected checkerboard corners are from the edge of the image in pixels",
+        "c": "How accurately the estimated camera parameters reproduce the observed corner positions when the known 3D corners are projected back into the image",
+        "d": "The number of checkerboard squares that were detected correctly in each image"
+      },
+      "explanations": {
+        "a": "Incorrect. The camera-to-checkerboard distance is the translation parameter t, one of the extrinsic values estimated during calibration. Reprojection error is evaluated in pixels, not metres.",
+        "b": "Incorrect. Checking the distance of corners from the image edge helps verify if the board is framed well, but it isn't the reprojection error. Reprojection error specifically checks the gap between your model's predicted corner locations and where they actually appear in the image.",
+        "c": "Correct. Reprojection error takes the known 3D world positions of your checkerboard corners, projects them onto the image using your newly estimated K matrix and distortion coefficients, and measures the average pixel distance to the actual detected corners. If you get a low RMS reprojection error (below 0.5 px), it means your camera model fits the observations well.",
+        "d": "Incorrect. Counting correctly detected squares measures detection quality, not reprojection error. All corners need to be detected before reprojection error can even be computed to check the fit of the mathematical model."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. What is the minimum number of calibration poses (checkerboard photographs) required for Zhang's method to work?",
+      "answers": {
+        "a": "1 pose is enough — one image contains all the information needed",
+        "b": "Exactly 2 poses — one from the front and one from the side",
+        "c": "At least 3 poses — because each pose provides 2 constraint equations and K has 5 unknowns",
+        "d": "At least 50 poses — calibration requires a very large dataset to be statistically valid"
+      },
+      "explanations": {
+        "a": "Incorrect. A single pose only gives you one homography with 8 degrees of freedom, while the intrinsic matrix K has 5 unknowns. One pose just leaves the system underdetermined. You need at least 3 poses for enough independent equations.",
+        "b": "Incorrect. Two poses provide 2 homographies, yielding 4 constraint equations total. Since K has 5 unknowns, 2 poses still leave the system short by one equation.",
+        "c": "Correct. Every calibration pose offers 2 independent constraints on K based on the homography. Because K has 5 unknowns (fx, fy, cx, cy, and skew, which is usually assumed to be zero), you mathematically need at least 3 poses (3 × 2 = 6 equations). However, using 15 to 25 poses is the practical recommendation to reduce the noise from corner detection. <a href='https://ieeexplore.ieee.org/document/888718'>Zhang 2000 original paper</a>",
+        "d": "Incorrect. While you want a good dataset, 50 poses are overkill. The improvement in reprojection error usually plateaus around 20 to 25 poses, after which you're just adding unnecessary computation time."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. What happens to calibration quality if all checkerboard poses are captured at nearly the same angle and position?",
+      "answers": {
+        "a": "Calibration improves because consistent poses give more reliable corner detections",
+        "b": "Calibration quality stays the same regardless of pose angles",
+        "c": "Calibration fails or gives inaccurate K because the homographies from similar poses do not provide enough independent geometric constraints",
+        "d": "The camera automatically corrects for similar poses by averaging the results"
+      },
+      "explanations": {
+        "a": "Incorrect. Consistent lighting might make corner detection slightly more reliable, but mathematically, taking similar poses creates a poorly conditioned system. The homographies end up nearly identical, providing redundant data instead of the independent constraints needed to accurately solve for K.",
+        "b": "Incorrect. Pose diversity is a big deal for calibration. Different unknowns in the intrinsic matrix K are best constrained by tilting the board in different rotational axes. Sticking to one angle leads to systematic errors.",
+        "c": "Correct. Zhang's method solves the linear system V·b = 0, where matrix V is built from the homographies. If the poses are too similar, the rows of V become almost linearly dependent, making the system ill-conditioned. This causes the SVD solution to become unstable, and parameters like fy might not be estimated reliably. This often shows up as high reprojection error even if you have many poses.",
+        "d": "Incorrect. The calibration algorithm doesn't know how to \"correct\" for a lack of pose diversity. It simply tries to solve the linear system with the data it has, resulting in an inaccurate K unless you check the reprojection error to catch the issue."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. A camera has radial distortion coefficient k1 = -0.45. What type of distortion does this describe and where is it most visible?",
+      "answers": {
+        "a": "Pincushion distortion — pixels are pushed outward from the image centre, most visible at the image corners",
+        "b": "Barrel distortion — pixels are pulled inward toward the image centre, straight lines at the edges appear bowed outward",
+        "c": "Tangential distortion — the image appears tilted to one side",
+        "d": "No distortion — k1 = -0.45 means the distortion has been corrected already"
+      },
+      "explanations": {
+        "a": "Incorrect. Pincushion distortion actually corresponds to a positive k1 value. A negative k1 does the opposite, creating barrel distortion.",
+        "b": "Correct. A negative k1 value points to barrel distortion. Here, the lens bends light rays near the edges outward more strongly than near the centre. As a result, straight lines in the real world end up looking curved and bowed outward. This effect is always most noticeable near the image corners and edges. You'll commonly see this with wide-angle and fisheye lenses.",
+        "c": "Incorrect. Tangential distortion causes the image to look slightly sheared or tilted, but this is handled by different coefficients (p1 and p2). The k1 coefficient only deals with radial distortion.",
+        "d": "Incorrect. The value of k1 = -0.45 is a direct measurement of the barrel distortion physically present in the lens. If the image were already corrected, you would see that applied in the undistortion formula, but the lens parameter itself wouldn't be zero."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. In Experiment 1, the depth formula was Z = (f × B) / d. Why must camera calibration (Experiment 2) be completed before using this formula for measurement?",
+      "answers": {
+        "a": "Calibration is not actually required — the formula works correctly with any assumed focal length value",
+        "b": "Calibration is needed to measure the baseline B between the two cameras",
+        "c": "Calibration recovers the true focal length f — an incorrect f causes a systematic depth error proportional to the f error that affects every pixel in the depth map",
+        "d": "Calibration converts the depth map colours from red-blue to a grayscale display for measurement"
+      },
+      "explanations": {
+        "a": "Incorrect. If you just guess the focal length, you bake a proportional error into every depth reading. Overestimating f by 5% means all your computed depths will be 5% too large, and taking more measurements won't fix this systematic error.",
+        "b": "Incorrect. You measure the baseline B physically (like with a ruler) between the two camera centres. Camera calibration specifically zeroes in on the internal optical parameters of each camera, not the physical distance between them.",
+        "c": "Correct. The depth formula relies heavily on the focal length f, which comes directly from the intrinsic matrix K found during calibration. If your calibrated f is off, every single depth value will be off by that exact same percentage. Unlike random noise, you can't average out a systematic 5% depth error. Calibration also handles lens distortion, ensuring the pixel coordinates used in your calculations are actually accurate.",
+        "d": "Incorrect. How you colour your depth map is purely a software visualisation choice and doesn't impact the geometric math at all. Calibration is about ensuring the physical geometry is correct."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    }
+  ]
+}
