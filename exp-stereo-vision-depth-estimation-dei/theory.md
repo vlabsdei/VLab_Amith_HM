@@ -25,9 +25,13 @@ This inverse relationship between disparity and distance is the core concept of 
 
 The relationship between disparity and depth is described by the following formula:
 
-<script type="math/tex; mode=display">
-Z = \frac{(f \times B)}{d}
-</script>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  <i>Z</i>&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center;">
+    <span style="border-bottom: 1px solid #333; padding: 0 10px; line-height: 1.2;"><i>f</i> &times; <i>B</i></span>
+    <span style="padding: 0 10px; line-height: 1.2;"><i>d</i></span>
+  </span>
+</div>
 
 Where:
 - **Z** = depth to the object in metres (the value we want to find)
@@ -41,17 +45,25 @@ The formula has a few things worth noticing. Because **d** sits in the denominat
 
 Once depth Z is known for a pixel at position (u, v) in the image, its full 3D position in space can be computed using the back-projection equations:
 
-<script type="math/tex; mode=display">
-X = \frac{(u - c_x) \times Z}{f_x}
-</script>
-<script type="math/tex; mode=display">
-Y = \frac{(v - c_y) \times Z}{f_y}
-</script>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  <i>X</i>&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center;">
+    <span style="border-bottom: 1px solid #333; padding: 0 10px; line-height: 1.2;">(<i>u</i> &minus; <i>c</i><sub><i>x</i></sub>) &times; <i>Z</i></span>
+    <span style="padding: 0 10px; line-height: 1.2;"><i>f</i><sub><i>x</i></sub></span>
+  </span>
+</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  <i>Y</i>&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center;">
+    <span style="border-bottom: 1px solid #333; padding: 0 10px; line-height: 1.2;">(<i>v</i> &minus; <i>c</i><sub><i>y</i></sub>) &times; <i>Z</i></span>
+    <span style="padding: 0 10px; line-height: 1.2;"><i>f</i><sub><i>y</i></sub></span>
+  </span>
+</div>
 
 Where:
 - **(u, v)** = pixel coordinates (column, row) in the image
-- **(<script type="math/tex">c_x</script>, <script type="math/tex">c_y</script>)** = principal point — the pixel at the centre of the image (optical axis)
-- **<script type="math/tex">f_x</script>, <script type="math/tex">f_y</script>** = focal lengths in pixels along the horizontal and vertical axes
+- **(<i>c</i><sub><i>x</i></sub>, <i>c</i><sub><i>y</i></sub>)** = principal point — the pixel at the centre of the image (optical axis)
+- **<i>f</i><sub><i>x</i></sub>, <i>f</i><sub><i>y</i></sub>** = focal lengths in pixels along the horizontal and vertical axes
 
 These equations convert every valid pixel in the depth map into a point in 3D space. Applying this to all pixels produces a **point cloud**.
 
@@ -59,9 +71,13 @@ These equations convert every valid pixel in the depth map into a point in 3D sp
 
 The depth measurement is not perfectly accurate — it has uncertainty that grows with distance. The depth uncertainty formula is:
 
-<script type="math/tex; mode=display">
-\Delta Z = \frac{Z^2 \times \Delta d}{f \times B}
-</script>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  &Delta;<i>Z</i>&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center;">
+    <span style="border-bottom: 1px solid #333; padding: 0 10px; line-height: 1.2;"><i>Z</i><sup>2</sup> &times; &Delta;<i>d</i></span>
+    <span style="padding: 0 10px; line-height: 1.2;"><i>f</i> &times; <i>B</i></span>
+  </span>
+</div>
 
 This shows that depth error grows with the **square** of the distance Z. A point at 4 metres has 16 times the depth uncertainty of a point at 1 metre, under identical camera settings. This is why stereo cameras are reliable for close objects but become inaccurate at large distances.
 

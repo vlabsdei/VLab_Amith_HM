@@ -14,26 +14,28 @@ Camera calibration is the mathematical process of characterizing a camera so we 
  
 A 3D world point X = (X, Y, Z) is projected onto a 2D image point x = (u, v) using the camera projection equation:
  
-<div style="text-align: center;">$$
-x = K [R \mid t] X
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <b>x</b> = <b>K</b> [<b>R</b> &mid; <b>t</b>] <b>X</b>
+</div>
  
 Where:
  
 - **K** is the 3×3 camera intrinsic matrix.
-- **<span>$[R \mid t]$</span>** is the 3×4 extrinsic matrix. This represents the rotation R and translation t that describe the camera's location in the world.
+- **[<i>R</i> &mid; <i>t</i>]** is the 3×4 extrinsic matrix. This represents the rotation <i>R</i> and translation <i>t</i> that describe the camera's location in the world.
 - **X** is the 3D world point in homogeneous coordinates.
 
 The intrinsic matrix K contains all the internal optical properties of the camera:
  
-<div style="text-align: center;">$$
-K = 
-\begin{bmatrix}
-f_x & 0 & c_x \\
-0 & f_y & c_y \\
-0 & 0 & 1
-\end{bmatrix}
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  <i>K</i>&nbsp;=&nbsp;
+  <div style="display: inline-flex; align-items: center; margin-left: 10px; border-left: 2px solid #333; border-right: 2px solid #333; border-radius: 4px; padding: 5px 10px;">
+    <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 8px 15px; text-align: center;">
+      <div><i>f</i><sub><i>x</i></sub></div><div>0</div><div><i>c</i><sub><i>x</i></sub></div>
+      <div>0</div><div><i>f</i><sub><i>y</i></sub></div><div><i>c</i><sub><i>y</i></sub></div>
+      <div>0</div><div>0</div><div>1</div>
+    </div>
+  </div>
+</div>
  
 Where:
 - **fx, fy** — focal lengths in pixels along the horizontal and vertical axes. While these are equal for most cameras, slight manufacturing variations can cause them to differ slightly.
@@ -45,33 +47,26 @@ Real camera lenses aren't perfect. They introduce geometric distortion that bend
  
 The radial distortion correction model looks like this:
  
-<div style="text-align: center;">
-$$
-\begin{align*}
-x_{\text{corrected}} &= x_{\text{raw}}(1+[k_1 \times r^2] + [k_2 \times r^4]) \\
-y_{\text{corrected}} &= y_{\text{raw}}(1+[k_1 \times r^2] + [k_2 \times r^4])
-\end{align*}
-$$
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <i>x</i><sub>corrected</sub> = <i>x</i><sub>raw</sub> (1 + [<i>k</i><sub>1</sub> &times; <i>r</i><sup>2</sup>] + [<i>k</i><sub>2</sub> &times; <i>r</i><sup>4</sup>])
+  <br>
+  <i>y</i><sub>corrected</sub> = <i>y</i><sub>raw</sub> (1 + [<i>k</i><sub>1</sub> &times; <i>r</i><sup>2</sup>] + [<i>k</i><sub>2</sub> &times; <i>r</i><sup>4</sup>])
 </div>
  
 Where:
-- **<span>$r^2 = x^2 + y^2$</span>** — the squared distance from the principal point in normalised image coordinates.
-- **<span>$k_1$</span>** — the primary radial distortion coefficient. Wide-angle lenses typically have k1 between −0.3 and −0.5 (indicating barrel distortion).
-- **<span>$k_2$</span>** — a higher-order radial correction term, which is much smaller than k1.
+- **<i>r</i><sup>2</sup> = <i>x</i><sup>2</sup> + <i>y</i><sup>2</sup>** — the squared distance from the principal point in normalised image coordinates.
+- **<i>k</i><sub>1</sub>** — the primary radial distortion coefficient. Wide-angle lenses typically have <i>k</i><sub>1</sub> between −0.3 and −0.5 (indicating barrel distortion).
+- **<i>k</i><sub>2</sub>** — a higher-order radial correction term, which is much smaller than <i>k</i><sub>1</sub>.
 
 Tangential distortion (measured with coefficients p1, p2) happens when the lens isn't perfectly parallel to the sensor plane:
  
-<div style="text-align: center;">$$
-x_{\text{tangential}}
-=
-2p_1xy + p_2(r^2 + 2x^2)
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <i>x</i><sub>tangential</sub> = 2<i>p</i><sub>1</sub><i>xy</i> + <i>p</i><sub>2</sub>(<i>r</i><sup>2</sup> + 2<i>x</i><sup>2</sup>)
+</div>
 
-<div style="text-align: center;">$$
-y_{\text{tangential}}
-=
-p_1(r^2 + 2y^2) + 2p_2xy
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <i>y</i><sub>tangential</sub> = <i>p</i><sub>1</sub>(<i>r</i><sup>2</sup> + 2<i>y</i><sup>2</sup>) + 2<i>p</i><sub>2</sub><i>xy</i>
+</div>
  
 In practice, tangential distortion is quite small and often safely ignored for non-precision tasks.
  
@@ -85,12 +80,14 @@ The method works in four stages:
  
 For a flat checkerboard (where Z = 0 in world coordinates), the 3D-to-2D mapping simplifies from the full projection equation down to a 3×3 homography matrix:
  
-<div style="text-align: center;">$$
-H = K
-\begin{bmatrix}
-r_1 & r_2 & t
-\end{bmatrix}
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  <i>H</i>&nbsp;=&nbsp;<i>K</i>
+  <div style="display: inline-flex; align-items: center; margin-left: 10px; border-left: 2px solid #333; border-right: 2px solid #333; border-radius: 4px; padding: 5px 10px;">
+    <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 0 15px; text-align: center;">
+      <div><i>r</i><sub>1</sub></div><div><i>r</i><sub>2</sub></div><div><i>t</i></div>
+    </div>
+  </div>
+</div>
  
 Here, r1 and r2 are the first two columns of the rotation matrix R, and t is the translation vector. Each calibration pose (i.e., one photograph of the board) provides a single homography H. We estimate this using the known checkerboard corner positions alongside their detected pixel positions in the image.
  
@@ -98,9 +95,9 @@ Here, r1 and r2 are the first two columns of the rotation matrix R, and t is the
  
 A single homography H has 8 degrees of freedom, whereas K has 5 unknowns (fx, fy, cx, cy, and the skew, which is generally assumed to be zero). Because of this, one pose isn't enough. By stacking constraints from N ≥ 3 poses, we can form a linear system:
  
-<div style="text-align: center;">$$
-V \cdot b = 0
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <b>V</b> &middot; <b>b</b> = 0
+</div>
  
 V is a matrix built from the homographies, and b encodes the elements of K. We solve this system using Singular Value Decomposition (SVD) — the solution ends up being the eigenvector of VᵀV corresponding to the smallest eigenvalue.
  
@@ -116,22 +113,20 @@ Finally, the initial linear estimate is refined using Levenberg-Marquardt nonlin
  
 Reprojection error serves as the primary quality metric for camera calibration. It measures how far the known 3D checkerboard corners—when projected back into the image using the estimated K and distortion model—land from their actual detected pixel positions:
  
-<div style="text-align: center;">$$
-\varepsilon
-=
-\sqrt{
-\frac{1}{N}
-\sum_{i}
-\left\|
-m_i -
-\hat{m}(K, kc, R_i, t_i, M_i)
-\right\|^2
-}
-$$</div>
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  &epsilon;&nbsp;=&nbsp;&radic;<span style="border-top: 1px solid #333; padding-top: 2px; margin-left: 2px; display: inline-flex; align-items: center; vertical-align: middle;">
+    <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 4px;">
+      <span style="border-bottom: 1px solid #333; padding: 0 4px; line-height: 1.2;">1</span>
+      <span style="padding: 0 4px; line-height: 1.2;"><i>N</i></span>
+    </span>
+    <span style="font-size: 1.5rem; line-height: 1; margin: 0 5px; display: inline-flex; align-items: center;">&sum;<sub><i>i</i></sub></span>
+    <span style="display: inline-flex; align-items: center; margin-left: 5px;">|| <i>m</i><sub><i>i</i></sub> &minus; <i>m̂</i>(<i>K</i>, <i>kc</i>, <i>R</i><sub><i>i</i></sub>, <i>t</i><sub><i>i</i></sub>, <i>M</i><sub><i>i</i></sub>) ||<sup>2</sup></span>
+  </span>
+</div>
  
 Where:
-- **<span>$m_i$</span>** — the observed pixel position of corner i.
-- **<span>$\hat{m}(...)$</span>** — the projected position using our estimated parameters.
+- **<i>m</i><sub><i>i</i></sub>** — the observed pixel position of corner <i>i</i>.
+- **<i>m̂</i>(...)** — the projected position using our estimated parameters.
 - The final result is expressed in pixels.
 
 Interpretation of reprojection error values:
