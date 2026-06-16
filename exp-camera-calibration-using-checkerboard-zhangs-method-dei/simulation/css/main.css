@@ -1382,68 +1382,73 @@ html, body {
    MOBILE RESPONSIVE
 ══════════════════════════════════════════════════════════ */
 
-@media (max-width: 768px) {
-  html, body { overflow: auto; }
-  .page { height: auto; min-height: 100vh; overflow: auto; }
-
-  /* Setup page */
-  .topbar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
-  .topbar-steps { order: 3; width: 100%; justify-content: flex-start; overflow-x: auto; }
-  .sstep { font-size: 9px; padding: 3px 8px; }
-
-  .setup-body { grid-template-columns: 1fr; grid-template-rows: 55vw auto; }
-
-  .viewport-wrap { height: 55vw; }
-
-  .view-controls { flex-wrap: wrap; gap: 2px; }
-  .view-btn { font-size: 9px; padding: 3px 7px; }
-
-  .orbit-hint { display: none; }
-
-  .setup-panel { max-height: 60vh; }
-
-  /* Simulation page */
-  .sim-body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    overflow: auto;
-  }
-
-  .sim-left {
-    border-right: none;
-    border-bottom: 1px solid var(--slate-200);
-    max-height: none;
-  }
-
-  .sim-center {
-    padding: 8px;
-    overflow: visible;
-  }
-
-  .sim-row { grid-template-columns: 1fr; }
-
-  .sim-right {
-    border-left: none;
-    border-top: 1px solid var(--slate-200);
-  }
-
-  .sim-card canvas { min-height: 0px; }
-
-  /* Typography scale down */
-  .panel-h    { font-size: 14px; }
-  .pc-num     { font-size: 32px; }
-  .rcard-val.large { font-size: 22px; }
+/* Tablets & small desktops */
+@media (max-width: 1100px) {
+  .setup-body { grid-template-columns: 190px 1fr 210px; }
+  .sim-body { grid-template-columns: 190px 1fr 210px; }
 }
 
-@media (max-width: 480px) {
-  .topbar-title { font-size: 12px; }
-  .sim-title    { font-size: 12px; }
+/* Tablets portrait & Mobile */
+@media (max-width: 900px) {
+  html, body { height: auto; min-height: 100vh; overflow: visible; overflow-x: hidden; }
+  .page { height: auto; min-height: 100vh; overflow: visible; overflow-x: hidden; }
+  
+  /* Reset overflow for mobile */
+  .setup-left, .setup-center, .setup-right,
+  .sim-left, .sim-center, .sim-right {
+    overflow: visible; height: auto; max-height: none;
+  }
+  
+  .desktop-controls { display: none !important; }
+  .mobile-controls { display: flex !important; }
+  
+  /* Setup page */
+  .setup-body { 
+    display: flex; 
+    flex-direction: column; 
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .setup-left { order: 1; border-right: none; border-bottom: 1px solid var(--slate-200); }
+  .setup-center { order: 2; display: flex; flex-direction: column; padding: 0; }
+  .viewport-wrap { order: 21; height: 350px !important; }
+  .poses-wrap { order: 22; max-height: 250px; }
+  .setup-right { order: 3; border-left: none; border-top: 1px solid var(--slate-200); }
+
+  .obs-overlay { display: none !important; }
+
+  /* Simulation page */
+  .sim-body { 
+    display: flex; 
+    flex-direction: column; 
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .sim-left { order: 1; border-right: none; border-bottom: 1px solid var(--slate-200); }
+  .sim-center { order: 2; display: flex; flex-direction: column; padding: 0; }
+  .sim-row { grid-template-columns: 1fr !important; }
+  .sim-right { order: 3; border-left: none; border-top: 1px solid var(--slate-200); }
+
+  .sim-card canvas { min-height: 0px; }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+  .topbar-title { font-size: 13px; }
+  .sim-title    { font-size: 13px; }
   .topbar-actions { gap: 5px; }
   .btn-primary  { padding: 7px 10px; font-size: 11.5px; }
   .btn-ghost    { padding: 6px 10px; font-size: 11px; }
+  
+  .setup-body, .sim-body { padding: 4px; gap: 6px; }
+  .viewport-wrap { height: 280px !important; }
+  
   .km-cell      { width: 44px; font-size: 11px; }
   .ro-val       { font-size: 15px; }
   .pose-grid    { grid-template-columns: repeat(4, 1fr); }
+  .rcard-val.large { font-size: 22px; }
 }
 
 .info-icon {

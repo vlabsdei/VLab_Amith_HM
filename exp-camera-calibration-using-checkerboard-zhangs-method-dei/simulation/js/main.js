@@ -1239,6 +1239,41 @@ function setupSimOrbitControls(canvas) {
     e.preventDefault();
     simRadius = Math.max(2, Math.min(8, simRadius + e.deltaY * 0.005));
   }, { passive: false });
+
+  /* Touch support */
+  let simLastTouchDist = 0, simLastTouch = null;
+
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      simIsDragging = true;
+      simLastTouch  = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+    } else if (e.touches.length === 2) {
+      simLastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  });
+
+  canvas.addEventListener('touchend', () => { simIsDragging = false; simLastTouch = null; });
+
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && simIsDragging && simLastTouch) {
+      const dx = e.touches[0].clientX - simLastTouch.x;
+      const dy = e.touches[0].clientY - simLastTouch.y;
+      simLastTouch = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+      simPhi -= dx * 0.01;
+      simTheta = Math.max(0.1, Math.min(Math.PI - 0.1, simTheta + dy * 0.01));
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      simRadius = Math.max(2, Math.min(8, simRadius * (simLastTouchDist / dist)));
+      simLastTouchDist = dist;
+    }
+  }, { passive: false });
 }
 
 function updateSim3D() {
