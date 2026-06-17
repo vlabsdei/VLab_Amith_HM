@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. In the simulation, you set resolution to 640×480 and depth Z = 1 m, observing a dense point cloud of about 300,000 points with visible spacing of 2-3 mm. You then changed resolution to 320×240 keeping Z = 1 m constant. What happened to the total point count and the spacing?",
+      "answers": {
+        "a": "Point count halved to about 150,000 and spacing stayed the same",
+        "b": "Point count dropped to about 76,800 (one-quarter) and spacing roughly doubled to 4-6 mm",
+        "c": "Point count stayed the same but spacing decreased",
+        "d": "Point count increased because lower resolution means more detail per pixel"
+      },
+      "explanations": {
+        "a": "Incorrect. Halving each dimension (640→320 and 480→240) does not simply halve the total count — it reduces it by a factor of 4, since N_total = width × height and both dimensions were halved simultaneously. Spacing also does not stay the same; fewer pixels covering the same physical area means each pixel represents a larger area, increasing spacing.",
+        "b": "Correct. N_total = 320 × 240 = 76,800, which is one-quarter of the original 307,200 points (640×480), confirming the dimension² relationship. Since the same physical scene is now sampled by fewer pixels, each pixel covers proportionally more physical surface area, so point spacing increases roughly by a factor of 2 (since each linear dimension was halved, the spacing per axis doubles). The simulation's 3D view shows visibly larger gaps between adjacent points after this resolution change.",
+        "c": "Incorrect. Reducing the number of pixels sampling the same physical scene necessarily increases the distance between adjacent points — there is no way to maintain the same point count or decrease spacing while reducing resolution, since fewer samples are being taken across an unchanged surface area.",
+        "d": "Incorrect. Lower resolution means fewer total pixels, which directly means fewer 3D points after back-projection — not more. There is no mechanism by which reducing resolution increases point count; the relationship is direct and proportional in both width and height dimensions."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q2. You ran the simulation with σ = 30 mm noise on a flat wall surface placed at Z = 2 m. The resulting point cloud showed a visibly wavy, rippled appearance instead of a flat plane. You then reduced noise to σ = 2 mm on the same flat wall. What changed in the 3D view, and why?",
+      "answers": {
+        "a": "Nothing changed because noise only affects colour rendering, not point positions",
+        "b": "The wavy appearance became much less pronounced — points now lie much closer to a true flat plane because each point's Z value contains a smaller random deviation from the true depth",
+        "c": "The point cloud became denser because lower noise increases the number of valid points generated",
+        "d": "The wall appeared to move closer to the camera because reducing noise also reduces measured depth"
+      },
+      "explanations": {
+        "a": "Incorrect. Noise directly affects the Z value used in the back-projection formula, which determines the actual 3D position of each point — not merely its colour. A noisy Z value produces a point displaced from the true surface position along the depth axis, which is geometrically visible as a wavy or rough surface in the rendered cloud.",
+        "b": "Correct. With σ = 30 mm, each point's measured depth deviates from the true flat-plane depth by amounts drawn from a distribution with standard deviation 30 mm, producing visible undulation across the simulated wall. Reducing σ to 2 mm means each point's deviation from the true plane is fifteen times smaller on average, so the points cluster much more tightly around the true flat surface, and the wall appears nearly perfectly flat in the 3D view. This directly demonstrates the noise model Z_measured = Z_true + N(0, σ²) — smaller σ produces tighter clustering around Z_true.",
+        "c": "Incorrect. The noise level σ affects how far each point's depth deviates from the true value — it does not determine whether a point is generated at all. Point count is governed by resolution (how many pixels exist), not by the noise magnitude applied to each pixel's depth value.",
+        "d": "Incorrect. Noise is modelled as a zero-mean random deviation, meaning on average it does not bias the depth in either direction — it does not systematically shift the surface closer or farther. Reducing σ reduces the spread of random deviations around the true depth, not a systematic shift toward the camera."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q3. In the simulation, you scanned a cube object using a focal length you assumed was 700 px, but the simulation's actual calibrated focal length was 770 px (a 10% error you introduced deliberately). What effect did this have on the rendered point cloud's bounding box dimensions compared to the true cube size?",
+      "answers": {
+        "a": "No effect — focal length error only affects colour rendering of the point cloud",
+        "b": "The cube appeared stretched and approximately 10% wider and taller than its true dimensions along X and Y, because the assumed focal length was smaller than the true value",
+        "c": "The cube appeared exactly the same size because errors in focal length cancel out in the back-projection formula",
+        "d": "The cube appeared 10% smaller because using a smaller assumed focal length always shrinks the point cloud"
+      },
+      "explanations": {
+        "a": "Incorrect. Focal length appears directly in the denominator of both back-projection equations, X = (u-cx)×Z/fx and Y = (v-cy)×Z/fy. An incorrect focal length directly changes the computed X and Y coordinates for every point, affecting the geometric shape and size of the resulting point cloud, not merely its visual colour.",
+        "b": "Correct. Using an assumed fx of 700 px when the true calibrated value is 770 px means you are dividing by a smaller number than you should be. Since X = (u-cx) × Z / fx, dividing by a smaller fx produces a larger X value for the same pixel and depth. The true fx (770) is about 10% larger than the assumed value (700), so using 700 instead of 770 causes every X and Y coordinate to be overestimated by approximately 10% (770/700 ≈ 1.10), making the cube's bounding box appear roughly 10% larger than its true dimensions along both the X and Y axes. The Z dimension (depth) is unaffected since it does not depend on fx.",
+        "c": "Incorrect. There is no cancellation effect in the back-projection formula — fx appears as a simple divisor with no compensating term elsewhere in the equation. An incorrect fx produces a directly proportional, uncorrected error in the resulting X and Y coordinates.",
+        "d": "Incorrect. The relationship is inverse, not direct. Using a smaller assumed focal length (700 instead of the true 770) produces larger, not smaller, computed X and Y values, because fx is in the denominator of the formula. A larger result occurs when dividing by a smaller number."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q4. You ran the simulation scanning the same object at Z = 2 m and then again at Z = 4 m, keeping all other settings identical. You observed that the bounding box volume at 4 m was roughly 4 times larger than at 2 m, but the point density (points per square metre) on the object's surface dropped significantly. What does this combination of observations demonstrate?",
+      "answers": {
+        "a": "The simulation has a rendering bug since volume and density should both increase together",
+        "b": "As depth increases, the same fixed number of pixels covers a proportionally larger physical area (explaining the bounding box growth), but this means each individual point now represents more surface area, reducing density",
+        "c": "Density increases with distance because more of the scene becomes visible at greater depth",
+        "d": "The bounding box volume calculation is independent of point density and the two observations are unrelated coincidences"
+      },
+      "explanations": {
+        "a": "Incorrect. This is expected, correct simulation behaviour rather than a bug. The relationship between increasing field-of-view coverage at greater distances and decreasing point density is a well-established geometric consequence of fixed-resolution depth sensing, consistently observed in real depth cameras.",
+        "b": "Correct. A camera with fixed angular resolution and a fixed pixel count covers a field of view that grows wider (in real-world metres) the farther away the observed surface is — this is why the bounding box volume grows with distance. However, because the same fixed number of pixels (and therefore the same fixed number of 3D points) must now cover this larger physical area, each point ends up representing a proportionally larger patch of surface, which is precisely what reduces points-per-square-metre density. This is the same physical principle behind the point spacing formula Δs = Z/fx — spacing grows with Z, which is mathematically equivalent to density falling with Z.",
+        "c": "Incorrect. While it is true that more of the physical scene becomes visible at greater depth (because the field of view expands), the relevant 'visibility' in this case actually corresponds to lower density, not higher. The same fixed point budget is spread across a larger area, which mathematically forces density downward, not upward.",
+        "d": "Incorrect. Bounding box growth and density reduction are directly and mathematically connected through the same underlying cause — fixed pixel count combined with increasing field-of-view coverage at greater distances. They are not independent or coincidental; they are two observable consequences of the identical geometric relationship Δs = Z/fx."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q5. You configured the simulation to model an object edge — a foreground box in front of a background wall — and observed several flying pixels appearing as isolated points floating between the box and the wall in the 3D point cloud. Which action in the simulation would most directly reduce the number of flying pixels appearing at this boundary?",
+      "answers": {
+        "a": "Increasing the overall resolution of the depth map, since flying pixels are purely a resolution artefact",
+        "b": "Reducing the depth discontinuity noise specifically at the boundary transition between foreground and background depth values",
+        "c": "Moving the entire scene farther from the camera, since flying pixels only occur for nearby objects",
+        "d": "Changing the colour mapping scheme used to display the point cloud"
+      },
+      "explanations": {
+        "a": "Incorrect. While resolution affects overall point density, flying pixels specifically arise from depth measurement uncertainty at sharp depth discontinuities — not simply from having too few pixels. Increasing resolution alone does not address the underlying cause: unreliable depth values exactly at the foreground-background transition.",
+        "b": "Correct. Flying pixels occur because the depth measurement process struggles to assign a clean, unambiguous depth value to pixels that straddle the boundary between two very different depths (the close foreground object and the distant background). If the simulation's noise or discontinuity-handling model is reduced specifically at these transition zones, fewer pixels will receive an erroneous intermediate depth value, directly reducing the number of isolated floating points that appear in the resulting cloud. This matches how real depth sensors are improved — through better edge-handling algorithms, not simply higher pixel counts.",
+        "c": "Incorrect. While flying pixels can be more pronounced at certain measurement ranges due to general accuracy characteristics, the fundamental cause — measurement ambiguity exactly at depth boundaries — exists at any distance where a sharp depth discontinuity is present. Moving the scene farther away does not eliminate the boundary itself; it remains a depth discontinuity regardless of overall distance.",
+        "d": "Incorrect. Colour mapping is a purely visual display choice for how depth or other point attributes are rendered on screen. It has no effect on the actual 3D position of points or on whether flying pixels are generated during the back-projection process. The points exist at their (possibly incorrect) coordinates regardless of how they are coloured."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q6. You configured two simulation runs at Z = 3 m with identical resolution (640×480) and identical noise σ = 5 mm. Run A used focal length fx = 350 px. Run B used fx = 1400 px. Without changing depth Z, predict and explain how the field of view and resulting point cloud spread compare between the two runs.",
+      "answers": {
+        "a": "Both runs produce identical field of view and point spread because field of view depends only on resolution, not on focal length",
+        "b": "Run A (fx = 350) has a wider field of view and the point cloud spans a larger physical area at Z = 3m, while Run B (fx = 1400) has a narrower field of view producing a more zoomed-in, smaller physical coverage of the same scene",
+        "c": "Run B has a wider field of view because higher focal length always means seeing more of the scene",
+        "d": "Field of view is identical in both runs, but Run B produces four times more points than Run A"
+      },
+      "explanations": {
+        "a": "Incorrect. Field of view is fundamentally an angular property determined by focal length relative to sensor size, not by resolution alone. Resolution determines how finely that field of view is sampled into pixels, but the angular extent itself — and therefore the physical area covered at a given depth — depends directly on focal length.",
+        "b": "Correct. A shorter focal length (Run A, fx = 350) corresponds to a wider field of view, similar to a wide-angle lens, meaning the camera captures a larger angular extent of the scene. At a fixed depth of 3 m, this translates to covering a larger physical area, and consequently the back-projected point cloud spans a wider X-Y extent. A longer focal length (Run B, fx = 1400) corresponds to a narrower, more telephoto-like field of view, capturing a smaller angular extent and therefore a smaller physical area at the same 3 m distance — the point cloud in this case represents a more zoomed-in, spatially compact region of the scene. This directly parallels the focal length versus field-of-view trade-off explored in Experiment 1's stereo vision context.",
+        "c": "Incorrect. This describes the inverse relationship. Higher focal length corresponds to a narrower field of view (more zoomed in, like a telephoto lens), not a wider one. Lower focal length values correspond to wider fields of view, similar to a wide-angle lens.",
+        "d": "Incorrect. Both runs have identical resolution (640×480), so both produce exactly the same total point count of 307,200 points — point count depends on resolution alone, not on focal length. The difference between the runs lies in the physical area each point cloud represents, not in how many points exist."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q7. You ran a simulation scanning a flat reference plane with σ = 4 mm noise at Z = 2 m, then computed the RMSE of the noisy point cloud against the known clean ground-truth plane, obtaining RMSE ≈ 4 mm. You then doubled the noise to σ = 8 mm without changing anything else, and re-measured RMSE. What value would you expect, and what does this confirm about the relationship between noise σ and RMSE for this back-projection scenario?",
+      "answers": {
+        "a": "RMSE ≈ 16 mm, confirming that RMSE scales with the square of σ, similar to the Z-squared relationship in stereo depth uncertainty",
+        "b": "RMSE ≈ 8 mm, confirming that for this direct depth-noise scenario, RMSE scales linearly and directly with σ since the noise is added straight to Z before back-projection",
+        "c": "RMSE stays at 4 mm because RMSE is independent of the noise parameter once the simulation has run once",
+        "d": "RMSE ≈ 2 mm, because doubling noise actually averages out and reduces total measurement error"
+      },
+      "explanations": {
+        "a": "Incorrect. This question describes the noise model Z_measured = Z_true + N(0, σ²), where σ is added directly to the depth value with no squaring or distance-dependent amplification involved — this is different from the stereo depth uncertainty formula ΔZ = Z²σ/(fB) from Experiment 1, where uncertainty depends on Z². In this point cloud noise model, the relationship between the noise parameter and resulting RMSE is direct and linear, not quadratic.",
+        "b": "Correct. Since the noise model directly adds a Gaussian deviation with standard deviation σ to the true depth value (Z_measured = Z_true + N(0, σ²)), the RMSE of the resulting depth measurements against ground truth is, by definition, equal to σ itself in expectation (RMSE of Gaussian noise around the true value equals its standard deviation). Doubling σ from 4 mm to 8 mm should therefore double the expected RMSE from approximately 4 mm to approximately 8 mm. This is a direct, linear relationship — distinctly different from the squared-distance amplification seen in the stereo depth uncertainty formula from Experiment 1, since here the noise is applied directly to Z with no further distance-dependent scaling in this particular formula.",
+        "c": "Incorrect. RMSE is computed fresh from the actual deviations present in the current point cloud, which directly depend on the noise parameter used to generate that cloud. Changing σ and regenerating the cloud will change the resulting RMSE; it does not become 'locked' at a previous value.",
+        "d": "Incorrect. Increasing the standard deviation of a noise distribution increases, not decreases, the typical magnitude of deviations from the true value. There is no mechanism in this model by which adding more noise reduces measurement error — RMSE grows as the noise parameter grows, reflecting greater scatter around the true depth."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q8. In the simulation, you scanned a scene containing both a nearby object at Z = 0.5 m and a distant wall at Z = 8 m, using a single fixed resolution and a single fixed noise σ = 5 mm for the entire depth map. Which observation correctly compares the relative reliability and visual quality of the two surfaces in the resulting point cloud, and why?",
+      "answers": {
+        "a": "Both surfaces show identical visual quality and reliability because σ is the same fixed value for the entire depth map",
+        "b": "The nearby object at 0.5 m appears as a clean, well-defined surface while the distant wall at 8 m appears comparatively noisier and less defined, even though the same fixed σ = 5 mm was applied to the underlying depth values, because point spacing is much larger at 8 m, making the same absolute noise level more disruptive relative to the sparser sampling",
+        "c": "The distant wall appears cleaner because objects farther from the camera always show less measurement noise",
+        "d": "The simulation is incapable of placing two different objects at different depths within the same scene"
+      },
+      "explanations": {
+        "a": "Incorrect. While the noise parameter σ itself is fixed at 5 mm for both surfaces in this simulation configuration, the visual and practical impact of that fixed noise differs significantly between the two surfaces because of how point spacing (Δs = Z/fx) scales with distance. At 8 m, the much larger spacing means each point already represents a coarser sample of the surface, so the same absolute noise magnitude becomes proportionally more disruptive to surface definition compared to the densely sampled near object.",
+        "b": "Correct. Although the noise parameter σ = 5 mm is applied uniformly to all depth values in this configuration, its visual and practical effect differs dramatically between the two surfaces because of the point spacing relationship Δs = Z/fx. At Z = 0.5 m, point spacing is very small (dense sampling), so a 5 mm noise deviation is a relatively minor perturbation compared to the fine sampling resolution — the surface still appears coherent and well-defined. At Z = 8 m, point spacing is sixteen times larger (since spacing scales linearly with Z), meaning the surface is already coarsely sampled, and the same 5 mm noise now represents a much larger relative disruption to an already sparse point arrangement, making the surface appear noticeably rougher and less well-defined in the rendered point cloud.",
+        "c": "Incorrect. There is no mechanism in this noise model by which increasing distance reduces noise — the noise parameter σ was held fixed and applied identically regardless of distance in this configuration. In fact, real depth sensors typically show increasing noise at greater distances (as explored in Experiment 1's uncertainty formula), making this option doubly incorrect both within this simulation's specific setup and in general real-world sensor behaviour.",
+        "d": "Incorrect. The simulation explicitly supports configuring scenes with objects at multiple distinct depths within a single depth map, which is exactly the scenario described in this question. Real depth maps routinely contain pixels covering a wide range of distances simultaneously, and the simulation models this directly."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q9. You set up a simulation run with resolution 640×480, Z = 2 m, σ = 0 mm (no noise), and accurate calibration values. You computed the RMSE of the resulting point cloud against ground truth and obtained RMSE ≈ 0. You then introduced a fixed +5 px error into the principal point cx value used during back-projection, while keeping σ = 0. What would you expect to see in the resulting point cloud and RMSE, and why does this differ fundamentally from the effect of random noise σ?",
+      "answers": {
+        "a": "RMSE would remain 0 because principal point errors only affect colour, not geometry",
+        "b": "The entire point cloud would shift by a small, consistent, predictable amount in the X direction (a systematic offset), producing a non-zero RMSE that does NOT improve by averaging multiple scans, unlike random noise which can be reduced through averaging",
+        "c": "The point cloud would become randomly scattered in all directions, identical in appearance to applying σ = 5mm random noise",
+        "d": "Principal point errors cannot be tested in this simulation because cx is a fixed, unchangeable hardware constant"
+      },
+      "explanations": {
+        "a": "Incorrect. The principal point cx appears directly in the X back-projection formula, X = (u - cx) × Z / fx. A fixed error in cx directly and predictably shifts every computed X coordinate by an amount proportional to that error and the Z/fx scaling factor — this is a geometric effect on point position, not merely a colour or display issue.",
+        "b": "Correct. Because cx is a fixed (not random) value used identically for every pixel in the back-projection formula, an error of +5 px in cx produces a consistent, predictable, systematic shift in every computed X coordinate — specifically, every point's X value is shifted by approximately -5 × Z/fx (the sign and magnitude depend on the exact error direction). This is fundamentally different from random noise: a systematic bias like this does NOT average out or improve if you take multiple scans and average them, because every single scan contains the exact same directional error. Random noise (σ), in contrast, can be reduced through averaging multiple independent measurements, since random errors partially cancel out. This distinction — systematic/calibration error versus random noise — is one of the most important practical lessons in measurement science, and it directly echoes the calibration error discussion connecting Experiments 1, 2, and 3.",
+        "c": "Incorrect. Random noise σ causes each point to deviate independently and unpredictably in different directions and magnitudes from the true surface, creating a scattered or rough appearance. A fixed cx error instead shifts every point by the exact same predictable amount in the same direction, producing a clean rigid translation of the entire point cloud rather than a scattered, noisy appearance — these two error types look visually distinct.",
+        "d": "Incorrect. While cx is indeed a fixed property of a real physical camera once manufactured, the simulation is specifically designed to let students deliberately introduce calibration errors (including incorrect cx values) as an educational tool, precisely to demonstrate the consequences of inaccurate calibration on downstream point cloud accuracy."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q10. You ran a comprehensive simulation test: Resolution 640×480, Z = 1.5 m, σ = 3 mm, accurate calibration, scanning a cube with a sharp 90-degree edge facing the camera. You observed the point cloud near the edge and noted that some points near the edge boundary had depth values that placed them neither on the front face nor the side face of the cube, but in an intermediate position. You then increased resolution to 1280×960 with all else unchanged. What change would you expect in the edge artefact behaviour, and what does this reveal about the relationship between resolution and flying pixel density?",
+      "answers": {
+        "a": "Flying pixels would completely disappear because higher resolution eliminates all depth measurement ambiguity at any edge",
+        "b": "The absolute number of flying pixels at the edge would likely increase (since there are more total pixels sampling the same edge region), but the proportion of the total point cloud affected, and the spatial extent of the ambiguous region in real-world units, would typically stay similar or shrink slightly, since the fundamental depth discontinuity causing the ambiguity has not changed",
+        "c": "Resolution has absolutely no relationship to flying pixel behaviour in any way",
+        "d": "Flying pixels would only appear at exactly 640×480 resolution and never at any other resolution"
+      },
+      "explanations": {
+        "a": "Incorrect. Flying pixels arise from the fundamental geometric and physical ambiguity of measuring depth exactly at a sharp discontinuity — increasing resolution increases how finely that discontinuity is sampled, but it does not eliminate the underlying ambiguity at the precise boundary pixels themselves. Some pixels will still straddle the edge transition regardless of how many pixels exist overall.",
+        "b": "Correct. With more total pixels in the same physical scene (1280×960 vs 640×480 covers the same field of view with 4× the pixel count), more individual pixels now sample the immediate vicinity of the edge transition, which can mean a larger absolute count of flying pixels appears, simply because more samples exist in that region overall. However, since each individual pixel now covers a smaller physical area (finer point spacing), the real-world spatial width of the ambiguous boundary zone often stays similar or can even appear to shrink slightly relative to the overall scene, because the geometric discontinuity itself is a property of the object's edge sharpness, not of the sensor resolution. This demonstrates that flying pixels are fundamentally caused by measurement ambiguity at depth discontinuities, a problem that resolution alone does not solve — it is addressed primarily through dedicated noise filtering algorithms, as covered in Experiment 8.",
+        "c": "Incorrect. Resolution directly determines how many pixels exist in the vicinity of any edge, which has a clear relationship to how many individual flying pixel artefacts can occur in absolute terms, even though it does not eliminate the underlying physical ambiguity causing them.",
+        "d": "Incorrect. Flying pixels arise from the physical phenomenon of measuring depth at sharp object boundaries, which exists at virtually any resolution where a hard depth discontinuity is present in the scene. There is nothing specific to the value 640×480 that uniquely causes this artefact — it is a general characteristic of depth sensing at edges, observable across a wide range of resolutions."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}
