@@ -1,1 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exp 3 — Point Cloud Generation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
 
+<!-- ═══════════════════════════════════════════════════════
+     PAGE A — SETUP LAB (shown first)
+═══════════════════════════════════════════════════════ -->
+<div id="page-setup" class="page active">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="badge">3D Scanning Virtual Lab</span>
+      <span class="topbar-title">Experiment 3 &mdash; Point Cloud Generation Setup</span>
+    </div>
+    <div class="topbar-steps" id="setup-steps">
+      <div class="sstep active" data-s="0">Components</div>
+      <div class="sstep-line"></div>
+      <div class="sstep" data-s="1">Mount Sensor</div>
+      <div class="sstep-line"></div>
+      <div class="sstep" data-s="2">Scene Setup</div>
+      <div class="sstep-line"></div>
+      <div class="sstep" data-s="3">Scan Capture</div>
+      <div class="sstep-line"></div>
+      <div class="sstep" data-s="4">Observe</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-ghost" id="btn-reset-setup">Reset Setup</button>
+      <button class="btn-primary" id="btn-go-sim" disabled>Go to Simulation</button>
+    </div>
+  </div>
+
+  <div class="setup-body">
+
+    <div class="viewport-wrap">
+      <canvas id="three-canvas"></canvas>
+
+      <div class="view-controls">
+        <button class="view-btn active" data-view="iso">Isometric</button>
+        <button class="view-btn" data-view="top">Top</button>
+        <button class="view-btn" data-view="front">Front</button>
+        <button class="view-btn" data-view="side">Side</button>
+      </div>
+
+      <div class="orbit-hint">
+        <span>Drag to orbit &nbsp;|&nbsp; Scroll to zoom &nbsp;|&nbsp; Right-drag to pan</span>
+      </div>
+
+      <div class="obs-overlay" id="obs-overlay" style="display:none">
+        <div class="obs-row"><span class="obs-key">Pixels scanned</span><span class="obs-val" id="obs-pixels">—</span></div>
+        <div class="obs-row"><span class="obs-key">Valid depth returns</span><span class="obs-val" id="obs-valid">—</span></div>
+        <div class="obs-row"><span class="obs-key">Points generated</span><span class="obs-val" id="obs-points">—</span></div>
+        <div class="obs-row"><span class="obs-key">Point spacing</span><span class="obs-val" id="obs-spacing">—</span></div>
+      </div>
+    </div>
+
+    <div class="setup-panel" id="setup-panel">
+
+      <!-- ── STEP 0: Components ── -->
+      <div class="step-content active" id="sc-0">
+        <h2 class="panel-h">Equipment Tray</h2>
+        <p class="panel-p">These are the components used to capture a depth image and convert it into a 3D point cloud. Click Mount to place each one into the scene.</p>
+
+        <div class="component-list" id="comp-list">
+
+          <div class="comp-card" data-comp="sensor">
+            <div class="comp-icon sensor-icon">
+              <div class="si-body"></div>
+              <div class="si-lens-a"></div>
+              <div class="si-lens-b"></div>
+            </div>
+            <div class="comp-info">
+              <div class="comp-name">RGB-D Depth Sensor</div>
+              <div class="comp-spec">640&times;480 &nbsp;|&nbsp; 0.3&ndash;8 m range</div>
+              <div class="comp-desc">Captures a depth image where every pixel stores a distance value Z. This depth map is the raw input that gets back-projected into 3D.</div>
+            </div>
+            <button class="btn-mount" data-comp="sensor">Mount</button>
+          </div>
+
+          <div class="comp-card" data-comp="mount">
+            <div class="comp-icon mount-icon">
+              <div class="mi-arm"></div>
+              <div class="mi-base"></div>
+            </div>
+            <div class="comp-info">
+              <div class="comp-name">Sensor Mount Arm</div>
+              <div class="comp-spec">Fixed position &nbsp;|&nbsp; Adjustable height</div>
+              <div class="comp-desc">Holds the sensor rigidly in place during the scan. Stability here ensures the intrinsic parameters from calibration remain valid.</div>
+            </div>
+            <button class="btn-mount" data-comp="mount">Mount</button>
+          </div>
+
+          <div class="comp-card" data-comp="object">
+            <div class="comp-icon object-icon">
+              <div class="oi-cube"></div>
+            </div>
+            <div class="comp-info">
+              <div class="comp-name">Scan Target (Cube)</div>
+              <div class="comp-spec">20&times;20&times;20 cm reference object</div>
+              <div class="comp-desc">A simple geometric object placed in the scene. Used to observe how resolution and noise affect the reconstructed point cloud shape.</div>
+            </div>
+            <button class="btn-mount" data-comp="object">Mount</button>
+          </div>
+
+          <div class="comp-card" data-comp="backdrop">
+            <div class="comp-icon backdrop-icon">
+              <div class="bi-wall"></div>
+            </div>
+            <div class="comp-info">
+              <div class="comp-name">Background Wall</div>
+              <div class="comp-spec">Flat plane &nbsp;|&nbsp; 8 m fixed distance</div>
+              <div class="comp-desc">A flat surface behind the object. The boundary between object and wall is where flying pixel artefacts typically appear.</div>
+            </div>
+            <button class="btn-mount" data-comp="backdrop">Mount</button>
+          </div>
+
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-primary full-w" id="mount-all-btn">Mount All Components</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 1: Mount Sensor ── -->
+      <div class="step-content" id="sc-1">
+        <h2 class="panel-h">Mount the Depth Sensor</h2>
+        <p class="panel-p">The sensor is fixed on its mount, aimed at the scene containing the cube and background wall. Its calibrated intrinsic parameters (from Experiment 2) determine how depth pixels convert to 3D coordinates.</p>
+
+        <div class="info-card">
+          <div class="info-row"><span class="info-label">Focal length fx, fy</span><span class="info-val">700 px</span></div>
+          <div class="info-row"><span class="info-label">Principal point cx, cy</span><span class="info-val">320, 240</span></div>
+          <div class="info-row"><span class="info-label">Min / Max range</span><span class="info-val">0.3 m / 8 m</span></div>
+          <div class="info-row"><span class="info-label">Sensor type</span><span class="info-val">Active IR depth</span></div>
+        </div>
+
+        <div class="obs-box">
+          <div class="obs-label">What you observe in the 3D scene</div>
+          <p>The sensor body appears on the mount arm. The translucent blue frustum shows its field of view — every pixel inside this cone will receive a depth measurement when the scan is captured.</p>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-prev="0">Back</button>
+          <button class="btn-primary" data-next="2">Next: Scene Setup</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Scene Setup ── -->
+      <div class="step-content" id="sc-2">
+        <h2 class="panel-h">Arrange the Scene</h2>
+        <p class="panel-p">Position the cube between the sensor and the background wall. The distance you choose here determines the point spacing and density you will observe once the scan is captured.</p>
+
+        <div class="slider-grp">
+          <div class="sldr-row"><span class="sldr-name">Cube distance from sensor</span><span class="sldr-val" id="sv-cd">1.5 m</span></div>
+          <input type="range" class="setup-range" id="sr-cd" min="0.3" max="6" value="1.5" step="0.1"/>
+          <div class="sldr-hints"><span>0.3 m</span><span>6 m</span></div>
+        </div>
+
+        <div class="slider-grp">
+          <div class="sldr-row"><span class="sldr-name">Cube lateral offset</span><span class="sldr-val" id="sv-co">0 cm</span></div>
+          <input type="range" class="setup-range" id="sr-co" min="-40" max="40" value="0" step="2"/>
+          <div class="sldr-hints"><span>-40 cm</span><span>+40 cm</span></div>
+        </div>
+
+        <div class="obs-box">
+          <div class="obs-label">Observe in 3D scene</div>
+          <p>The cube moves toward or away from the sensor as you adjust distance. Notice that the field-of-view cone covers a wider physical area at greater distances — the same angular spread now spans more real-world metres.</p>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-prev="1">Back</button>
+          <button class="btn-primary" data-next="3">Next: Scan Capture</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Scan Capture ── -->
+      <div class="step-content" id="sc-3">
+        <h2 class="panel-h">Capture the Depth Scan</h2>
+        <p class="panel-p">Trigger the sensor to capture a depth frame. Each captured frame samples the scene at the current resolution, producing a depth map that will be back-projected into a point cloud.</p>
+
+        <div class="slider-grp">
+          <div class="sldr-row"><span class="sldr-name">Capture resolution</span><span class="sldr-val" id="sv-res">320&times;240</span></div>
+          <input type="range" class="setup-range" id="sr-res" min="0" max="3" value="1" step="1"/>
+          <div class="sldr-hints"><span>160&times;120</span><span>1280&times;960</span></div>
+        </div>
+
+        <div class="scan-counter">
+          <div class="pc-num" id="scan-count">0</div>
+          <div class="pc-label">scans captured</div>
+          <div class="pc-bar"><div class="pc-fill" id="scan-fill"></div></div>
+          <div class="pc-sub">Capture at least 1 scan to proceed</div>
+        </div>
+
+        <div class="scan-grid" id="scan-grid"></div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-prev="2">Adjust Scene</button>
+          <button class="btn-secondary" id="btn-capture">Capture Scan</button>
+          <button class="btn-primary" id="btn-next-obs" disabled data-next="4">View Observation</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: Observation ── -->
+      <div class="step-content" id="sc-4">
+        <h2 class="panel-h">Live Observations</h2>
+        <p class="panel-p">This is what processing software reports after back-projecting your captured depth frame into a 3D point cloud.</p>
+
+        <div class="result-grid" id="result-grid">
+          <div class="rcard"><div class="rcard-label">Total Points</div><div class="rcard-val" id="r-points">—</div><div class="rcard-unit">points</div></div>
+          <div class="rcard"><div class="rcard-label">Point Spacing</div><div class="rcard-val" id="r-spacing">—</div><div class="rcard-unit">mm</div></div>
+          <div class="rcard"><div class="rcard-label">Cloud Density</div><div class="rcard-val" id="r-density">—</div><div class="rcard-unit">pts/m&sup2;</div></div>
+          <div class="rcard"><div class="rcard-label">Flying Pixels</div><div class="rcard-val" id="r-flying">—</div><div class="rcard-unit">detected</div></div>
+          <div class="rcard full-span">
+            <div class="rcard-label">Bounding Box (X &times; Y &times; Z)</div>
+            <div class="rcard-val large" id="r-bbox">—</div>
+            <div class="rcard-unit">metres</div>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div class="fb-title">Back-projection applied</div>
+          <div class="fb-matrix" id="bp-formula">
+            <span>X = (u &minus; cx) &times; Z / fx</span>
+            <span>Y = (v &minus; cy) &times; Z / fy</span>
+            <span>Z = depth_value(u, v)</span>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-prev="3">Capture Again</button>
+          <button class="btn-primary" id="btn-launch-sim">Launch Simulation</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE B — SIMULATION
+═══════════════════════════════════════════════════════ -->
+<div id="page-sim" class="page">
+
+  <div class="sim-topbar">
+    <div class="sim-topbar-left">
+      <button class="btn-back" id="btn-back-setup">← Setup</button>
+      <span class="badge">Experiment 3</span>
+      <span class="sim-title">Point Cloud Generation Simulation</span>
+    </div>
+    <div class="sim-topbar-right">
+      <button class="btn-ghost sm" id="btn-sim-reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="sim-body">
+
+    <aside class="sim-left">
+
+      <div class="wiz-box">
+        <div class="wiz-step-dots" id="wiz-dots">
+          <span class="wdot active" data-ws="0"></span>
+          <span class="wdot" data-ws="1"></span>
+          <span class="wdot" data-ws="2"></span>
+          <span class="wdot" data-ws="3"></span>
+        </div>
+        <div class="wiz-title" id="wiz-title">Resolution Effects</div>
+        <div class="wiz-text" id="wiz-text"></div>
+        <div class="wiz-task" id="wiz-task"></div>
+        <div class="wiz-btns">
+          <button class="btn-primary" id="wiz-next">Next Step</button>
+          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="params-section">
+        <div class="params-title">Parameters</div>
+
+        <div class="param-grp" id="pg-res">
+          <div class="param-top"><span class="param-name">Resolution</span><span class="param-val" id="pv-res">320&times;240</span></div>
+          <div class="range-track-wrap">
+            <div class="range-zones"><div class="rz-red" style="width:18%"></div><div class="rz-blue" style="width:64%"></div><div class="rz-amber" style="width:18%"></div></div>
+            <input type="range" class="sim-range" id="r-res" min="0" max="3" step="1" value="1"/>
+          </div>
+          <div class="range-labels"><span>Sparse</span><span>recommended</span><span>Heavy</span></div>
+          <p class="param-hint">Higher resolution = more points but slower processing.</p>
+        </div>
+
+        <div class="param-grp" id="pg-Z">
+          <div class="param-top"><span class="param-name">Object Distance <em>Z</em></span><span class="param-val" id="pv-Z">1.50 m</span></div>
+          <div class="range-track-wrap">
+            <div class="range-zones"><div class="rz-blue" style="width:55%"></div><div class="rz-amber" style="width:30%"></div><div class="rz-red" style="width:15%"></div></div>
+            <input type="range" class="sim-range" id="r-Z" min="0.3" max="8" step="0.1" value="1.5"/>
+          </div>
+          <div class="range-labels"><span>0.3 m</span><span>4 m</span><span>8 m</span></div>
+          <p class="param-hint">Point spacing grows linearly with Z. Density falls.</p>
+        </div>
+
+        <div class="param-grp" id="pg-noise">
+          <div class="param-top"><span class="param-name">Noise <em>&sigma;</em></span><span class="param-val" id="pv-noise">3 mm</span></div>
+          <div class="range-track-wrap">
+            <div class="range-zones"><div class="rz-blue" style="width:40%"></div><div class="rz-amber" style="width:35%"></div><div class="rz-red" style="width:25%"></div></div>
+            <input type="range" class="sim-range" id="r-noise" min="0" max="60" step="1" value="3"/>
+          </div>
+          <div class="range-labels"><span>0 mm</span><span>20 mm</span><span>60 mm</span></div>
+          <p class="param-hint">RMSE scales directly and linearly with &sigma;.</p>
+        </div>
+
+        <div class="param-grp" id="pg-fx">
+          <div class="param-top"><span class="param-name">Focal Length <em>fx</em></span><span class="param-val" id="pv-fx">700 px</span></div>
+          <div class="range-track-wrap">
+            <div class="range-zones"><div class="rz-red" style="width:20%"></div><div class="rz-blue" style="width:60%"></div><div class="rz-red" style="width:20%"></div></div>
+            <input type="range" class="sim-range" id="r-fx" min="300" max="1400" step="10" value="700"/>
+          </div>
+          <div class="range-labels"><span>300 px</span><span>700 px</span><span>1400 px</span></div>
+          <p class="param-hint">Wrong fx stretches or compresses the cloud's X-Y shape.</p>
+        </div>
+
+        <div class="param-grp" id="pg-flying">
+          <div class="param-top"><span class="param-name">Edge Discontinuity</span><span class="param-val" id="pv-flying">Normal</span></div>
+          <div class="range-track-wrap">
+            <div class="range-zones"><div class="rz-blue" style="width:50%"></div><div class="rz-red" style="width:50%"></div></div>
+            <input type="range" class="sim-range" id="r-flying" min="0" max="3" step="1" value="1"/>
+          </div>
+          <div class="range-labels"><span>Clean edge</span><span>High ambiguity</span></div>
+          <p class="param-hint">Controls flying pixel density at the object boundary.</p>
+        </div>
+
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="readouts-section">
+        <div class="params-title">Live Readouts</div>
+        <div class="ro-grid">
+          <div class="ro-card"><div class="ro-label">Total Points</div><div class="ro-val" id="ro-points">76,800</div><div class="ro-unit">pts</div></div>
+          <div class="ro-card"><div class="ro-label">Spacing &Delta;s</div><div class="ro-val" id="ro-spacing">—</div><div class="ro-unit">mm</div></div>
+          <div class="ro-card"><div class="ro-label">Density &rho;</div><div class="ro-val" id="ro-density">—</div><div class="ro-unit">k/m&sup2;</div></div>
+          <div class="ro-card"><div class="ro-label">RMSE</div><div class="ro-val" id="ro-rmse">—</div><div class="ro-unit">mm</div></div>
+        </div>
+
+        <div class="formula-card-sm">
+          <div class="fcs-row"><span class="fcs-eq">N = W &times; H</span><span class="fcs-desc">point count</span></div>
+          <div class="fcs-row"><span class="fcs-eq">&Delta;s = Z / fx</span><span class="fcs-desc">spacing</span></div>
+          <div class="fcs-row"><span class="fcs-eq">Z_m = Z_t + N(0,&sigma;&sup2;)</span><span class="fcs-desc">noise model</span></div>
+        </div>
+
+        <button class="btn-reset-sm" id="btn-sim-reset2">Reset Defaults</button>
+      </div>
+
+    </aside>
+
+    <section class="sim-center">
+
+      <div class="sim-row" id="sr-A">
+        <div class="sim-card" id="sc-depthmap">
+          <div class="sc-head"><span class="sc-title">Depth Map Input</span><span class="sc-sub">Each pixel stores Z. Red=near, Blue=far, Black=invalid</span></div>
+          <canvas id="cvs-depthmap" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-cloud3d">
+          <div class="sc-head"><span class="sc-title">3D Point Cloud (Back-Projected)</span><span class="sc-sub">Drag to rotate the reconstructed cloud</span></div>
+          <canvas id="cvs-cloud3d" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="sim-row" id="sr-B">
+        <div class="sim-card" id="sc-topview">
+          <div class="sc-head"><span class="sc-title">Top-Down Projection (X-Z plane)</span><span class="sc-sub">Shows field-of-view spread at current Z</span></div>
+          <canvas id="cvs-topview" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-density">
+          <div class="sc-head"><span class="sc-title">Density vs Distance Curve</span><span class="sc-sub">Watch density fall as Z increases</span></div>
+          <canvas id="cvs-density" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <aside class="sim-right">
+      <div class="k-panel">
+        <div class="kp-title">Point Cloud Stats</div>
+        <div class="dist-grid">
+          <div class="dist-card"><div class="dc-label">Width</div><div class="dc-val" id="st-w">320</div></div>
+          <div class="dist-card"><div class="dc-label">Height</div><div class="dc-val" id="st-h">240</div></div>
+          <div class="dist-card"><div class="dc-label">Valid %</div><div class="dc-val" id="st-valid">—</div></div>
+          <div class="dist-card"><div class="dc-label">Flying px</div><div class="dc-val" id="st-flying">—</div></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Quality Gauge</div>
+        <div class="quality-wrap">
+          <div class="quality-arc"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
+          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-sub" id="quality-sub">Adjust parameters to see quality</div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Bounding Box</div>
+        <div class="bbox-grid">
+          <div class="bbox-row"><span>Width (X)</span><span id="bb-x">—</span></div>
+          <div class="bbox-row"><span>Height (Y)</span><span id="bb-y">—</span></div>
+          <div class="bbox-row"><span>Depth (Z)</span><span id="bb-z">—</span></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Spacing vs Resolution</div>
+        <canvas id="cvs-spacing-mini" width="180" height="100"></canvas>
+        <p class="div-hint">Doubling resolution halves spacing on each axis.</p>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
