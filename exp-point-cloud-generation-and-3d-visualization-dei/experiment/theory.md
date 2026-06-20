@@ -2,79 +2,103 @@
  
 ### 1. From 2D Depth Image to 3D Point Cloud
  
-A depth image, also called a depth map, is a two-dimensional grid where every pixel stores a single value: the distance Z from the camera to whatever surface that pixel observes. This is fundamentally different from a regular photograph, where each pixel stores colour or brightness. A depth map alone is just a greyscale image of distances — useful, but still a 2D representation.
+Imagine a regular photograph. Each pixel in that photo stores a color or a brightness value. Now, imagine a different kind of image—a **depth image** (or depth map). Instead of colors, every pixel here holds a single, very important value: the distance, <i>Z</i>, from the camera to whatever surface it's looking at. It’s essentially a grayscale picture of distances. While super useful, it’s still just a flat, 2D grid.
  
-To make this data usable for measurement, mesh generation, or 3D visualisation, every pixel in the depth map must be converted into an actual point in 3D space with coordinates (X, Y, Z). This process is called back-projection, and the result of applying it to every valid pixel is called a point cloud — an unordered collection of 3D points that together describe the visible surface of the scanned object.
+To really bring this data to life—whether for taking measurements, creating meshes, or full 3D visualization—we need to pop every pixel out into actual 3D space with (<i>X</i>, <i>Y</i>, <i>Z</i>) coordinates. We call this magical process **back-projection**. When you back-project every valid pixel, you get a **point cloud**: a massive, unordered swarm of 3D points that perfectly traces the visible surface of whatever you just scanned.
  
-Point clouds are the universal output format of nearly all 3D scanning technologies. A LiDAR scanner produces a point cloud. A structured light scanner produces a point cloud. A stereo camera system, after computing depth as in Experiment 1, also produces a point cloud once back-projection is applied. Every downstream process in the 3D scanning pipeline — registration (Experiment 4), mesh generation (Experiment 7), noise filtering (Experiment 8) — operates on point cloud data.
+Point clouds are basically the rockstars of 3D scanning. Whether you're using a LiDAR scanner, a structured light setup, or a stereo camera system (like we saw in Experiment 1), they all ultimately spit out a point cloud. Everything that happens next in the 3D world—like stitching scans together (Experiment 4), building solid meshes (Experiment 7), or cleaning up messy data (Experiment 8)—starts with this humble point cloud.
  
 ### 2. The Back-Projection Formula
  
-For a pixel at column u and row v in the depth image, with stored depth value Z, the corresponding 3D point (X, Y, Z) in the camera's coordinate frame is computed as:
+So, how do we actually compute this? For any given pixel located at column <i>u</i> and row <i>v</i> in our depth image, with a stored depth value of <i>Z</i>, its new 3D address (<i>X</i>, <i>Y</i>, <i>Z</i>) in the camera's world is found like this:
  
-```
-X = (u − cx) × Z / fx
-Y = (v − cy) × Z / fy
-Z = depth_value(u, v)
-```
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+  <div style="display: flex; align-items: center;">
+    <i>X</i>&nbsp;=&nbsp;
+    <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 4px;">
+      <span style="border-bottom: 1px solid #333; padding: 0 4px; line-height: 1.2;">(<i>u</i> &minus; <i>c</i><sub><i>x</i></sub>) &times; <i>Z</i></span>
+      <span style="padding: 0 4px; line-height: 1.2;"><i>f</i><sub><i>x</i></sub></span>
+    </span>
+  </div>
+  <div style="display: flex; align-items: center;">
+    <i>Y</i>&nbsp;=&nbsp;
+    <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 4px;">
+      <span style="border-bottom: 1px solid #333; padding: 0 4px; line-height: 1.2;">(<i>v</i> &minus; <i>c</i><sub><i>y</i></sub>) &times; <i>Z</i></span>
+      <span style="padding: 0 4px; line-height: 1.2;"><i>f</i><sub><i>y</i></sub></span>
+    </span>
+  </div>
+  <div style="display: flex; align-items: center;">
+    <i>Z</i>&nbsp;=&nbsp;depth_value(<i>u</i>, <i>v</i>)
+  </div>
+</div>
  
-Where:
+Let's break that down:
  
-- **(u, v)** — the pixel's column and row position in the depth image
-- **(cx, cy)** — the principal point of the camera, recovered from calibration in Experiment 2
-- **fx, fy** — the focal lengths in pixels along the horizontal and vertical axes, also from calibration
-- **Z** — the depth value already stored at that pixel, in metres
-This formula is the geometric inverse of the camera projection equation. While the projection equation in Experiment 2 takes a 3D point and computes where it lands in the 2D image, back-projection takes a 2D pixel with a known depth and recovers where that point exists in 3D space. The two operations are mathematically inverse to each other, and both depend critically on accurate camera intrinsic parameters.
+- **(u, v)**: Where the pixel lives in the 2D depth image (column and row).
+- **(cx, cy)**: The camera's "principal point" (its true optical center), which we figured out during calibration in Experiment 2.
+- **fx, fy**: The camera's focal lengths, measured in pixels along the horizontal and vertical axes (also from our handy calibration).
+- **Z**: The actual depth value the sensor recorded at that pixel, usually in meters.
+
+Think of this formula as the exact reverse of taking a photo. While taking a photo (Experiment 2) squishes a 3D world into a 2D image, back-projection takes a 2D image and inflates it back into 3D space. They are two sides of the same mathematical coin, and both rely heavily on knowing your camera's unique quirks (its intrinsic parameters).
  
-This is the direct reason Experiment 2 (calibration) must be completed before this experiment can produce metrically accurate results. If fx or cx is wrong, every single point in the resulting cloud will be displaced from its true position, distorting the overall shape of the reconstructed surface.
+This is exactly why we had to get Experiment 2 (calibration) right before tackling this! If your focal length (<i>f</i><sub><i>x</i></sub>) or optical center (<i>c</i><sub><i>x</i></sub>) is even slightly off, every single point in your cloud will end up in the wrong spot, leaving you with a warped, funhouse-mirror version of reality.
  
 ### 3. Total Point Count and Resolution
  
-Every valid pixel in the depth map generates exactly one 3D point. The total number of points in the resulting cloud is:
+Since every valid pixel gets promoted to a 3D point, the total headcount in your point cloud is simply:
  
-```
-N_total = image_width × image_height
-```
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <i>N</i><sub>total</sub> = image_width &times; image_height
+</div>
  
-This means resolution has a direct and significant effect on point cloud size. Doubling both width and height (for example going from 320×240 to 640×480) does not double the point count — it quadruples it, because both dimensions doubled simultaneously. A typical depth camera operating at 640×480 produces just over 300,000 points per frame, assuming every pixel returns a valid depth reading.
+This means your camera's resolution is a huge deal. If you double your camera's resolution from 320×240 to 640×480, you aren't just doubling your point count—you're *quadrupling* it! A standard depth camera running at 640×480 can churn out over 300,000 points in a single frame (assuming every pixel gets a good read). That’s a lot of data!
  
-### 4. Point Spacing and Its Relationship to Distance
+### 4. Point Spacing: Why Distance Matters
  
-Point spacing describes how far apart adjacent 3D points are on the scanned surface, measured in real-world units like millimetres. It is not constant — it depends directly on how far the surface is from the camera:
+"Point spacing" is just a fancy way of asking: *how far apart are these dots on my scanned surface?* (usually measured in millimeters). Here's the catch: it’s not constant. It changes based on how far away the object is from the camera:
  
-```
-Δs = Z / fx
-```
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  &Delta;<i>s</i>&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 4px;">
+    <span style="border-bottom: 1px solid #333; padding: 0 4px; line-height: 1.2;"><i>Z</i></span>
+    <span style="padding: 0 4px; line-height: 1.2;"><i>f</i><sub><i>x</i></sub></span>
+  </span>
+</div>
  
-This relationship has an important practical consequence: the same camera, at the same resolution, produces a much denser sampling of nearby objects than distant ones. At 1 metre with a focal length of 700 pixels, point spacing is approximately 1.4 millimetres. At 3 metres, with the same camera settings, spacing grows to about 4.3 millimetres — roughly three times sparser. This is the same underlying principle that determines feature detectability, explored in depth in Experiment 9.
+Practically speaking, this means your camera captures a much richer, denser cluster of points for objects right in front of it compared to objects far away. For example, at 1 meter away (with a 700-pixel focal length), points are a tight 1.4 mm apart. Push that object back to 3 meters, and suddenly your points are 4.3 mm apart—three times sparser! It’s the same reason it’s harder to spot tiny details on distant objects (a concept we'll dive into in Experiment 9).
  
-### 5. Modelling Sensor Noise
+### 5. Dealing with Sensor Noise
  
-No depth sensor measures distance perfectly. Every reading contains some amount of random error, which is typically modelled as Gaussian (normally distributed) noise added to the true depth value:
+Let's face it: no sensor is perfect. Every single depth measurement has a tiny bit of random error baked into it. We usually model this "noise" as a standard bell curve (Gaussian distribution) added to the real distance:
  
-```
-Z_measured = Z_true + N(0, σ²)
-```
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem;">
+  <i>Z</i><sub>measured</sub> = <i>Z</i><sub>true</sub> + <i>N</i>(0, &sigma;<sup>2</sup>)
+</div>
  
-Where σ is the standard deviation of the noise in metres, and N(0, σ²) represents a random sample drawn from a normal distribution with zero mean and variance σ². A typical consumer depth camera might have σ around 3 millimetres at a 1 metre measurement distance, with this value growing larger at greater distances — consistent with the depth uncertainty behaviour studied in Experiment 1.
+Here, &sigma; (sigma) is our standard deviation in meters, and <i>N</i>(0, &sigma;<sup>2</sup>) is just a random error pulled from that bell curve. A typical consumer depth camera might be off by about 3 mm when looking at something 1 meter away. And just like we saw in Experiment 1, this error only gets worse the further out you look.
  
-When this noisy depth is back-projected into 3D, the result is a point cloud where points that should lie on a perfectly flat surface instead show small random deviations above and below the true surface plane. At low noise levels this appears as a slight roughness. At higher noise levels, a surface that is actually flat can appear visibly wavy or rippled in the 3D point cloud — an effect commonly seen in real-world depth camera output, especially outdoors where sunlight interferes with infrared depth sensors.
+When you back-project this slightly-wrong depth data into 3D, things get interesting. A surface that is perfectly flat in real life will suddenly look a bit rough or bumpy in your point cloud. If the noise is really bad, that flat surface might even look wavy! You'll see this a lot in real-world scans, especially if you try to use infrared depth cameras outside in the bright sun.
  
 ### 6. Cloud Density
  
-Cloud density measures how many points fall within a given surface area, typically expressed in points per square metre:
+If point spacing is about the distance between dots, **cloud density** is about how tightly packed those dots are over a given area (like points per square meter):
  
-```
-ρ = N_valid / A_surface
-```
+<div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+  &rho;&nbsp;=&nbsp;
+  <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 4px;">
+    <span style="border-bottom: 1px solid #333; padding: 0 4px; line-height: 1.2;"><i>N</i><sub>valid</sub></span>
+    <span style="padding: 0 4px; line-height: 1.2;"><i>A</i><sub>surface</sub></span>
+  </span>
+</div>
  
-Where N_valid is the count of points with a valid (successfully measured) depth value, and A_surface is the visible surface area at the relevant depth. Density is not uniform across a scan — it is higher for surfaces close to the camera and lower for surfaces farther away, following directly from the point spacing relationship described above. Understanding density is important for predicting whether a given scan will have sufficient detail for a specific downstream task, such as detecting a small surface feature or generating a smooth mesh.
+Where <i>N</i><sub>valid</sub> is the number of successfully measured points, and <i>A</i><sub>surface</sub> is the physical area they cover. Just like point spacing, density isn't uniform. Objects close to the camera get packed with points, while distant background objects look sparse and ghostly. Knowing your density is crucial for figuring out if your scan has enough detail to actually do what you want with it, like picking out a small feature or printing a smooth 3D model.
  
-### 7. Flying Pixels and Edge Artefacts
+### 7. The Mystery of Flying Pixels
  
-A specific and well-documented artefact in depth sensing occurs at object boundaries — the edges where a foreground object meets the background behind it. At these transition pixels, the depth measurement can become unreliable, sometimes producing a depth value that is neither the true foreground distance nor the true background distance, but something in between. When such a pixel is back-projected into 3D, it appears as an isolated point floating in space between the object and the background, disconnected from both surfaces. These are commonly called flying pixels or flying points, and they are a primary target for the noise filtering algorithms studied in Experiment 8.
+Here’s a fun (and annoying) glitch: what happens at the very edge of an object? When your camera looks right at the boundary where a foreground object meets the background, the sensor gets confused. It might spit out a depth value that’s halfway between the two. 
  
-### 8. Why Point Clouds Matter for 3D Scanning
+When you back-project that confused pixel, it turns into a bizarre, isolated dot hovering in mid-air between the object and the background. We lovingly call these **"flying pixels"** or edge artifacts. They are prime targets for the cleanup algorithms we'll play with in Experiment 8.
  
-The point cloud is the foundational data structure of the entire 3D scanning pipeline. Before a scanned object can be measured, compared to a CAD reference, converted into a printable mesh, or aligned with another scan, it must first exist as a point cloud. Understanding how resolution, distance, and noise shape the quality of this point cloud is therefore essential before any of the more advanced processing steps — registration, filtering, or mesh generation — can be meaningfully understood.
-
+### 8. Why Care About Point Clouds?
+ 
+At the end of the day, the point cloud is the absolute bedrock of 3D scanning. Before you can measure a scanned part, compare it to a CAD model, 3D print it, or align it with another scan, it has to be a point cloud first. Understanding how your camera's resolution, the distance to your object, and unavoidable sensor noise all shape this cloud is the key to unlocking all the advanced 3D magic that comes next!

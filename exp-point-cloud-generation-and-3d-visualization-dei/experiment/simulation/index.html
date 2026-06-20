@@ -1,432 +1,541 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exp 3 — Point Cloud Generation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Point Cloud Generation and 3D Visualization</title>
+  <meta name="description" content="Interactive point cloud generation setup wizard. Mount sensor and target before proceeding to simulation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════
-     PAGE A — SETUP LAB (shown first)
-═══════════════════════════════════════════════════════ -->
-<div id="page-setup" class="page active">
+  <!-- ================= SETUP VIEW ================= -->
+  <div id="setup-view" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <main id="app-main">
+      <!-- ═══ LEFT PANEL ═══ -->
+      <aside id="wizard-panel">
+        <!-- Step Info with real-world reference -->
+        <div id="wizard-info">
+          <div class="step-badge" id="setup-step-badge">STEP 1 OF 4</div>
+          <h2 id="setup-wizard-title">Mount Apparatus</h2>
+          <p id="setup-wizard-text">Mount the background wall, sensor mount arm, RGB-D sensor, and target object into the scene.</p>
+          <div id="spec-content" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--slate-200); display:none;"></div>
+          <div id="setup-wizard-task" class="task-box">
+            Click <strong>Mount All Components</strong> in the right panel to proceed.
+          </div>
 
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="badge">3D Scanning Virtual Lab</span>
-      <span class="topbar-title">Experiment 3 &mdash; Point Cloud Generation Setup</span>
-    </div>
-    <div class="topbar-steps" id="setup-steps">
-      <div class="sstep active" data-s="0">Components</div>
-      <div class="sstep-line"></div>
-      <div class="sstep" data-s="1">Mount Sensor</div>
-      <div class="sstep-line"></div>
-      <div class="sstep" data-s="2">Scene Setup</div>
-      <div class="sstep-line"></div>
-      <div class="sstep" data-s="3">Scan Capture</div>
-      <div class="sstep-line"></div>
-      <div class="sstep" data-s="4">Observe</div>
-    </div>
-    <div class="topbar-actions">
-      <button class="btn-ghost" id="btn-reset-setup">Reset Setup</button>
-      <button class="btn-primary" id="btn-go-sim" disabled>Go to Simulation</button>
-    </div>
+        </div>
+        <!-- 3D View Controls -->
+        <div id="view-controls">
+          <div class="legend-title">3D View Controls</div>
+          <div class="control-hints desktop-controls">
+            <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="control-hints mobile-controls">
+            <div class="hint-row"><span class="hint-key">👆 1 Finger</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">✌️ 2 Fingers</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">🤏 Pinch</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+          <div class="preset-btns">
+            <button class="btn-preset active" id="preset-iso">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+              Isometric
+            </button>
+            <button class="btn-preset" id="preset-top">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+              Top
+            </button>
+            <button class="btn-preset" id="preset-front">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+              Front
+            </button>
+            <button class="btn-preset" id="preset-side">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+              Side
+            </button>
+          </div>
+        </div>
+      </aside>
+      <!-- ═══ CENTER PANEL — 3D CANVAS + OBSERVATIONS ═══ -->
+      <section id="canvas-area">
+        <div class="top-row" style="display: flex; flex-direction: row; flex: 2; gap: 6px; min-height: 0;">
+          <div class="canvas-card" id="card-3d" style="flex: 4; display:flex; flex-direction:column;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                  3D Scene Setup — Interactive View
+                </span>
+                <span class="card-sub" id="canvas-status">Mount components sequentially to build the scanning environment</span>
+              </div>
+              <div class="info-btn-container">
+                <button class="info-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+                <div class="info-popover">
+                  <h4>3D Scene Setup</h4>
+                  <p><strong>How to read:</strong> This is a 3D preview of the physical scanner setup. It displays the positions of the depth sensor, rails, and target object in the real world before scanning begins.</p>
+                  <p><strong>Color representation:</strong> The orange cube represents the target object being scanned. The green/gray components represent the physical mounts and rails of the apparatus.</p>
+                </div>
+              </div>
+            </div>
+            <div id="setup-canvas-container" style="flex:1; position:relative; background:#f8fafc; border-radius:8px; overflow:hidden; border:1px solid var(--slate-200); min-height:300px;">
+              <canvas id="setup-canvas-webgl" style="display:block; width:100%; height:100%;"></canvas>
+              <div style="position:absolute; bottom:10px; left:10px; color:#64748b; font-size:0.8rem; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:4px; pointer-events:none;">
+                Left Click: Orbit &bull; Right Click: Pan &bull; Scroll: Zoom
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- OBSERVATION SECTION -->
+        <div id="observation-section" style="display:flex; flex-direction:column; background:white; border:1px solid var(--slate-200); border-radius:8px; padding:12px; margin-top:8px; flex: 1; min-height: 200px;">
+          <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--slate-800); display:flex; align-items:center;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Observation
+          </h3>
+          <div id="observation-gallery" style="display:flex; flex-wrap:wrap; gap:12px; overflow-y:auto; flex:1;">
+            <p id="obs-placeholder" style="color:var(--slate-400); font-size:0.9rem; margin:auto;">Captured images will appear here.</p>
+          </div>
+        </div>
+      </section>
+      <!-- ═══ RIGHT PANEL ═══ -->
+      <aside id="controls-panel">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Setup Configuration
+        </h3>
+
+        <!-- WIZARD STEP 1: MOUNT APPARATUS -->
+        <div id="setup-wiz-1" class="wizard-step-container" style="flex-direction: column; gap: 16px;">
+          <p style="font-size:0.85rem; color:var(--slate-600); margin-bottom:12px; line-height:1.4;">Select each component from the list and click Mount Component to add it to the scene. You must mount them in order.</p>
+          <div class="apparatus-list">
+            <div class="apparatus-card selected" data-comp="backdrop">
+              <svg viewBox="0 0 24 24" fill="#64748b" class="apparatus-thumb" style="padding: 6px;">
+                <rect x="2" y="2" width="20" height="20" rx="1.5" />
+              </svg>
+              <div class="apparatus-info">
+                <span class="apparatus-name">Background Wall</span>
+                <span class="apparatus-status" id="state-backdrop">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="mount">
+              <svg viewBox="0 0 24 24" fill="#64748b" class="apparatus-thumb" style="padding: 6px;">
+                <rect x="10" y="4" width="4" height="16" rx="1.5" />
+                <rect x="6" y="20" width="12" height="2" rx="1" />
+              </svg>
+              <div class="apparatus-info">
+                <span class="apparatus-name">Sensor Mount Arm</span>
+                <span class="apparatus-status" id="state-mount">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="sensor">
+              <svg viewBox="0 0 24 24" fill="#3b82f6" class="apparatus-thumb cam-l-thumb" style="padding: 8px;">
+                <path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+              </svg>
+              <div class="apparatus-info">
+                <span class="apparatus-name">RGB-D Sensor</span>
+                <span class="apparatus-status" id="state-sensor">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="object">
+              <svg viewBox="0 0 24 24" fill="#f59e0b" class="apparatus-thumb" style="padding: 6px;">
+              <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Target Car</span>
+                <span class="apparatus-status" id="state-object">Unmounted</span>
+              </div>
+            </div>
+          </div>
+          <button id="btn-mount" class="btn-primary btn-mount-anim" style="display:flex; justify-content:center; align-items:center; width:100%;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+            Mount Component
+          </button>
+        </div>
+
+        <!-- WIZARD STEP 2: FIX OBJECT POSITION -->
+        <div id="setup-wiz-2" class="wizard-step-container" style="display:none; flex-direction:column; gap:16px;">
+          <div class="concept-controls">
+            <h4 style="margin:0 0 8px 0; font-size:0.85rem; color:var(--slate-800);">Target Object Position</h4>
+            <div class="ctrl-group">
+              <div class="ctrl-top"><span class="ctrl-name">Distance (Z)</span><span class="ctrl-val" id="lbl-setup-dist">2.0 m</span></div>
+              <input type="range" id="rng-setup-dist" min="0.5" max="3.5" step="0.1" value="2.0" />
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-top"><span class="ctrl-name">Offset (X)</span><span class="ctrl-val" id="lbl-setup-offset">0.0 m</span></div>
+              <input type="range" id="rng-setup-offset" min="-1.5" max="1.5" step="0.1" value="0.0" />
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-top"><span class="ctrl-name">Rotation</span><span class="ctrl-val" id="lbl-setup-rot">0°</span></div>
+              <input type="range" id="rng-setup-rot" min="0" max="315" step="45" value="0" />
+            </div>
+            <button id="btn-lock-pos" class="btn-primary" style="width:100%; margin-top:8px; padding:10px; font-size:0.85rem;">Lock Position</button>
+            <button id="btn-back-step2" class="btn-reset" style="margin-top:8px;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="15 18 9 12 15 6"/></svg>
+              Go Back
+            </button>
+          </div>
+        </div>
+
+        <!-- WIZARD STEP 3: CAPTURE RESOLUTIONS -->
+        <div id="setup-wiz-3" class="wizard-step-container" style="display:none; flex-direction:column; gap:16px;">
+          <div class="concept-controls">
+            <h4 style="margin:0 0 8px 0; font-size:0.85rem; color:var(--slate-800);">Capture Target</h4>
+            <div class="ctrl-group">
+              <div class="ctrl-top"><span class="ctrl-name">Sensor Resolution</span><span class="ctrl-val" id="lbl-setup-res">Medium</span></div>
+              <input type="range" id="rng-setup-res" min="0" max="3" step="1" value="1" />
+            </div>
+            <button id="btn-capture" class="btn-primary" style="display:flex; justify-content:center; align-items:center; width:100%; margin-top:8px; padding:10px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              Capture Image
+            </button>
+            <div id="capture-status" style="font-size:0.8rem; color:var(--slate-500); text-align:center; margin-top:12px; font-weight:600;">
+              Captured: <span id="capture-count" style="color:var(--slate-800);">0</span> / 4 Required
+            </div>
+            <button id="btn-step3-next" class="btn-primary" disabled style="width:100%; margin-top:12px; padding:10px; font-size:0.85rem; display:none;">
+              Next Step
+            </button>
+            <button id="btn-back-step3" class="btn-reset" style="margin-top:8px;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="15 18 9 12 15 6"/></svg>
+              Go Back
+            </button>
+          </div>
+        </div>
+
+        <!-- WIZARD STEP 4: LIVE READINGS -->
+        <div id="setup-wiz-4" class="wizard-step-container" style="display:none;">
+          <div id="step-3-readings" class="concept-controls" style="background:transparent; border:none; padding:0;">
+            <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:var(--slate-900); font-weight:700;">Live Observations</h4>
+            <p style="font-size:0.85rem; color:var(--slate-500); line-height:1.4; margin:0 0 16px 0;">
+              This is what processing software reports after back-projecting your captured depth frame into a 3D point cloud.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="background:#fff; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; color:var(--slate-500); margin-bottom:4px;">Total Points</div>
+                <div id="rd-points" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+                <div style="font-size:0.7rem; color:var(--slate-400); margin-top:2px; font-family:monospace;">points</div>
+              </div>
+              <div style="background:#fff; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; color:var(--slate-500); margin-bottom:4px;">Point Spacing</div>
+                <div id="rd-spacing" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+                <div style="font-size:0.7rem; color:var(--slate-400); margin-top:2px; font-family:monospace;">mm</div>
+              </div>
+              <div style="background:#fff; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; color:var(--slate-500); margin-bottom:4px;">Cloud Density</div>
+                <div id="rd-density" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+                <div style="font-size:0.7rem; color:var(--slate-400); margin-top:2px; font-family:monospace;">pts/m²</div>
+              </div>
+              <div style="background:#fff; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; color:var(--slate-500); margin-bottom:4px;">Flying Pixels</div>
+                <div id="rd-flying" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+                <div style="font-size:0.7rem; color:var(--slate-400); margin-top:2px; font-family:monospace;">detected</div>
+              </div>
+              <div style="background:#fff; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; color:var(--slate-500); margin-bottom:4px;">Bounding Box (X &times; Y &times; Z)</div>
+                <div id="rd-bounds" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+                <div style="font-size:0.7rem; color:var(--slate-400); margin-top:2px; font-family:monospace;">metres</div>
+              </div>
+              
+              <!-- Back Projection Box -->
+              <div style="background:#f8fafc; border:1px solid var(--slate-200); padding:10px 14px; border-radius:8px;">
+                <div style="font-size:0.75rem; font-weight:600; color:var(--slate-600); margin-bottom:8px;">Back-projection applied</div>
+                <div style="font-size:0.8rem; color:var(--slate-700); font-family:monospace; line-height:1.6;">
+                  X = (u - cx) &times; Z / fx<br>
+                  Y = (v - cy) &times; Z / fy<br>
+                  Z = depth_value(u, v)
+                </div>
+              </div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+              <a href="#" id="btn-go-sim" class="btn-primary btn-sim" disabled style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; margin-bottom:0;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Go To Simulation
+              </a>
+
+              <button id="btn-back-step4" class="btn-reset" style="margin-bottom:8px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="15 18 9 12 15 6"/></svg>
+                Go Back
+              </button>
+
+              <button id="btn-reset" class="btn-reset" style="margin-bottom:8px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                Reset Setup
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </main>
   </div>
 
-  <div class="setup-body">
-
-    <div class="viewport-wrap">
-      <canvas id="three-canvas"></canvas>
-
-      <div class="view-controls">
-        <button class="view-btn active" data-view="iso">Isometric</button>
-        <button class="view-btn" data-view="top">Top</button>
-        <button class="view-btn" data-view="front">Front</button>
-        <button class="view-btn" data-view="side">Side</button>
-      </div>
-
-      <div class="orbit-hint">
-        <span>Drag to orbit &nbsp;|&nbsp; Scroll to zoom &nbsp;|&nbsp; Right-drag to pan</span>
-      </div>
-
-      <div class="obs-overlay" id="obs-overlay" style="display:none">
-        <div class="obs-row"><span class="obs-key">Pixels scanned</span><span class="obs-val" id="obs-pixels">—</span></div>
-        <div class="obs-row"><span class="obs-key">Valid depth returns</span><span class="obs-val" id="obs-valid">—</span></div>
-        <div class="obs-row"><span class="obs-key">Points generated</span><span class="obs-val" id="obs-points">—</span></div>
-        <div class="obs-row"><span class="obs-key">Point spacing</span><span class="obs-val" id="obs-spacing">—</span></div>
-      </div>
-    </div>
-
-    <div class="setup-panel" id="setup-panel">
-
-      <!-- ── STEP 0: Components ── -->
-      <div class="step-content active" id="sc-0">
-        <h2 class="panel-h">Equipment Tray</h2>
-        <p class="panel-p">These are the components used to capture a depth image and convert it into a 3D point cloud. Click Mount to place each one into the scene.</p>
-
-        <div class="component-list" id="comp-list">
-
-          <div class="comp-card" data-comp="sensor">
-            <div class="comp-icon sensor-icon">
-              <div class="si-body"></div>
-              <div class="si-lens-a"></div>
-              <div class="si-lens-b"></div>
-            </div>
-            <div class="comp-info">
-              <div class="comp-name">RGB-D Depth Sensor</div>
-              <div class="comp-spec">640&times;480 &nbsp;|&nbsp; 0.3&ndash;8 m range</div>
-              <div class="comp-desc">Captures a depth image where every pixel stores a distance value Z. This depth map is the raw input that gets back-projected into 3D.</div>
-            </div>
-            <button class="btn-mount" data-comp="sensor">Mount</button>
+  <!-- ================= SIMULATION VIEW ================= -->
+  <div id="simulation-view" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+    <main id="app-main">
+      <!-- LEFT: WIZARD PANEL -->
+      <aside id="wizard-panel">
+        <div id="wizard-icon" class="wizard-icon-svg">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+        <h2 id="wizard-title">Resolution Effects</h2>
+        <p id="wizard-text">Change the sensor resolution and observe the density of the generated point cloud. Lower resolution results in sparse point spacing, while higher resolution captures finer details but increases computational cost.</p>
+        <div id="wizard-task" class="task-box hidden"></div>
+        <div class="wizard-btns">
+          <button id="btn-next" class="btn-primary">Next Step</button>
+          <button id="btn-skip" class="btn-ghost">Skip to Simulation</button>
+          <button id="btn-go-setup" class="btn-ghost" onclick="document.getElementById('simulation-view').style.display='none'; document.getElementById('setup-view').style.display='flex'; window.dispatchEvent(new Event('resize'));">Go to Setup</button>
+        </div>
+        <!-- Concepts Legend -->
+        <div class="legend-box" id="legend-box">
+          <div class="legend-title">Visualizer Key</div>
+          <div class="legend-row">
+            <span class="legend-swatch near"></span>
+            <span>Near points (Red/Orange)</span>
           </div>
-
-          <div class="comp-card" data-comp="mount">
-            <div class="comp-icon mount-icon">
-              <div class="mi-arm"></div>
-              <div class="mi-base"></div>
-            </div>
-            <div class="comp-info">
-              <div class="comp-name">Sensor Mount Arm</div>
-              <div class="comp-spec">Fixed position &nbsp;|&nbsp; Adjustable height</div>
-              <div class="comp-desc">Holds the sensor rigidly in place during the scan. Stability here ensures the intrinsic parameters from calibration remain valid.</div>
-            </div>
-            <button class="btn-mount" data-comp="mount">Mount</button>
+          <div class="legend-row">
+            <span class="legend-swatch far"></span>
+            <span>Far points (Blue)</span>
           </div>
-
-          <div class="comp-card" data-comp="object">
-            <div class="comp-icon object-icon">
-              <div class="oi-cube"></div>
-            </div>
-            <div class="comp-info">
-              <div class="comp-name">Scan Target (Cube)</div>
-              <div class="comp-spec">20&times;20&times;20 cm reference object</div>
-              <div class="comp-desc">A simple geometric object placed in the scene. Used to observe how resolution and noise affect the reconstructed point cloud shape.</div>
-            </div>
-            <button class="btn-mount" data-comp="object">Mount</button>
-          </div>
-
-          <div class="comp-card" data-comp="backdrop">
-            <div class="comp-icon backdrop-icon">
-              <div class="bi-wall"></div>
-            </div>
-            <div class="comp-info">
-              <div class="comp-name">Background Wall</div>
-              <div class="comp-spec">Flat plane &nbsp;|&nbsp; 8 m fixed distance</div>
-              <div class="comp-desc">A flat surface behind the object. The boundary between object and wall is where flying pixel artefacts typically appear.</div>
-            </div>
-            <button class="btn-mount" data-comp="backdrop">Mount</button>
-          </div>
-
-        </div>
-
-        <div class="step-nav">
-          <button class="btn-primary full-w" id="mount-all-btn">Mount All Components</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 1: Mount Sensor ── -->
-      <div class="step-content" id="sc-1">
-        <h2 class="panel-h">Mount the Depth Sensor</h2>
-        <p class="panel-p">The sensor is fixed on its mount, aimed at the scene containing the cube and background wall. Its calibrated intrinsic parameters (from Experiment 2) determine how depth pixels convert to 3D coordinates.</p>
-
-        <div class="info-card">
-          <div class="info-row"><span class="info-label">Focal length fx, fy</span><span class="info-val">700 px</span></div>
-          <div class="info-row"><span class="info-label">Principal point cx, cy</span><span class="info-val">320, 240</span></div>
-          <div class="info-row"><span class="info-label">Min / Max range</span><span class="info-val">0.3 m / 8 m</span></div>
-          <div class="info-row"><span class="info-label">Sensor type</span><span class="info-val">Active IR depth</span></div>
-        </div>
-
-        <div class="obs-box">
-          <div class="obs-label">What you observe in the 3D scene</div>
-          <p>The sensor body appears on the mount arm. The translucent blue frustum shows its field of view — every pixel inside this cone will receive a depth measurement when the scan is captured.</p>
-        </div>
-
-        <div class="step-nav">
-          <button class="btn-ghost" data-prev="0">Back</button>
-          <button class="btn-primary" data-next="2">Next: Scene Setup</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 2: Scene Setup ── -->
-      <div class="step-content" id="sc-2">
-        <h2 class="panel-h">Arrange the Scene</h2>
-        <p class="panel-p">Position the cube between the sensor and the background wall. The distance you choose here determines the point spacing and density you will observe once the scan is captured.</p>
-
-        <div class="slider-grp">
-          <div class="sldr-row"><span class="sldr-name">Cube distance from sensor</span><span class="sldr-val" id="sv-cd">1.5 m</span></div>
-          <input type="range" class="setup-range" id="sr-cd" min="0.3" max="6" value="1.5" step="0.1"/>
-          <div class="sldr-hints"><span>0.3 m</span><span>6 m</span></div>
-        </div>
-
-        <div class="slider-grp">
-          <div class="sldr-row"><span class="sldr-name">Cube lateral offset</span><span class="sldr-val" id="sv-co">0 cm</span></div>
-          <input type="range" class="setup-range" id="sr-co" min="-40" max="40" value="0" step="2"/>
-          <div class="sldr-hints"><span>-40 cm</span><span>+40 cm</span></div>
-        </div>
-
-        <div class="obs-box">
-          <div class="obs-label">Observe in 3D scene</div>
-          <p>The cube moves toward or away from the sensor as you adjust distance. Notice that the field-of-view cone covers a wider physical area at greater distances — the same angular spread now spans more real-world metres.</p>
-        </div>
-
-        <div class="step-nav">
-          <button class="btn-ghost" data-prev="1">Back</button>
-          <button class="btn-primary" data-next="3">Next: Scan Capture</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 3: Scan Capture ── -->
-      <div class="step-content" id="sc-3">
-        <h2 class="panel-h">Capture the Depth Scan</h2>
-        <p class="panel-p">Trigger the sensor to capture a depth frame. Each captured frame samples the scene at the current resolution, producing a depth map that will be back-projected into a point cloud.</p>
-
-        <div class="slider-grp">
-          <div class="sldr-row"><span class="sldr-name">Capture resolution</span><span class="sldr-val" id="sv-res">320&times;240</span></div>
-          <input type="range" class="setup-range" id="sr-res" min="0" max="3" value="1" step="1"/>
-          <div class="sldr-hints"><span>160&times;120</span><span>1280&times;960</span></div>
-        </div>
-
-        <div class="scan-counter">
-          <div class="pc-num" id="scan-count">0</div>
-          <div class="pc-label">scans captured</div>
-          <div class="pc-bar"><div class="pc-fill" id="scan-fill"></div></div>
-          <div class="pc-sub">Capture at least 1 scan to proceed</div>
-        </div>
-
-        <div class="scan-grid" id="scan-grid"></div>
-
-        <div class="step-nav">
-          <button class="btn-ghost" data-prev="2">Adjust Scene</button>
-          <button class="btn-secondary" id="btn-capture">Capture Scan</button>
-          <button class="btn-primary" id="btn-next-obs" disabled data-next="4">View Observation</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 4: Observation ── -->
-      <div class="step-content" id="sc-4">
-        <h2 class="panel-h">Live Observations</h2>
-        <p class="panel-p">This is what processing software reports after back-projecting your captured depth frame into a 3D point cloud.</p>
-
-        <div class="result-grid" id="result-grid">
-          <div class="rcard"><div class="rcard-label">Total Points</div><div class="rcard-val" id="r-points">—</div><div class="rcard-unit">points</div></div>
-          <div class="rcard"><div class="rcard-label">Point Spacing</div><div class="rcard-val" id="r-spacing">—</div><div class="rcard-unit">mm</div></div>
-          <div class="rcard"><div class="rcard-label">Cloud Density</div><div class="rcard-val" id="r-density">—</div><div class="rcard-unit">pts/m&sup2;</div></div>
-          <div class="rcard"><div class="rcard-label">Flying Pixels</div><div class="rcard-val" id="r-flying">—</div><div class="rcard-unit">detected</div></div>
-          <div class="rcard full-span">
-            <div class="rcard-label">Bounding Box (X &times; Y &times; Z)</div>
-            <div class="rcard-val large" id="r-bbox">—</div>
-            <div class="rcard-unit">metres</div>
+          <div class="legend-row">
+            <span class="legend-swatch invalid" style="background: #ef4444;"></span>
+            <span>Flying Pixels (Red streaks)</span>
           </div>
         </div>
 
-        <div class="formula-box">
-          <div class="fb-title">Back-projection applied</div>
-          <div class="fb-matrix" id="bp-formula">
-            <span>X = (u &minus; cx) &times; Z / fx</span>
-            <span>Y = (v &minus; cy) &times; Z / fy</span>
-            <span>Z = depth_value(u, v)</span>
+        <div style="margin-top: 24px;">
+          <h3 class="panel-heading" style="margin-bottom: 8px;">
+            <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Live Observation
+          </h3>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="background:var(--slate-800); border:1px solid var(--slate-700); padding:10px 14px; border-radius:8px;">
+              <div style="font-size:0.75rem; color:var(--slate-400); margin-bottom:4px;">Point Spacing</div>
+              <div id="left-out-spacing" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+              <div style="font-size:0.7rem; color:var(--slate-500); margin-top:2px; font-family:monospace;">mm</div>
+            </div>
+            <div style="background:var(--slate-800); border:1px solid var(--slate-700); padding:10px 14px; border-radius:8px;">
+              <div style="font-size:0.75rem; color:var(--slate-400); margin-bottom:4px;">Cloud Density</div>
+              <div id="left-out-density" style="font-size:1.4rem; font-weight:500; color:#3b82f6; font-family:monospace; line-height:1.1;">-</div>
+              <div style="font-size:0.7rem; color:var(--slate-500); margin-top:2px; font-family:monospace;">pts/m&sup2;</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <!-- CENTER: CANVAS AREA -->
+      <section id="canvas-area">
+        <!-- Row 1: Raw Depth Feed + 3D Point Cloud Viewer -->
+        <div class="canvas-row" id="row-top">
+          <div class="canvas-card" id="card-raw">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Raw Depth Feed (2D)
+                </span>
+                <span class="card-sub">Visualizing blockiness and sensor noise</span>
+              </div>
+              <div class="info-btn-container">
+                <button class="info-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+                <div class="info-popover">
+                  <h4>Raw Depth Feed</h4>
+                  <p><strong>How to read:</strong> This simulates the raw 2D depth map captured by the sensor. The grid corresponds directly to the sensor resolution (e.g., 160x120).</p>
+                  <p><strong>Color representation:</strong> Lighter colors represent closer objects, and darker colors represent objects further away. The amber hue helps distinguish the foreground object from the grayscale background wall.</p>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-raw"></canvas>
+          </div>
+          <div class="canvas-card" id="card-cloud3d">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  Interactive Point Cloud
+                </span>
+                <span class="card-sub">Back-projected 3D scene (Orbit/Zoom)</span>
+              </div>
+              <div class="info-btn-container">
+                <button class="info-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+                <div class="info-popover">
+                  <h4>Interactive Point Cloud</h4>
+                  <p><strong>How to read:</strong> This is the resulting 3D geometry after applying the back-projection equations. You can orbit, pan, and zoom to inspect the generated shape and any distortions introduced.</p>
+                  <p><strong>Color representation:</strong> A Z-axis heatmap is used. Orange/Red points represent geometry closer to the camera, transitioning through yellow/green to Blue for points further away.</p>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-cloud3d" style="width: 100%; height: 100%; cursor: grab;"></canvas>
+          </div>
+        </div>
+        <!-- Row 2: Frustum Cross-section + Flying Pixel Edge -->
+        <div class="canvas-row" id="row-bottom" style="display: flex; gap: 8px;">
+          <!-- Frustum Spacing -->
+          <div class="canvas-card" id="card-frustum" style="flex: 1;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"/></svg>
+                  Frustum Cross-section
+                </span>
+                <span class="card-sub">Density vs Distance Visualization</span>
+              </div>
+              <div class="info-btn-container">
+                <button class="info-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+                <div class="info-popover">
+                  <h4>Frustum Cross-section</h4>
+                  <p><strong>How to read:</strong> A top-down view showing how camera rays spread outward. The gap between lines illustrates how point density drastically drops as an object moves further away.</p>
+                  <p><strong>Color representation:</strong> The amber box represents the target object. The expanding gray cone lines represent individual pixels/rays cast from the sensor.</p>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-frustum" style="width: 100%; height: 100%;"></canvas>
+          </div>
+          <!-- Flying Pixel Edge -->
+          <div class="canvas-card" id="card-flying" style="flex: 1;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="card-title-group">
+                <span class="card-title">
+                  <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Flying Pixel Edge Visualizer
+                </span>
+                <span class="card-sub">Boundary artifact zoom-in</span>
+              </div>
+              <div class="info-btn-container">
+                <button class="info-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+                <div class="info-popover">
+                  <h4>Flying Pixel Edge Visualizer</h4>
+                  <p><strong>How to read:</strong> An extreme zoomed-in 3D view of the physical boundary where the foreground object ends and the background wall begins. It highlights "mixed pixels" that interpolate between the two depths.</p>
+                  <p><strong>Color representation:</strong> Orange points are the foreground object. Blue points are the background wall. Red points streaking between them are the erroneous "flying pixels".</p>
+                </div>
+              </div>
+            </div>
+            <canvas id="cvs-flying" style="width: 100%; height: 100%; cursor: grab;"></canvas>
+          </div>
+        </div>
+      </section>
+      <!-- RIGHT: CONTROLS -->
+      <aside id="controls-panel">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Interactive Concepts
+        </h3>
+        
+        <!-- Concept 1: Density & Spacing -->
+        <div class="concept-module" id="mod-density">
+          <div class="concept-header">1. Density & Spacing</div>
+          <div class="mini-diagram" id="diag-density">
+            <svg viewBox="0 0 100 60" id="svg-density-grid"></svg>
+          </div>
+          <div class="concept-controls">
+            <div class="ctrl-group" id="grp-res">
+              <div class="ctrl-top"><span class="ctrl-name">Resolution</span><span class="ctrl-val" id="lbl-res">Medium</span></div>
+              <input type="range" id="rng-res" min="0" max="3" step="1" value="1" />
+            </div>
+            <div class="ctrl-group" id="grp-Z">
+              <div class="ctrl-top"><span class="ctrl-name">Distance Z</span><span class="ctrl-val" id="lbl-Z">2.0 m</span></div>
+              <input type="range" id="rng-Z" min="0.5" max="8.0" step="0.1" value="2.0" />
+            </div>
+          </div>
+          <div class="concept-readout">
+            <div class="f-eq">&Delta;s = Z / f = <span id="out-spacing">--</span> mm</div>
+            <div class="f-live">Density: <span id="out-density">--</span> k/m&sup2;</div>
           </div>
         </div>
 
-        <div class="step-nav">
-          <button class="btn-ghost" data-prev="3">Capture Again</button>
-          <button class="btn-primary" id="btn-launch-sim">Launch Simulation</button>
+        <!-- Concept 2: Sensor Uncertainty -->
+        <div class="concept-module" id="mod-noise">
+          <div class="concept-header">2. Sensor Uncertainty</div>
+          <div class="mini-diagram" id="diag-noise">
+            <svg viewBox="0 0 100 60" id="svg-noise-curve">
+              <path id="path-noise-curve" d="" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2"/>
+              <line x1="50" y1="0" x2="50" y2="60" stroke="#64748b" stroke-dasharray="2,2"/>
+            </svg>
+          </div>
+          <div class="concept-controls">
+            <div class="ctrl-group" id="grp-noise">
+              <div class="ctrl-top"><span class="ctrl-name">Noise &sigma;</span><span class="ctrl-val" id="lbl-noise">3 mm</span></div>
+              <input type="range" id="rng-noise" min="0" max="60" step="1" value="3" />
+            </div>
+          </div>
+          <div class="concept-readout">
+            <div class="f-eq">Z_m = Z_t + N(0,&sigma;&sup2;)</div>
+            <div class="f-live">RMSE: <span id="out-rmse">--</span> mm</div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <!-- Concept 3: Back-Projection Distortion -->
+        <div class="concept-module" id="mod-fx">
+          <div class="concept-header">3. Back-Projection</div>
+          <div class="mini-diagram" id="diag-fx">
+            <svg viewBox="0 0 100 60" id="svg-fx-rays">
+              <polygon points="50,60 20,0 80,0" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" id="poly-fx-frustum"/>
+              <circle cx="50" cy="60" r="3" fill="#3b82f6"/>
+            </svg>
+          </div>
+          <div class="concept-controls">
+            <div class="ctrl-group" id="grp-fx">
+              <div class="ctrl-top"><span class="ctrl-name">Focal Length f</span><span class="ctrl-val" id="lbl-fx">700 px</span></div>
+              <input type="range" id="rng-fx" min="300" max="1400" step="10" value="700" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 4: Boundary Artifacts -->
+        <div class="concept-module" id="mod-flying">
+          <div class="concept-header">4. Boundary Artifacts</div>
+          <div class="mini-diagram" id="diag-flying" style="background:#f1f5f9;">
+            <div id="anim-flying-edge" style="width:100%; height:100%; position:relative;">
+               <div class="edge-bg" style="position:absolute; left:0; top:0; width:50%; height:100%; background:var(--blue-lt);"></div>
+               <div class="edge-fg" style="position:absolute; right:0; top:0; width:50%; height:100%; background:var(--amber);"></div>
+               <div id="flying-pixels-container" style="position:absolute; width:100%; height:100%; left:0; top:0;"></div>
+            </div>
+          </div>
+          <div class="concept-controls">
+            <div class="ctrl-group" id="grp-flying">
+              <div class="ctrl-top"><span class="ctrl-name">Edge Discontinuity</span><span class="ctrl-val" id="lbl-flying">Normal</span></div>
+              <input type="range" id="rng-flying" min="0" max="3" step="1" value="1" />
+            </div>
+          </div>
+          <div class="concept-readout" style="align-items:center;">
+            <div class="f-live">Total Points: <span id="out-points">--</span></div>
+          </div>
+        </div>
+
+        <button id="btn-reset" class="btn-reset" style="margin-top:auto;">Reset Defaults</button>
+      </aside>
+    </main>
   </div>
-</div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/main.js"></script>
 
-<!-- ═══════════════════════════════════════════════════════
-     PAGE B — SIMULATION
-═══════════════════════════════════════════════════════ -->
-<div id="page-sim" class="page">
-
-  <div class="sim-topbar">
-    <div class="sim-topbar-left">
-      <button class="btn-back" id="btn-back-setup">← Setup</button>
-      <span class="badge">Experiment 3</span>
-      <span class="sim-title">Point Cloud Generation Simulation</span>
-    </div>
-    <div class="sim-topbar-right">
-      <button class="btn-ghost sm" id="btn-sim-reset">Reset</button>
-    </div>
-  </div>
-
-  <div class="sim-body">
-
-    <aside class="sim-left">
-
-      <div class="wiz-box">
-        <div class="wiz-step-dots" id="wiz-dots">
-          <span class="wdot active" data-ws="0"></span>
-          <span class="wdot" data-ws="1"></span>
-          <span class="wdot" data-ws="2"></span>
-          <span class="wdot" data-ws="3"></span>
-        </div>
-        <div class="wiz-title" id="wiz-title">Resolution Effects</div>
-        <div class="wiz-text" id="wiz-text"></div>
-        <div class="wiz-task" id="wiz-task"></div>
-        <div class="wiz-btns">
-          <button class="btn-primary" id="wiz-next">Next Step</button>
-          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
-        </div>
-      </div>
-
-      <div class="sim-divider"></div>
-
-      <div class="params-section">
-        <div class="params-title">Parameters</div>
-
-        <div class="param-grp" id="pg-res">
-          <div class="param-top"><span class="param-name">Resolution</span><span class="param-val" id="pv-res">320&times;240</span></div>
-          <div class="range-track-wrap">
-            <div class="range-zones"><div class="rz-red" style="width:18%"></div><div class="rz-blue" style="width:64%"></div><div class="rz-amber" style="width:18%"></div></div>
-            <input type="range" class="sim-range" id="r-res" min="0" max="3" step="1" value="1"/>
-          </div>
-          <div class="range-labels"><span>Sparse</span><span>recommended</span><span>Heavy</span></div>
-          <p class="param-hint">Higher resolution = more points but slower processing.</p>
-        </div>
-
-        <div class="param-grp" id="pg-Z">
-          <div class="param-top"><span class="param-name">Object Distance <em>Z</em></span><span class="param-val" id="pv-Z">1.50 m</span></div>
-          <div class="range-track-wrap">
-            <div class="range-zones"><div class="rz-blue" style="width:55%"></div><div class="rz-amber" style="width:30%"></div><div class="rz-red" style="width:15%"></div></div>
-            <input type="range" class="sim-range" id="r-Z" min="0.3" max="8" step="0.1" value="1.5"/>
-          </div>
-          <div class="range-labels"><span>0.3 m</span><span>4 m</span><span>8 m</span></div>
-          <p class="param-hint">Point spacing grows linearly with Z. Density falls.</p>
-        </div>
-
-        <div class="param-grp" id="pg-noise">
-          <div class="param-top"><span class="param-name">Noise <em>&sigma;</em></span><span class="param-val" id="pv-noise">3 mm</span></div>
-          <div class="range-track-wrap">
-            <div class="range-zones"><div class="rz-blue" style="width:40%"></div><div class="rz-amber" style="width:35%"></div><div class="rz-red" style="width:25%"></div></div>
-            <input type="range" class="sim-range" id="r-noise" min="0" max="60" step="1" value="3"/>
-          </div>
-          <div class="range-labels"><span>0 mm</span><span>20 mm</span><span>60 mm</span></div>
-          <p class="param-hint">RMSE scales directly and linearly with &sigma;.</p>
-        </div>
-
-        <div class="param-grp" id="pg-fx">
-          <div class="param-top"><span class="param-name">Focal Length <em>fx</em></span><span class="param-val" id="pv-fx">700 px</span></div>
-          <div class="range-track-wrap">
-            <div class="range-zones"><div class="rz-red" style="width:20%"></div><div class="rz-blue" style="width:60%"></div><div class="rz-red" style="width:20%"></div></div>
-            <input type="range" class="sim-range" id="r-fx" min="300" max="1400" step="10" value="700"/>
-          </div>
-          <div class="range-labels"><span>300 px</span><span>700 px</span><span>1400 px</span></div>
-          <p class="param-hint">Wrong fx stretches or compresses the cloud's X-Y shape.</p>
-        </div>
-
-        <div class="param-grp" id="pg-flying">
-          <div class="param-top"><span class="param-name">Edge Discontinuity</span><span class="param-val" id="pv-flying">Normal</span></div>
-          <div class="range-track-wrap">
-            <div class="range-zones"><div class="rz-blue" style="width:50%"></div><div class="rz-red" style="width:50%"></div></div>
-            <input type="range" class="sim-range" id="r-flying" min="0" max="3" step="1" value="1"/>
-          </div>
-          <div class="range-labels"><span>Clean edge</span><span>High ambiguity</span></div>
-          <p class="param-hint">Controls flying pixel density at the object boundary.</p>
-        </div>
-
-      </div>
-
-      <div class="sim-divider"></div>
-
-      <div class="readouts-section">
-        <div class="params-title">Live Readouts</div>
-        <div class="ro-grid">
-          <div class="ro-card"><div class="ro-label">Total Points</div><div class="ro-val" id="ro-points">76,800</div><div class="ro-unit">pts</div></div>
-          <div class="ro-card"><div class="ro-label">Spacing &Delta;s</div><div class="ro-val" id="ro-spacing">—</div><div class="ro-unit">mm</div></div>
-          <div class="ro-card"><div class="ro-label">Density &rho;</div><div class="ro-val" id="ro-density">—</div><div class="ro-unit">k/m&sup2;</div></div>
-          <div class="ro-card"><div class="ro-label">RMSE</div><div class="ro-val" id="ro-rmse">—</div><div class="ro-unit">mm</div></div>
-        </div>
-
-        <div class="formula-card-sm">
-          <div class="fcs-row"><span class="fcs-eq">N = W &times; H</span><span class="fcs-desc">point count</span></div>
-          <div class="fcs-row"><span class="fcs-eq">&Delta;s = Z / fx</span><span class="fcs-desc">spacing</span></div>
-          <div class="fcs-row"><span class="fcs-eq">Z_m = Z_t + N(0,&sigma;&sup2;)</span><span class="fcs-desc">noise model</span></div>
-        </div>
-
-        <button class="btn-reset-sm" id="btn-sim-reset2">Reset Defaults</button>
-      </div>
-
-    </aside>
-
-    <section class="sim-center">
-
-      <div class="sim-row" id="sr-A">
-        <div class="sim-card" id="sc-depthmap">
-          <div class="sc-head"><span class="sc-title">Depth Map Input</span><span class="sc-sub">Each pixel stores Z. Red=near, Blue=far, Black=invalid</span></div>
-          <canvas id="cvs-depthmap" width="320" height="200"></canvas>
-        </div>
-
-        <div class="sim-card" id="sc-cloud3d">
-          <div class="sc-head"><span class="sc-title">3D Point Cloud (Back-Projected)</span><span class="sc-sub">Drag to rotate the reconstructed cloud</span></div>
-          <canvas id="cvs-cloud3d" width="320" height="200"></canvas>
-        </div>
-      </div>
-
-      <div class="sim-row" id="sr-B">
-        <div class="sim-card" id="sc-topview">
-          <div class="sc-head"><span class="sc-title">Top-Down Projection (X-Z plane)</span><span class="sc-sub">Shows field-of-view spread at current Z</span></div>
-          <canvas id="cvs-topview" width="320" height="200"></canvas>
-        </div>
-
-        <div class="sim-card" id="sc-density">
-          <div class="sc-head"><span class="sc-title">Density vs Distance Curve</span><span class="sc-sub">Watch density fall as Z increases</span></div>
-          <canvas id="cvs-density" width="320" height="200"></canvas>
-        </div>
-      </div>
-
-    </section>
-
-    <aside class="sim-right">
-      <div class="k-panel">
-        <div class="kp-title">Point Cloud Stats</div>
-        <div class="dist-grid">
-          <div class="dist-card"><div class="dc-label">Width</div><div class="dc-val" id="st-w">320</div></div>
-          <div class="dist-card"><div class="dc-label">Height</div><div class="dc-val" id="st-h">240</div></div>
-          <div class="dist-card"><div class="dc-label">Valid %</div><div class="dc-val" id="st-valid">—</div></div>
-          <div class="dist-card"><div class="dc-label">Flying px</div><div class="dc-val" id="st-flying">—</div></div>
-        </div>
-
-        <div class="sim-divider"></div>
-
-        <div class="kp-title">Quality Gauge</div>
-        <div class="quality-wrap">
-          <div class="quality-arc"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
-          <div class="quality-label" id="quality-label">—</div>
-          <div class="quality-sub" id="quality-sub">Adjust parameters to see quality</div>
-        </div>
-
-        <div class="sim-divider"></div>
-
-        <div class="kp-title">Bounding Box</div>
-        <div class="bbox-grid">
-          <div class="bbox-row"><span>Width (X)</span><span id="bb-x">—</span></div>
-          <div class="bbox-row"><span>Height (Y)</span><span id="bb-y">—</span></div>
-          <div class="bbox-row"><span>Depth (Z)</span><span id="bb-z">—</span></div>
-        </div>
-
-        <div class="sim-divider"></div>
-
-        <div class="kp-title">Spacing vs Resolution</div>
-        <canvas id="cvs-spacing-mini" width="180" height="100"></canvas>
-        <p class="div-hint">Doubling resolution halves spacing on each axis.</p>
-      </div>
-    </aside>
-
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/main.js"></script>
+  <script>
+    document.getElementById('btn-go-sim').addEventListener('click', function(e) {
+      e.preventDefault();
+      if(this.hasAttribute('disabled')) return;
+      
+      const setupView = document.getElementById('setup-view');
+      if (setupView) setupView.style.display = 'none';
+      
+      document.getElementById('simulation-view').style.display = 'flex';
+      
+      // We will trigger a global resize/init in JS when this is clicked
+      if (typeof window.showSimulation === 'function') window.showSimulation();
+    });
+  </script>
 </body>
 </html>

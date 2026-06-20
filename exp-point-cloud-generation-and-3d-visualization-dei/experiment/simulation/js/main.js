@@ -1,1158 +1,1453 @@
-/* ================================================================
-   EXPERIMENT 3 — POINT CLOUD GENERATION & 3D VISUALISATION
-   main.js — Three.js 3D setup scene + 2D/3D simulation canvases
-   ================================================================
-
-   ARCHITECTURE
-   ────────────
-   SETUP PAGE
-     ThreeScene   → renderer, camera, orbit controls, lab equipment
-     Components   → tracks mounted equipment (sensor, mount, cube, wall)
-     ScanCapture  → stores captured depth-frame configurations
-     SetupWizard  → step navigation (0→4)
-
-   SIMULATION PAGE
-     SimState     → live parameter values (resolution, Z, noise, fx, edge)
-     render*()    → depth map, 3D cloud (rotatable), top view, density curve
-     WizardSim    → 4-step guided walkthrough
-
-   CORE MATH (Experiment 3 theory)
-   ────────────────────────────────
-     Back-projection:   X = (u-cx)*Z/fx,  Y = (v-cy)*Z/fy,  Z = depth(u,v)
-     Point count:        N = W * H
-     Point spacing:       Δs = Z / fx
-     Noise model:         Z_measured = Z_true + N(0, σ²)
-     Cloud density:        ρ = N_valid / A_surface
-   ================================================================ */
-
 'use strict';
+
+/* ================================================================
+   EXPERIMENT 3 — POINT CLOUD GENERATION SIMULATION
+   main.js
+   ================================================================ */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
 ────────────────────────────────────────────────────────────── */
 
-const MOUNTED = { sensor: false, mount: false, object: false, backdrop: false };
-
-const SCANS = [];   /* array of {res, cubeZ, cubeOffset} captured in setup */
-
-/* Resolution presets used both in setup and simulation */
-const RES_PRESETS = [
-  { w: 160,  h: 120,  label: '160×120'   },
-  { w: 320,  h: 240,  label: '320×240'   },
-  { w: 640,  h: 480,  label: '640×480'   },
-  { w: 1280, h: 960,  label: '1280×960'  },
-];
+const MOUNTED = { backdrop: false, mount: false, sensor: false, object: false };
+let selectedComp = 'backdrop';
+const MOUNT_SEQ = ['backdrop', 'mount', 'sensor', 'object'];
 
 const SIM = {
-  resIdx: 1,     /* index into RES_PRESETS               */
-  Z:      1.5,   /* object distance in metres             */
-  noise:  3,     /* sigma in mm                           */
-  fx:     700,   /* focal length in px                    */
-  edge:   1,     /* edge discontinuity / flying pixel knob */
-  step:   0,     /* wizard step                           */
+  res: 1,      // 0=Sparse, 1=Medium, 2=High, 3=Heavy
+  Z: 2.0,      // Object Distance (m)
+  offsetX: 0.0,// Object Offset (m)
+  noise: 3,    // Sensor noise sigma (mm)
+  fx: 700,     // Focal length (px)
+  flying: 1    // Edge Discontinuity (0-3)
 };
 
-/* setup-page scene controls (cube placement) */
-let cubeZ = 1.5, cubeOffset = 0, setupResIdx = 1;
+const CARRIED_SETUP = {
+  Z: 2.0,
+  offsetX: 0.0,
+  rotationY: 0.0,
+  res: 1
+};
 
-/* Wizard content for simulation page */
-const SIM_WIZARD = [
-  {
-    title: 'Vary Resolution',
-    text:  'Point count equals width times height. Doubling both dimensions quadruples the cloud size. Watch the 3D cloud density change as you move this slider.',
-    task:  '▶ Step through all 4 resolution presets and watch total points change.',
-    lit:   'pg-res',
-  },
-  {
-    title: 'Move the Object',
-    text:  'Point spacing Δs = Z/fx grows linearly with distance. The same sensor produces a much sparser cloud on a far object than a near one, even at fixed resolution.',
-    task:  '▶ Drag Z from 0.5m to 6m. Watch spacing grow and density fall on the right panel.',
-    lit:   'pg-Z',
-  },
-  {
-    title: 'Inject Sensor Noise',
-    text:  'Noise adds a random Gaussian deviation directly to the true depth value before back-projection. RMSE scales linearly with σ — double the noise, double the error.',
-    task:  '▶ Set σ = 30mm on a flat region and watch the 3D cloud turn wavy.',
-    lit:   'pg-noise',
-  },
-  {
-    title: 'Explore Calibration Error',
-    text:  'An incorrect focal length stretches or compresses every X and Y coordinate proportionally. This connects directly back to why Experiment 2 calibration matters here.',
-    task:  '▶ Set fx to 350 (half of true 700) and watch the cube appear to double in width.',
-    lit:   'pg-fx',
-  },
-];
+// Simulation state calculated values
+let spacing_mm = 0;
+let density_km2 = 0;
+let rmse_mm = 0;
+let num_points = 0;
 
 /* ──────────────────────────────────────────────────────────────
-   UTILITIES
+   THREE.JS SETUP (RIG VIEW)
 ────────────────────────────────────────────────────────────── */
 
-function gauss() {
-  const u1 = Math.max(1e-12, Math.random());
-  const u2 = Math.random();
-  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-}
+let setupRenderer, setupScene, setupCamera, setupAnimFrame, sensorCamera;
+let setupTarget = new THREE.Vector3(0, 1, 0);
+let setupIsDragging = false, setupLastMouse = {x:0, y:0};
+let setupPhi = Math.PI/4, setupTheta = Math.PI/3, setupRadius = 5.0;
+let currentSetupView = 'iso';
 
-function fmtNum(n) {
-  return n.toLocaleString('en-IN');
-}
+// Meshes
+let backdropMesh, mountMesh, sensorMesh, objectMesh, frustumHelper;
 
-function currentRes() { return RES_PRESETS[SIM.resIdx]; }
-function setupRes()   { return RES_PRESETS[setupResIdx]; }
+function initSetupThree() {
+  const canvas = document.getElementById('setup-canvas-webgl');
+  if (!canvas) return;
+  const wrap = canvas.parentElement;
 
-/* ──────────────────────────────────────────────────────────────
-   THREE.JS SCENE — SETUP PAGE
-────────────────────────────────────────────────────────────── */
+  setupRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+  setupRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  setupRenderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
+  setupRenderer.shadowMap.enabled = true;
 
-let renderer, scene, camera, animFrame;
-let sensorMesh, mountMesh, cubeMesh, wallMesh, fovHelper, scanPlane;
-let orbitTarget = new THREE.Vector3(0, 0.6, -0.5);
-let isDragging = false, lastMouse = {x:0, y:0};
-let phi = Math.PI/4, theta = Math.PI/4, radius = 5.0;
-let currentView = 'iso';
+  setupScene = new THREE.Scene();
+  setupScene.fog = new THREE.Fog(0xf8fafc, 5, 20);
 
-function initThree() {
-  const canvas = document.getElementById('three-canvas');
-  const wrap   = canvas.parentElement;
+  setupCamera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 50);
 
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.setClearColor(0xe8edf5, 1);
-  resizeRenderer();
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+  setupScene.add(ambient);
 
-  scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xe8edf5, 9, 20);
-
-  camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 30);
-  setViewISO();
-
-  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambient);
-
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-  dirLight.position.set(4, 6, 3);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  dirLight.position.set(5, 10, 5);
   dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(1024, 1024);
-  scene.add(dirLight);
+  dirLight.shadow.mapSize.width = 1024;
+  dirLight.shadow.mapSize.height = 1024;
+  setupScene.add(dirLight);
 
-  const fillLight = new THREE.DirectionalLight(0x9dc8f0, 0.35);
-  fillLight.position.set(-3, 2, -2);
-  scene.add(fillLight);
-
-  const groundGeo = new THREE.PlaneGeometry(10, 10);
-  const groundMat = new THREE.MeshLambertMaterial({ color: 0xd8dfe8 });
-  const ground    = new THREE.Mesh(groundGeo, groundMat);
+  // Ground & Grid
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 20),
+    new THREE.MeshLambertMaterial({ color: 0xe2e8f0 })
+  );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
-  scene.add(ground);
+  setupScene.add(ground);
 
-  const grid = new THREE.GridHelper(10, 20, 0xb8c4d4, 0xccd5e0);
+  const grid = new THREE.GridHelper(20, 40, 0x94a3b8, 0xcbd5e1);
   grid.material.opacity = 0.5;
   grid.material.transparent = true;
-  scene.add(grid);
+  setupScene.add(grid);
 
-  buildMountMesh();
-  buildSensorMesh();
-  buildCubeMesh();
-  buildWallMesh();
-  buildFOVHelper();
-  buildScanPlane();
+  // Build Setup Components
+  buildBackdrop();
+  buildMount();
+  buildSensor();
+  buildObject();
 
+  // Orbit controls manually implemented
   setupOrbitControls(canvas);
-  window.addEventListener('resize', resizeRenderer);
-
-  animateThree();
-}
-
-function resizeRenderer() {
-  const wrap = document.getElementById('three-canvas').parentElement;
-  const w = wrap.clientWidth, h = wrap.clientHeight;
-  renderer.setSize(w, h, false);
-  if (camera) { camera.aspect = w / h; camera.updateProjectionMatrix(); }
-}
-
-function animateThree() {
-  animFrame = requestAnimationFrame(animateThree);
-  if (cubeMesh && cubeMesh.visible) {
-    cubeMesh.rotation.y += 0.0025;
-  }
-  updateCameraPosition();
-  renderer.render(scene, camera);
-}
-
-function updateCameraPosition() {
-  const x = orbitTarget.x + radius * Math.sin(phi) * Math.sin(theta);
-  const y = orbitTarget.y + radius * Math.cos(theta);
-  const z = orbitTarget.z + radius * Math.cos(phi) * Math.sin(theta);
-  camera.position.set(x, y, z);
-  camera.lookAt(orbitTarget);
-}
-
-function setViewISO()   { phi = Math.PI/4;  theta = Math.PI/4;  radius = 5.0; }
-function setViewTop()   { phi = 0;          theta = 0.01;       radius = 5.6; }
-function setViewFront() { phi = 0;          theta = Math.PI/2;  radius = 5.0; }
-function setViewSide()  { phi = Math.PI/2;  theta = Math.PI/2;  radius = 5.0; }
-
-function setupOrbitControls(canvas) {
-  canvas.addEventListener('mousedown', e => { isDragging = true; lastMouse = {x:e.clientX, y:e.clientY}; });
-  window.addEventListener('mouseup', () => { isDragging = false; });
-
-  window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - lastMouse.x;
-    const dy = e.clientY - lastMouse.y;
-    lastMouse = {x:e.clientX, y:e.clientY};
-
-    if (e.buttons === 1) {
-      phi   -= dx * 0.008;
-      theta  = Math.max(0.05, Math.min(Math.PI-0.05, theta + dy * 0.008));
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    } else if (e.buttons === 2) {
-      orbitTarget.x -= dx * 0.004;
-      orbitTarget.y += dy * 0.004;
-    }
+  
+  window.addEventListener('resize', () => {
+    if(wrap.clientWidth === 0) return;
+    setupRenderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
+    setupCamera.aspect = wrap.clientWidth / wrap.clientHeight;
+    setupCamera.updateProjectionMatrix();
   });
 
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault();
-    radius = Math.max(2, Math.min(10, radius + e.deltaY * 0.005));
-  }, { passive: false });
-
-  let lastTouchDist = 0, lastTouch = null;
-  canvas.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) { isDragging = true; lastTouch = {x:e.touches[0].clientX, y:e.touches[0].clientY}; }
-    else if (e.touches.length === 2) {
-      lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    }
-  });
-  canvas.addEventListener('touchend', () => { isDragging = false; lastTouch = null; });
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (e.touches.length === 1 && isDragging && lastTouch) {
-      const dx = e.touches[0].clientX - lastTouch.x;
-      const dy = e.touches[0].clientY - lastTouch.y;
-      lastTouch = {x:e.touches[0].clientX, y:e.touches[0].clientY};
-      phi -= dx * 0.01;
-      theta = Math.max(0.05, Math.min(Math.PI-0.05, theta + dy * 0.01));
-    } else if (e.touches.length === 2) {
-      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      radius = Math.max(2, Math.min(10, radius * (lastTouchDist / dist)));
-      lastTouchDist = dist;
-    }
-  }, { passive: false });
+  animateSetup();
 }
 
-/* ── Mesh builders ─────────────────────────────────────────── */
+function buildBackdrop() {
+  backdropMesh = new THREE.Group();
 
-function buildMountMesh() {
+  const geo = new THREE.BoxGeometry(4, 3, 0.1);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8, metalness: 0.1 });
+  const wall = new THREE.Mesh(geo, mat);
+  wall.castShadow = true;
+  wall.receiveShadow = true;
+  backdropMesh.add(wall);
+
+  // Grid lines on the wall
+  const wallGrid = new THREE.GridHelper(4, 16, 0x64748b, 0x64748b);
+  wallGrid.rotation.x = Math.PI / 2;
+  wallGrid.position.z = 0.051; // Slightly in front of the wall
+  wallGrid.material.opacity = 0.5;
+  wallGrid.material.transparent = true;
+  backdropMesh.add(wallGrid);
+
+  backdropMesh.position.set(0, 1.5, -4);
+  backdropMesh.visible = false;
+  setupScene.add(backdropMesh);
+}
+
+function buildMount() {
   mountMesh = new THREE.Group();
-
-  const baseGeo = new THREE.CylinderGeometry(0.14, 0.16, 0.03, 16);
-  const baseMat = new THREE.MeshPhongMaterial({ color: 0x333333, shininess: 50 });
-  const base    = new THREE.Mesh(baseGeo, baseMat);
-  base.position.y = 0.015;
+  const baseGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16);
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6, metalness: 0.5 });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.position.y = 0.025;
+  
+  const poleGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8);
+  const pole = new THREE.Mesh(poleGeo, baseMat);
+  pole.position.y = 0.6;
+  
   mountMesh.add(base);
-
-  const armGeo = new THREE.CylinderGeometry(0.018, 0.018, 1.25, 10);
-  const armMat = new THREE.MeshPhongMaterial({ color: 0x4a4a4a, shininess: 70 });
-  const arm    = new THREE.Mesh(armGeo, armMat);
-  arm.position.y = 0.66;
-  arm.castShadow = true;
-  mountMesh.add(arm);
-
-  const plateGeo = new THREE.BoxGeometry(0.2, 0.03, 0.14);
-  const plateMat = new THREE.MeshPhongMaterial({ color: 0x555555, shininess: 60 });
-  const plate    = new THREE.Mesh(plateGeo, plateMat);
-  plate.position.y = 1.3;
-  mountMesh.add(plate);
-
+  mountMesh.add(pole);
+  mountMesh.position.set(0, 0, 0);
   mountMesh.visible = false;
-  scene.add(mountMesh);
+  setupScene.add(mountMesh);
 }
 
-function buildSensorMesh() {
+function buildSensor() {
   sensorMesh = new THREE.Group();
-
-  const bodyGeo = new THREE.BoxGeometry(0.26, 0.07, 0.07);
-  const bodyMat = new THREE.MeshPhongMaterial({ color: 0x1c1c1c, shininess: 40 });
-  const body    = new THREE.Mesh(bodyGeo, bodyMat);
+  const bodyGeo = new THREE.BoxGeometry(0.3, 0.08, 0.08);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.3 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
   body.castShadow = true;
   sensorMesh.add(body);
+  
+  // Dedicated Sensor Camera
+  sensorCamera = new THREE.PerspectiveCamera(45, 1.0, 0.1, 10);
+  sensorMesh.add(sensorCamera); // Inherits position and rotation (looking down -Z)
 
-  /* two IR lenses + one RGB lens (typical RGB-D layout) */
-  const lensMat = new THREE.MeshPhongMaterial({ color: 0x0a1a2e, shininess: 180 });
-  [-0.08, 0, 0.08].forEach(xOff => {
-    const lensGeo = new THREE.CylinderGeometry(0.018, 0.02, 0.025, 16);
-    const lens    = new THREE.Mesh(lensGeo, lensMat);
-    lens.rotation.x = Math.PI / 2;
-    lens.position.set(xOff, 0, 0.045);
-    sensorMesh.add(lens);
-
-    const glassGeo = new THREE.CircleGeometry(0.015, 16);
-    const glassMat = new THREE.MeshPhongMaterial({ color: 0x2a4a6a, shininess: 220, transparent: true, opacity: 0.85 });
-    const glass    = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.set(xOff, 0, 0.058);
-    sensorMesh.add(glass);
-  });
-
-  /* status LED */
-  const ledGeo = new THREE.SphereGeometry(0.006, 8, 8);
-  const ledMat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
-  const led    = new THREE.Mesh(ledGeo, ledMat);
-  led.position.set(0, 0.03, 0.036);
-  sensorMesh.add(led);
-
-  sensorMesh.position.set(0, 1.33, 0.04);
+  sensorMesh.position.set(0, 1.24, 0);
   sensorMesh.visible = false;
-  scene.add(sensorMesh);
+  
+  // Frustum Helper (Field of View)
+  const fGeo = new THREE.ConeGeometry(2, 4, 4, 1, true);
+  fGeo.rotateY(Math.PI/4);
+  fGeo.translate(0, -2, 0);
+  const fMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false });
+  frustumHelper = new THREE.Mesh(fGeo, fMat);
+  frustumHelper.rotation.x = Math.PI/2;
+  frustumHelper.position.set(0, 0, -0.04);
+  sensorMesh.add(frustumHelper);
+  
+  setupScene.add(sensorMesh);
 }
 
-function buildCubeMesh() {
-  cubeMesh = new THREE.Group();
+function buildObject() {
+  objectMesh = new THREE.Group();
 
-  const geo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-  const mat = new THREE.MeshPhongMaterial({ color: 0xf59e0b, shininess: 30 });
-  const box = new THREE.Mesh(geo, mat);
-  box.castShadow = true;
-  box.receiveShadow = true;
-  cubeMesh.add(box);
+  // Floor Z-rail
+  const zRailGeo = new THREE.BoxGeometry(0.1, 0.02, 5.0);
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.5, metalness: 0.6 });
+  const zRail = new THREE.Mesh(zRailGeo, railMat);
+  zRail.position.set(0, 0.01, -1.5);
+  zRail.receiveShadow = true;
+  zRail.castShadow = true;
+  
+  // T-Stand Group (moves along Z)
+  const tStand = new THREE.Group();
+  tStand.position.set(0, 0, -2.0); // Initial distance Z = 2.0
+  tStand.name = "tStand";
+  
+  // Vertical Pole
+  const vPoleGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
+  const vPole = new THREE.Mesh(vPoleGeo, railMat);
+  vPole.position.set(0, 0.5, 0);
+  vPole.castShadow = true;
+  tStand.add(vPole);
 
-  /* edge wireframe for clarity */
-  const edgesGeo = new THREE.EdgesGeometry(geo);
-  const edgesMat = new THREE.LineBasicMaterial({ color: 0x92400e, linewidth: 2 });
-  const edges    = new THREE.LineSegments(edgesGeo, edgesMat);
-  cubeMesh.add(edges);
+  // Horizontal X-Rail
+  const xRailGeo = new THREE.BoxGeometry(3.2, 0.04, 0.04);
+  const xRail = new THREE.Mesh(xRailGeo, railMat);
+  xRail.position.set(0, 1.0, 0);
+  xRail.castShadow = true;
+  tStand.add(xRail);
 
-  cubeMesh.position.set(0, 0.4, -cubeZ);
-  cubeMesh.visible = false;
-  scene.add(cubeMesh);
-}
-
-function buildWallMesh() {
-  const geo = new THREE.PlaneGeometry(4, 2.4);
-  const mat = new THREE.MeshLambertMaterial({ color: 0xc7d2fe, side: THREE.DoubleSide });
-  wallMesh  = new THREE.Mesh(geo, mat);
-  wallMesh.position.set(0, 1.2, -8);
-  wallMesh.receiveShadow = true;
-  wallMesh.visible = false;
-  scene.add(wallMesh);
-
-  /* subtle grid pattern on wall to show it's a measurable surface */
-  const gridGeo = new THREE.PlaneGeometry(4, 2.4, 16, 10);
-  const gridMat = new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true, transparent: true, opacity: 0.3 });
-  const gridMesh = new THREE.Mesh(gridGeo, gridMat);
-  gridMesh.position.copy(wallMesh.position);
-  gridMesh.position.z += 0.01;
-  gridMesh.visible = false;
-  wallMesh.userData.gridMesh = gridMesh;
-  scene.add(gridMesh);
-}
-
-function buildFOVHelper() {
-  const coneGeo = new THREE.ConeGeometry(0.7, 1.3, 20, 1, true);
-  const coneMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.07, side: THREE.DoubleSide });
-  fovHelper = new THREE.Mesh(coneGeo, coneMat);
-  fovHelper.position.set(0, 1.33, -0.65);
-  fovHelper.rotation.x = -Math.PI / 2;
-
-  const wfGeo = new THREE.ConeGeometry(0.7, 1.3, 4, 1, true);
-  const wfMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.25 });
-  fovHelper.add(new THREE.Mesh(wfGeo, wfMat));
-
-  fovHelper.visible = false;
-  scene.add(fovHelper);
-}
-
-function buildScanPlane() {
-  /* visual indicator plane that "flashes" when a scan is captured */
-  const geo = new THREE.PlaneGeometry(1.4, 1.0);
-  const mat = new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0 });
-  scanPlane = new THREE.Mesh(geo, mat);
-  scanPlane.position.set(0, 0.9, -cubeZ * 0.5);
-  scene.add(scanPlane);
-}
-
-function updateCubeTransform() {
-  if (!cubeMesh) return;
-  cubeMesh.position.z = -cubeZ;
-  cubeMesh.position.x = cubeOffset / 100;
-  scanPlane.position.z = -cubeZ * 0.5;
-
-  /* obs overlay live update */
-  const res = setupRes();
-  const spacingMm = (cubeZ / 700) * 1000; /* assuming fx=700 */
-  document.getElementById('obs-pixels').textContent  = fmtNum(res.w * res.h);
-  document.getElementById('obs-spacing').textContent = spacingMm.toFixed(1) + ' mm';
-}
-
-/* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
-────────────────────────────────────────────────────────────── */
-
-let currentSetupStep = 0;
-
-function gotoSetupStep(n) {
-  n = Math.max(0, Math.min(4, n));
-  currentSetupStep = n;
-
-  document.querySelectorAll('.step-content').forEach((el, i) => el.classList.toggle('active', i === n));
-  document.querySelectorAll('.sstep').forEach((el, i) => {
-    el.classList.remove('active', 'done');
-    if (i === n) el.classList.add('active');
-    if (i < n)  el.classList.add('done');
+  // Target Car (moves along X on the X-rail)
+  const targetCar = new THREE.Group();
+  
+  const carMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.2 });
+  const tireMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9, metalness: 0.1 });
+  
+  // Lower body
+  const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.4), carMat);
+  lowerBody.position.set(0, 0.1, 0);
+  lowerBody.castShadow = true;
+  lowerBody.receiveShadow = true;
+  targetCar.add(lowerBody);
+  
+  // Upper body (cabin)
+  const upperBody = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.35), carMat);
+  upperBody.position.set(-0.05, 0.275, 0);
+  upperBody.castShadow = true;
+  upperBody.receiveShadow = true;
+  targetCar.add(upperBody);
+  
+  // 4 Wheels
+  const wheelGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 16);
+  wheelGeo.rotateX(Math.PI / 2);
+  const wheelPositions = [
+    [-0.25, 0.0, 0.2],
+    [0.25, 0.0, 0.2],
+    [-0.25, 0.0, -0.2],
+    [0.25, 0.0, -0.2]
+  ];
+  wheelPositions.forEach(pos => {
+    const wheel = new THREE.Mesh(wheelGeo, tireMat);
+    wheel.position.set(pos[0], pos[1], pos[2]);
+    wheel.castShadow = true;
+    wheel.receiveShadow = true;
+    targetCar.add(wheel);
   });
+  
+  targetCar.position.set(0, 1.24, 0); // Exact height as the sensor camera
+  targetCar.name = "targetCar";
+  tStand.add(targetCar);
 
-  document.getElementById('obs-overlay').style.display = n === 4 ? 'block' : 'none';
+  objectMesh.add(zRail);
+  objectMesh.add(tStand);
 
-  if (n >= 4) {
-    document.getElementById('btn-go-sim').disabled = false;
-    computeAndDisplayResults();
-  }
+  objectMesh.visible = false;
+  setupScene.add(objectMesh);
+}
+
+function setupOrbitControls(canvas) {
+  canvas.addEventListener('mousedown', e => {
+    setupIsDragging = true;
+    setupLastMouse = {x: e.clientX, y: e.clientY};
+  });
+  window.addEventListener('mouseup', () => { setupIsDragging = false; });
+  window.addEventListener('mousemove', e => {
+    if (!setupIsDragging) return;
+    const dx = e.clientX - setupLastMouse.x;
+    const dy = e.clientY - setupLastMouse.y;
+    setupLastMouse = {x: e.clientX, y: e.clientY};
+
+    if (e.buttons === 1) { // Orbit
+      setupPhi -= dx * 0.01;
+      setupTheta = Math.max(0.01, Math.min(Math.PI/2 - 0.01, setupTheta + dy * 0.01));
+    } else if (e.buttons === 2) { // Pan
+      setupTarget.x -= dx * 0.01;
+      setupTarget.z -= dy * 0.01;
+    }
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    setupRadius = Math.max(1.5, Math.min(15, setupRadius + e.deltaY * 0.01));
+  });
+}
+
+function animateSetup() {
+  setupAnimFrame = requestAnimationFrame(animateSetup);
+  const x = setupTarget.x + setupRadius * Math.sin(setupPhi) * Math.sin(setupTheta);
+  const y = setupTarget.y + setupRadius * Math.cos(setupTheta);
+  const z = setupTarget.z + setupRadius * Math.cos(setupPhi) * Math.sin(setupTheta);
+  setupCamera.position.set(x, y, z);
+  setupCamera.lookAt(setupTarget);
+  setupRenderer.render(setupScene, setupCamera);
 }
 
 /* ──────────────────────────────────────────────────────────────
-   COMPONENT MOUNTING
+   SETUP UI LOGIC
 ────────────────────────────────────────────────────────────── */
 
-function mountComponent(name) {
+function setupCameraPresets() {
+  ['iso','top','front','side'].forEach(preset => {
+    const btn = document.getElementById(`preset-${preset}`);
+    if(btn) {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        if(preset === 'iso') { setupPhi=Math.PI/4; setupTheta=Math.PI/3; }
+        if(preset === 'top') { setupPhi=Math.PI/2; setupTheta=0.01; }
+        if(preset === 'front') { setupPhi=0; setupTheta=Math.PI/2; }
+        if(preset === 'side') { setupPhi=Math.PI/2; setupTheta=Math.PI/2; }
+        setupRadius = 5.0;
+        setupTarget.set(0, 1.2, 0);
+      });
+    }
+  });
+}
+setupCameraPresets();
+
+function mountSetupComponent(name) {
   MOUNTED[name] = true;
+  if(name === 'backdrop') backdropMesh.visible = true;
+  if(name === 'mount') mountMesh.visible = true;
+  if(name === 'sensor') sensorMesh.visible = true;
+  if(name === 'object') objectMesh.visible = true;
 
-  switch (name) {
-    case 'sensor':
-      sensorMesh.visible = true;
-      fovHelper.visible  = true;
-      break;
-    case 'mount':
-      mountMesh.visible = true;
-      break;
-    case 'object':
-      cubeMesh.visible = true;
-      updateCubeTransform();
-      break;
-    case 'backdrop':
-      wallMesh.visible = true;
-      wallMesh.userData.gridMesh.visible = true;
-      break;
+  const card = document.querySelector(`.apparatus-card[data-comp="${name}"]`);
+  if (card) {
+    card.classList.add('mounted');
+    const status = card.querySelector('.apparatus-status');
+    if (status) status.textContent = 'Mounted ✓';
+    card.style.borderColor = 'var(--green)';
+    card.style.background = '#f0fdf4';
   }
-
-  const btn = document.querySelector(`.btn-mount[data-comp="${name}"]`);
-  if (btn) { btn.textContent = 'Mounted'; btn.classList.add('mounted'); }
-
-  const card = document.querySelector(`.comp-card[data-comp="${name}"]`);
-  if (card) card.classList.add('mounted');
 
   const allMounted = Object.values(MOUNTED).every(Boolean);
-  if (allMounted && currentSetupStep === 0) {
-    setTimeout(() => gotoSetupStep(1), 400);
+  if (allMounted) {
+    const specContent = document.getElementById('spec-content');
+    if (specContent) specContent.style.display = 'none';
+    
+    const panelHeadingText = document.getElementById('setup-panel-heading-text');
+    if (panelHeadingText) panelHeadingText.textContent = 'Adjust Configuration';
+    
+    const sliderPanel = document.getElementById('setup-sliders-panel');
+    if (sliderPanel) sliderPanel.style.display = 'flex';
   }
 }
 
-function mountAll() { Object.keys(MOUNTED).forEach(mountComponent); }
-
 /* ──────────────────────────────────────────────────────────────
-   SCAN CAPTURE (Setup Step 3)
+   SIMULATION CANVAS VISUALIZATIONS
 ────────────────────────────────────────────────────────────── */
 
-function captureScan() {
-  /* flash the scan plane */
-  scanPlane.material.opacity = 0.5;
-  let fadeStep = 0;
-  const fadeInterval = setInterval(() => {
-    fadeStep++;
-    scanPlane.material.opacity = Math.max(0, 0.5 - fadeStep * 0.08);
-    if (fadeStep > 6) clearInterval(fadeInterval);
-  }, 40);
+// Config limits
+const RESOLUTIONS = [ [160, 120], [320, 240], [640, 480], [1280, 960] ];
 
-  const res = setupRes();
-  SCANS.push({ res: { ...res }, cubeZ, cubeOffset });
+/* Vis 1: Raw Depth Feed (2D) */
+let rawOffscreenCanvas = document.createElement('canvas');
+let rawOffscreenCtx = rawOffscreenCanvas.getContext('2d');
 
-  const count = SCANS.length;
-  document.getElementById('scan-count').textContent = count;
-  document.getElementById('scan-fill').style.width = Math.min(100, count / 5 * 100) + '%';
-
-  addScanThumbnail(count, res, cubeZ);
-
-  /* live observation computations */
-  const totalPx   = res.w * res.h;
-  const spacingMm = (cubeZ / 700) * 1000;
-  const validPct  = 0.94 + Math.random() * 0.04;
-  const validPx   = Math.round(totalPx * validPct);
-
-  document.getElementById('obs-pixels').textContent = fmtNum(totalPx);
-  document.getElementById('obs-valid').textContent  = fmtNum(validPx) + ` (${(validPct*100).toFixed(1)}%)`;
-  document.getElementById('obs-points').textContent = fmtNum(validPx);
-  document.getElementById('obs-spacing').textContent = spacingMm.toFixed(1) + ' mm';
-
-  if (count >= 1) document.getElementById('btn-next-obs').disabled = false;
-}
-
-function addScanThumbnail(index, res, z) {
-  const grid = document.getElementById('scan-grid');
-  const wrap = document.createElement('div');
-  wrap.className = 'scan-thumb';
-  const c = document.createElement('canvas');
-  c.width = 40; c.height = 40;
-  drawMiniDepthThumb(c, z, index);
-  wrap.appendChild(c);
-  grid.appendChild(wrap);
-}
-
-function drawMiniDepthThumb(canvas, z, idx) {
+function drawRawDepth() {
+  const canvas = document.getElementById('cvs-raw');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  
+  const rect = canvas.parentElement.getBoundingClientRect();
+  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height-30)) {
+    canvas.width = Math.floor(rect.width);
+    canvas.height = Math.floor(rect.height-30);
+  }
   const W = canvas.width, H = canvas.height;
-  const hue = Math.max(0, 240 - (z / 8) * 240);
-  ctx.fillStyle = `hsl(${hue}, 70%, 55%)`;
-  ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.font = 'bold 9px sans-serif';
-  ctx.fillText(`S${idx}`, 2, 9);
-}
 
-/* ──────────────────────────────────────────────────────────────
-   SETUP STEP 4 — RESULTS DISPLAY
-────────────────────────────────────────────────────────────── */
+  const [cols, rows] = RESOLUTIONS[SIM.res];
+  
+  if (rawOffscreenCanvas.width !== cols || rawOffscreenCanvas.height !== rows) {
+    rawOffscreenCanvas.width = cols;
+    rawOffscreenCanvas.height = rows;
+  }
+  
+  const imgData = rawOffscreenCtx.createImageData(cols, rows);
+  const data = imgData.data;
 
-function computeAndDisplayResults() {
-  const lastScan = SCANS[SCANS.length - 1] || { res: setupRes(), cubeZ, cubeOffset };
-  const { res } = lastScan;
-  const z = lastScan.cubeZ;
+  renderDepthMap(cols, rows); // Ensure depth map is up to date
 
-  const totalPoints = res.w * res.h;
-  const spacingMm   = (z / 700) * 1000;
-  const fovWidthM   = (res.w / 700) * z * 2; /* rough physical width at depth z */
-  const fovHeightM  = (res.h / 700) * z * 2;
-  const surfaceArea = fovWidthM * fovHeightM;
-  const density     = totalPoints / Math.max(surfaceArea, 0.01);
-  const flyingPx     = Math.round(totalPoints * 0.003 * (1 + Math.random()));
-
-  document.getElementById('r-points').textContent  = fmtNum(totalPoints);
-  document.getElementById('r-spacing').textContent = spacingMm.toFixed(1);
-  document.getElementById('r-density').textContent = fmtNum(Math.round(density));
-  document.getElementById('r-flying').textContent  = fmtNum(flyingPx);
-  document.getElementById('r-bbox').textContent    =
-    `${(0.4).toFixed(2)} × ${(0.4).toFixed(2)} × ${(z).toFixed(2)}`;
-}
-
-/* ──────────────────────────────────────────────────────────────
-   PAGE SWITCHING
-────────────────────────────────────────────────────────────── */
-
-function showSimulation() {
-  document.getElementById('page-setup').classList.remove('active');
-  document.getElementById('page-sim').classList.add('active');
-  cancelAnimationFrame(animFrame);
-  initSimulation();
-}
-
-function showSetup() {
-  document.getElementById('page-sim').classList.remove('active');
-  document.getElementById('page-setup').classList.add('active');
-  animateThree();
-}
-
-/* ──────────────────────────────────────────────────────────────
-   SIMULATION PAGE — CANVAS RENDERERS
-────────────────────────────────────────────────────────────── */
-
-/* Depth map: a cube-shaped near region against a far background,
-   coloured by depth, with optional flying-pixel halo at the edge. */
-function renderDepthMap(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || canvas.width;
-  const H = canvas.offsetHeight || canvas.height;
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-
-  const imgData = ctx.createImageData(W, H);
-  const px = imgData.data;
-
-  const bgZ = 8.0;
-  const objZ = SIM.Z;
-  const ox0 = Math.floor(W * 0.32), ox1 = Math.floor(W * 0.68);
-  const oy0 = Math.floor(H * 0.28), oy1 = Math.floor(H * 0.78);
-
-  const edgeBand = [0, 1, 3, 6][SIM.edge]; /* px width of ambiguous boundary */
-
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      const inObj = x >= ox0 && x <= ox1 && y >= oy0 && y <= oy1;
-
-      const distToEdgeX = Math.min(Math.abs(x - ox0), Math.abs(x - ox1));
-      const distToEdgeY = Math.min(Math.abs(y - oy0), Math.abs(y - oy1));
-      const nearEdge = inObj && Math.min(distToEdgeX, distToEdgeY) < edgeBand;
-
-      let z = inObj ? objZ : bgZ;
-
-      /* flying pixel: blend depth between object and background near edge */
-      if (nearEdge && edgeBand > 0) {
-        z = (objZ + bgZ) / 2 + gauss() * 0.3;
+  const sigmaM = (SIM.noise / 1000.0);
+  
+  let i = 0;
+  for(let y=0; y<rows; y++) {
+    for(let x=0; x<cols; x++) {
+      const idx = ((rows - 1 - y) * cols + x) * 4;
+      const r_d = depthBuffer[idx], g_d = depthBuffer[idx+1], b_d = depthBuffer[idx+2], a_d = depthBuffer[idx+3];
+      
+      let trueZ = 4.0;
+      let hitObj = false;
+      if (!(r_d === 0 && g_d === 0 && b_d === 0 && a_d === 0)) {
+        const zNorm = (r_d/255.0) + (g_d/65025.0) + (b_d/16581375.0) + (a_d/4228250625.0);
+        trueZ = 0.1 + zNorm * 9.9;
+        if (trueZ < 3.5) hitObj = true;
       }
 
-      /* sensor noise */
-      z += gauss() * (SIM.noise / 1000);
-
-      const t = Math.max(0, Math.min(1, z / 10));
-      const hue = 240 - t * 240;
-      const [r, g, b] = hslToRgb(hue / 360, 0.75, 0.5);
-
-      px[i] = r; px[i+1] = g; px[i+2] = b; px[i+3] = 255;
+      const measuredZ = trueZ + (Math.random() - 0.5) * sigmaM * 2.5;
+      let intensity = Math.max(0, Math.min(1, 1 - (measuredZ / 8.0)));
+      
+      if(hitObj) {
+         data[i] = Math.floor(intensity * 255);
+         data[i+1] = Math.floor(intensity * 200);
+         data[i+2] = Math.floor(intensity * 100);
+      } else {
+         const v = Math.floor(intensity * 255);
+         data[i] = v;
+         data[i+1] = v;
+         data[i+2] = v;
+      }
+      data[i+3] = 255; // Alpha
+      i += 4;
     }
   }
-
-  ctx.putImageData(imgData, 0, 0);
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(ox0, oy0, ox1-ox0, oy1-oy0);
+  
+  rawOffscreenCtx.putImageData(imgData, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  
+  // To avoid blurry scaling, disable image smoothing
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(rawOffscreenCanvas, 0, 0, W, H);
 }
 
-function hslToRgb(h, s, l) {
-  let r, g, b;
-  if (s === 0) { r = g = b = l; }
-  else {
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1; if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q-p)*6*t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q-p)*(2/3-t)*6;
-      return p;
-    };
-    const q = l < 0.5 ? l*(1+s) : l+s-l*s;
-    const p = 2*l-q;
-    r = hue2rgb(p,q,h+1/3); g = hue2rgb(p,q,h); b = hue2rgb(p,q,h-1/3);
-  }
-  return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
-}
+/* Vis 2: Interactive Point Cloud (3D) */
+let pcScene, pcCamera, pcRenderer, pcAnimFrame, pointCloudMesh;
+let pcPhi = 0.5, pcTheta = 1.0, pcRadius = 5.0;
+let pcTargetX = 0, pcTargetY = 0, pcTargetZ = -2;
+let pcIsDragging = false, pcLastMouse = {x:0, y:0}, pcButton = 0;
 
-/* 3D rotatable point cloud rendered via simple isometric projection */
-let cloudRotY = 0.6, cloudRotX = -0.3;
-let cloudDragging = false, cloudLastMouse = {x:0,y:0};
+function initPointCloud() {
+  const canvas = document.getElementById('cvs-cloud3d');
+  if(!canvas || pcRenderer) return;
+  
+  pcRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  pcScene = new THREE.Scene();
+  pcCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
 
-function renderCloud3D(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || canvas.width;
-  const H = canvas.offsetHeight || canvas.height;
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(0, 0, W, H);
-
-  const res = currentRes();
-  /* subsample for rendering performance — cap visual points */
-  const stepX = Math.max(1, Math.floor(res.w / 48));
-  const stepY = Math.max(1, Math.floor(res.h / 36));
-
-  const cosY = Math.cos(cloudRotY), sinY = Math.sin(cloudRotY);
-  const cosX = Math.cos(cloudRotX), sinX = Math.sin(cloudRotX);
-
-  const objZ = SIM.Z;
-  const fx = SIM.fx;
-  const cx = res.w / 2, cy = res.h / 2;
-
-  const ox0 = res.w * 0.32, ox1 = res.w * 0.68;
-  const oy0 = res.h * 0.28, oy1 = res.h * 0.78;
-
-  const pts = [];
-
-  for (let v = 0; v < res.h; v += stepY) {
-    for (let u = 0; u < res.w; u += stepX) {
-      const inObj = u >= ox0 && u <= ox1 && v >= oy0 && v <= oy1;
-      if (!inObj) continue; /* render object only for clarity */
-
-      const noisyZ = objZ + gauss() * (SIM.noise / 1000);
-      const X = (u - cx) * noisyZ / fx;
-      const Y = (v - cy) * noisyZ / fx;
-      const Z = noisyZ;
-
-      /* rotate around Y then X */
-      let x1 = X * cosY + Z * sinY;
-      let z1 = -X * sinY + Z * cosY;
-      let y1 = Y * cosX - z1 * sinX;
-      let z2 = Y * sinX + z1 * cosX;
-
-      const scale = 280;
-      const px = W/2 + x1 * scale;
-      const py = H/2 - y1 * scale;
-      const depthSort = z2;
-
-      pts.push({ px, py, depthSort, z: noisyZ });
-    }
-  }
-
-  pts.sort((a,b) => b.depthSort - a.depthSort);
-
-  pts.forEach(p => {
-    const t = Math.max(0, Math.min(1, (p.z - (objZ-0.15)) / 0.3));
-    const hue = 30 + t * 30;
-    ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
-    ctx.beginPath();
-    ctx.arc(p.px, p.py, 1.6, 0, Math.PI*2);
-    ctx.fill();
-  });
-
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '9px JetBrains Mono';
-  ctx.fillText(`${fmtNum(pts.length)} pts shown (subsampled)`, 8, H - 8);
-}
-
-function setupCloud3DDrag(canvas) {
-  canvas.addEventListener('mousedown', e => { cloudDragging = true; cloudLastMouse = {x:e.clientX,y:e.clientY}; });
-  window.addEventListener('mouseup', () => { cloudDragging = false; });
+  // Setup simple controls
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('mousedown', e => { pcIsDragging = true; pcLastMouse = {x:e.clientX, y:e.clientY}; pcButton = e.buttons; });
+  window.addEventListener('mouseup', () => pcIsDragging = false);
   window.addEventListener('mousemove', e => {
-    if (!cloudDragging) return;
-    const dx = e.clientX - cloudLastMouse.x;
-    const dy = e.clientY - cloudLastMouse.y;
-    cloudLastMouse = {x:e.clientX, y:e.clientY};
-    cloudRotY += dx * 0.01;
-    cloudRotX = Math.max(-1.4, Math.min(1.4, cloudRotX + dy * 0.01));
-    renderCloud3D(canvas);
+    if(!pcIsDragging) return;
+    const dx = e.clientX - pcLastMouse.x;
+    const dy = e.clientY - pcLastMouse.y;
+    pcLastMouse = {x:e.clientX, y:e.clientY};
+    if(pcButton === 1) { // Left click: Orbit
+      pcPhi -= dx * 0.01;
+      pcTheta = Math.max(0.01, Math.min(Math.PI-0.01, pcTheta + dy * 0.01));
+    } else if(pcButton === 2) { // Right click: Pan
+      pcTargetX -= dx * 0.01;
+      pcTargetY += dy * 0.01;
+    }
+  });
+  canvas.addEventListener('wheel', e => { e.preventDefault(); pcRadius = Math.max(1, Math.min(20, pcRadius + e.deltaY * 0.005)); });
+
+  const grid = new THREE.GridHelper(10, 10, 0x94a3b8, 0xcbd5e1);
+  grid.position.y = -1.5;
+  pcScene.add(grid);
+
+  animatePointCloud();
+}
+
+/* --- WebGL Depth Engine --- */
+let depthScene, depthCamera, depthRenderTarget;
+let depthWall, depthCar;
+let depthMaterial;
+let depthBuffer;
+
+function initDepthEngine() {
+  depthScene = new THREE.Scene();
+  depthScene.background = new THREE.Color(0x000000);
+  
+  depthCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
+  
+  depthMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      near: { value: 0.1 },
+      far: { value: 10.0 }
+    },
+    vertexShader: `
+      varying float vZ;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vZ = -mvPosition.z;
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform float near;
+      uniform float far;
+      varying float vZ;
+      vec4 packFloatToRGBA(float v) {
+        vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * v;
+        enc = fract(enc);
+        enc -= enc.yzww * vec4(1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0);
+        return enc;
+      }
+      void main() {
+        float zNorm = (vZ - near) / (far - near);
+        gl_FragColor = packFloatToRGBA(zNorm);
+      }
+    `
   });
 
-  let lastTouch = null;
-  canvas.addEventListener('touchstart', e => { lastTouch = {x:e.touches[0].clientX, y:e.touches[0].clientY}; });
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!lastTouch) return;
-    const dx = e.touches[0].clientX - lastTouch.x;
-    const dy = e.touches[0].clientY - lastTouch.y;
-    lastTouch = {x:e.touches[0].clientX, y:e.touches[0].clientY};
-    cloudRotY += dx * 0.012;
-    cloudRotX = Math.max(-1.4, Math.min(1.4, cloudRotX + dy * 0.012));
-    renderCloud3D(canvas);
-  }, { passive: false });
-}
-
-/* Top-down view showing field-of-view spread at current Z */
-function renderTopView(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || canvas.width;
-  const H = canvas.offsetHeight || canvas.height;
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(0, 0, W, H);
-
-  const camX = W/2, camY = 24;
-  const scaleZ = (H - 50) / 8; /* 8m max range mapped to canvas height */
-
-  /* FOV cone lines (approx half-angle from fx) */
-  const fovAngle = Math.atan(320 / SIM.fx); /* radians, half-angle */
-  const farZ = 8 * scaleZ;
-  ctx.strokeStyle = '#93c5fd';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4,3]);
-  ctx.beginPath();
-  ctx.moveTo(camX, camY);
-  ctx.lineTo(camX - Math.tan(fovAngle) * farZ, camY + farZ);
-  ctx.moveTo(camX, camY);
-  ctx.lineTo(camX + Math.tan(fovAngle) * farZ, camY + farZ);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  /* depth gridlines */
-  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
-  for (let z = 1; z <= 8; z++) {
-    const y = camY + z * scaleZ;
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    ctx.fillStyle = '#94a3b8'; ctx.font = '8px JetBrains Mono';
-    ctx.fillText(`${z}m`, 4, y - 2);
-  }
-
-  /* camera marker */
-  ctx.fillStyle = '#2563eb';
-  ctx.beginPath(); ctx.arc(camX, camY, 5, 0, Math.PI*2); ctx.fill();
-
-  /* object marker at current Z */
-  const objY = camY + SIM.Z * scaleZ;
-  const objHalfWidth = Math.tan(fovAngle) * SIM.Z * scaleZ * 0.18;
-  ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(camX - objHalfWidth, objY - 6, objHalfWidth*2, 12);
-
-  ctx.fillStyle = '#16a34a';
-  ctx.font = 'bold 9px DM Sans';
-  ctx.fillText(`Z = ${SIM.Z.toFixed(2)}m  |  FOV width ≈ ${(2*Math.tan(fovAngle)*SIM.Z).toFixed(2)}m`, camX + 10, objY + 3);
-
-  /* background wall line at 8m */
-  ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0, camY + 8*scaleZ); ctx.lineTo(W, camY + 8*scaleZ); ctx.stroke();
-}
-
-/* Density vs distance curve */
-function renderDensityCurve(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || canvas.width;
-  const H = canvas.offsetHeight || canvas.height;
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(0, 0, W, H);
-
-  const padL = 42, padR = 10, padT = 14, padB = 28;
-  const gW = W - padL - padR, gH = H - padT - padB;
-
-  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
-  for (let i = 0; i <= 4; i++) {
-    const y = padT + gH - (i/4) * gH;
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+gW, y); ctx.stroke();
-  }
-
-  ctx.fillStyle = '#64748b'; ctx.font = '10px DM Sans'; ctx.textAlign = 'center';
-  ctx.fillText('Distance Z (m)', padL + gW/2, H - 4);
-
-  ctx.strokeStyle = '#0891b2'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  let maxDensity = 0;
-  const densities = [];
-  for (let z = 0.3; z <= 8; z += 0.1) {
-    const spacing = z / SIM.fx;
-    const density = 1 / (spacing * spacing); /* pts/m² approx */
-    densities.push(density);
-    maxDensity = Math.max(maxDensity, density);
-  }
-
-  let idx = 0;
-  for (let z = 0.3; z <= 8; z += 0.1) {
-    const x = padL + ((z - 0.3) / 7.7) * gW;
-    const y = padT + gH - Math.min(gH, (densities[idx] / maxDensity) * gH);
-    if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    idx++;
-  }
-  ctx.stroke();
-
-  /* current Z marker */
-  const curSpacing = SIM.Z / SIM.fx;
-  const curDensity = 1 / (curSpacing * curSpacing);
-  const curX = padL + ((SIM.Z - 0.3) / 7.7) * gW;
-  const curY = padT + gH - Math.min(gH, (curDensity / maxDensity) * gH);
-
-  ctx.fillStyle = '#dc2626';
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(curX, curY, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#dc2626'; ctx.font = 'bold 9px DM Sans';
-  ctx.fillText(`Z=${SIM.Z.toFixed(1)}m`, Math.min(curX+8, W-60), curY-6);
-}
-
-/* Quality gauge — based on noise + flying pixel severity */
-function renderGauge(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
-
-  const noisePenalty = Math.min(50, SIM.noise * 1.2);
-  const edgePenalty  = SIM.edge * 8;
-  const quality = Math.max(0, Math.min(100, 100 - noisePenalty - edgePenalty));
-
-  const cx = W/2, cy = H-8, r = H-16;
-  const startA = Math.PI, endA = 2*Math.PI;
-
-  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 10; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(cx,cy,r,startA,endA); ctx.stroke();
-
-  const sweepA = startA + (quality/100) * Math.PI;
-  const colour = quality > 70 ? '#22c55e' : quality > 40 ? '#f59e0b' : '#ef4444';
-  ctx.strokeStyle = colour; ctx.lineWidth = 10;
-  ctx.beginPath(); ctx.arc(cx,cy,r,startA,sweepA); ctx.stroke();
-
-  ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(cx,cy);
-  ctx.lineTo(cx + (r-4)*Math.cos(sweepA), cy + (r-4)*Math.sin(sweepA));
-  ctx.stroke();
-  ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
-
-  document.getElementById('quality-label').textContent =
-    quality > 70 ? `${quality.toFixed(0)}% — Clean cloud` :
-    quality > 40 ? `${quality.toFixed(0)}% — Visible noise` :
-                   `${quality.toFixed(0)}% — Heavily degraded`;
-  document.getElementById('quality-label').style.color = colour;
-  document.getElementById('quality-sub').textContent =
-    quality > 70 ? 'Surface clearly defined' :
-    quality > 40 ? 'Reduce noise or edge ambiguity' :
-                   'Cloud unsuitable for measurement';
-}
-
-/* Mini spacing-vs-resolution bar chart in right panel */
-function renderSpacingMini(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.fillStyle = '#f8fafc'; ctx.fillRect(0,0,W,H);
-
-  const realSpacing = RES_PRESETS.map(r => (SIM.Z / SIM.fx) * (640 / r.w) * 1000); /* mm, normalised vs 640 ref */
-
-  const maxS = Math.max(...realSpacing);
-  const barW = W / RES_PRESETS.length * 0.6;
-  const gap  = W / RES_PRESETS.length;
-
-  RES_PRESETS.forEach((r, i) => {
-    const h = (realSpacing[i] / maxS) * (H - 22);
-    const x = gap * i + (gap - barW)/2;
-    const y = H - 16 - h;
-    const isCurrent = i === SIM.resIdx;
-    ctx.fillStyle = isCurrent ? '#2563eb' : '#bfdbfe';
-    ctx.fillRect(x, y, barW, h);
-    ctx.fillStyle = '#64748b'; ctx.font = '7px JetBrains Mono'; ctx.textAlign = 'center';
-    ctx.fillText(r.label.split('×')[0], x + barW/2, H - 4);
+  depthCar = new THREE.Group();
+  
+  const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.4), depthMaterial);
+  lowerBody.position.set(0, 0.1, 0);
+  depthCar.add(lowerBody);
+  
+  const upperBody = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.35), depthMaterial);
+  upperBody.position.set(-0.05, 0.275, 0);
+  depthCar.add(upperBody);
+  
+  const wheelGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 16);
+  wheelGeo.rotateX(Math.PI / 2);
+  const wheelPositions = [
+    [-0.25, 0.0, 0.2], [0.25, 0.0, 0.2],
+    [-0.25, 0.0, -0.2], [0.25, 0.0, -0.2]
+  ];
+  wheelPositions.forEach(pos => {
+    const wheel = new THREE.Mesh(wheelGeo, depthMaterial);
+    wheel.position.set(pos[0], pos[1], pos[2]);
+    depthCar.add(wheel);
   });
-  ctx.textAlign = 'left';
+  
+  depthCar.position.set(0, 1.24, -2.0);
+  depthScene.add(depthCar);
+
+  depthWall = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 0.1), depthMaterial);
+  depthWall.position.set(0, 1.24, -4.0);
+  depthScene.add(depthWall);
+
+  depthCamera.position.set(0, 1.24, 0);
+  depthCamera.lookAt(0, 1.24, -1);
 }
 
-/* ──────────────────────────────────────────────────────────────
-   SIMULATION — MAIN UPDATE
-────────────────────────────────────────────────────────────── */
+function renderDepthMap(cols, rows) {
+  if(!depthScene) initDepthEngine();
 
-function updateSimulation() {
-  const res = currentRes();
-  const totalPoints = res.w * res.h;
-  const spacingMm = (SIM.Z / SIM.fx) * 1000;
-  const fovWidthM = (res.w / SIM.fx) * SIM.Z;
-  const fovHeightM = (res.h / SIM.fx) * SIM.Z;
-  const surfaceArea = fovWidthM * fovHeightM;
-  const densityK = (totalPoints / Math.max(surfaceArea, 0.001)) / 1000;
-  const rmse = SIM.noise; /* linear relationship: RMSE ≈ σ */
-
-  document.getElementById('ro-points').textContent  = fmtNum(totalPoints);
-  document.getElementById('ro-spacing').textContent = spacingMm.toFixed(1);
-  document.getElementById('ro-density').textContent = densityK.toFixed(1);
-
-  const rmseEl = document.getElementById('ro-rmse');
-  rmseEl.textContent = rmse.toFixed(1);
-  rmseEl.className = 'ro-val' + (rmse < 5 ? ' good' : rmse < 20 ? ' warn' : ' danger');
-
-  /* stats panel */
-  document.getElementById('st-w').textContent = res.w;
-  document.getElementById('st-h').textContent = res.h;
-  document.getElementById('st-valid').textContent = (94 + Math.random()*4).toFixed(1) + '%';
-  const flyingCount = Math.round(totalPoints * 0.002 * (SIM.edge + 1));
-  document.getElementById('st-flying').textContent = fmtNum(flyingCount);
-
-  /* bbox */
-  document.getElementById('bb-x').textContent = '0.40 m';
-  document.getElementById('bb-y').textContent = '0.40 m';
-  document.getElementById('bb-z').textContent = SIM.Z.toFixed(2) + ' m';
-
-  /* render canvases */
-  renderDepthMap(document.getElementById('cvs-depthmap'));
-  renderCloud3D(document.getElementById('cvs-cloud3d'));
-  renderTopView(document.getElementById('cvs-topview'));
-  renderDensityCurve(document.getElementById('cvs-density'));
-  renderGauge(document.getElementById('gauge-canvas'));
-  renderSpacingMini(document.getElementById('cvs-spacing-mini'));
-}
-
-/* ──────────────────────────────────────────────────────────────
-   SIMULATION — WIZARD
-────────────────────────────────────────────────────────────── */
-
-function updateSimWizard() {
-  const step = Math.min(SIM.step, SIM_WIZARD.length - 1);
-  const s = SIM_WIZARD[step];
-
-  document.getElementById('wiz-title').textContent = s.title;
-  document.getElementById('wiz-text').textContent  = s.text;
-  document.getElementById('wiz-task').textContent  = s.task;
-
-  document.querySelectorAll('.param-grp').forEach(el => el.classList.remove('lit'));
-  if (s.lit) {
-    const el = document.getElementById(s.lit);
-    if (el) { el.classList.add('lit'); el.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+  if (!depthRenderTarget || depthRenderTarget.width !== cols || depthRenderTarget.height !== rows) {
+    if (depthRenderTarget) depthRenderTarget.dispose();
+    depthRenderTarget = new THREE.WebGLRenderTarget(cols, rows, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      format: THREE.RGBAFormat,
+      type: THREE.UnsignedByteType
+    });
+    depthBuffer = new Uint8Array(cols * rows * 4);
   }
 
-  document.querySelectorAll('.wdot').forEach((d,i) => {
-    d.classList.remove('active','done');
-    if (i === step) d.classList.add('active');
-    if (i < step)  d.classList.add('done');
-  });
+  depthCar.position.z = -SIM.Z;
+  depthCar.position.x = SIM.offsetX;
+  depthCar.rotation.y = THREE.MathUtils.degToRad(CARRIED_SETUP.rotationY);
 
-  const btnNext = document.getElementById('wiz-next');
-  const btnSkip = document.getElementById('wiz-skip');
-  if (step >= SIM_WIZARD.length - 1) {
-    btnNext.textContent = 'Explore Freely';
-    btnSkip.style.display = 'none';
+  // Three.js fov is VERTICAL FOV in degrees. 
+  // Assuming 640x480 nominal sensor, H/2 = 240.
+  depthCamera.fov = 2 * Math.atan(240 / SIM.fx) * (180 / Math.PI);
+  depthCamera.aspect = cols / rows;
+  depthCamera.updateProjectionMatrix();
+
+  pcRenderer.setRenderTarget(depthRenderTarget);
+  pcRenderer.render(depthScene, depthCamera);
+  pcRenderer.setRenderTarget(null);
+
+  pcRenderer.readRenderTargetPixels(depthRenderTarget, 0, 0, cols, rows, depthBuffer);
+}
+
+function updatePointCloud() {
+  if(!pcScene) return;
+  
+  const [cols, rows] = RESOLUTIONS[SIM.res];
+  num_points = cols * rows;
+
+  renderDepthMap(cols, rows);
+
+  let positions, colors;
+  let isReused = false;
+
+  if (pointCloudMesh && pointCloudMesh.geometry.attributes.position.count === num_points) {
+    positions = pointCloudMesh.geometry.attributes.position.array;
+    colors = pointCloudMesh.geometry.attributes.color.array;
+    isReused = true;
   } else {
-    btnNext.textContent = 'Next Step';
-    btnSkip.style.display = '';
+    if(pointCloudMesh) {
+      pcScene.remove(pointCloudMesh);
+      pointCloudMesh.geometry.dispose();
+      pointCloudMesh.material.dispose();
+    }
+    positions = new Float32Array(num_points * 3);
+    colors = new Float32Array(num_points * 3);
+  }
+
+  const cx = cols/2;
+  const cy = rows/2;
+  const fx = SIM.fx * (cols/320); // Scale focal length to match current resolution grid
+  const fy = fx;
+  const noiseM = SIM.noise / 1000.0;
+  
+  let i = 0;
+  for(let y=0; y<rows; y++) {
+    for(let x=0; x<cols; x++) {
+      const idx = ((rows - 1 - y) * cols + x) * 4;
+      const r_d = depthBuffer[idx];
+      const g_d = depthBuffer[idx+1];
+      const b_d = depthBuffer[idx+2];
+      const a_d = depthBuffer[idx+3];
+      
+      let trueZ;
+      let isHit = true;
+      if (r_d === 0 && g_d === 0 && b_d === 0 && a_d === 0) { // Black background = no hit
+        trueZ = 4.0; // fallback to back wall
+        isHit = false;
+      } else {
+        const zNorm = (r_d/255.0) + (g_d/65025.0) + (b_d/16581375.0) + (a_d/4228250625.0);
+        trueZ = 0.1 + zNorm * (10.0 - 0.1);
+      }
+
+      // Flying pixels at edges
+      if(isHit && SIM.flying > 0) {
+        // Detect edge by checking adjacent pixel depth difference
+        const idxRight = x < cols - 1 ? ((rows - 1 - y) * cols + x + 1) * 4 : idx;
+        const r_r = depthBuffer[idxRight], g_r = depthBuffer[idxRight+1], b_r = depthBuffer[idxRight+2], a_r = depthBuffer[idxRight+3];
+        const zNormR = (r_r/255.0) + (g_r/65025.0) + (b_r/16581375.0) + (a_r/4228250625.0);
+        const zRight = 0.1 + zNormR * 9.9;
+        
+        if (Math.abs(trueZ - zRight) > 0.5) { // Edge!
+          if(Math.random() < (SIM.flying * 0.2)) {
+             trueZ = Math.min(trueZ, zRight) + Math.random() * Math.abs(trueZ - zRight);
+          }
+        }
+      }
+      
+      const measuredZ = trueZ + (Math.random()-0.5) * noiseM * 2;
+
+      // Back-projection
+      const px = (x - cx) * measuredZ / fx;
+      const py = -(y - cy) * measuredZ / fy; // negative y for graphics coordinates
+      
+      positions[i*3] = px;
+      positions[i*3+1] = py;
+      positions[i*3+2] = -measuredZ;
+
+      const t = Math.max(0, Math.min(1, measuredZ / 5.0));
+      const isCar = trueZ < 3.5;
+      
+      if(isCar) {
+        colors[i*3] = 0.9; colors[i*3+1] = 0.2; colors[i*3+2] = 0.2;
+      } else {
+        colors[i*3] = 1 - t;
+        colors[i*3+1] = 0.5;
+        colors[i*3+2] = t;
+      }
+      
+      i++;
+    }
+  }
+
+  if (isReused) {
+    pointCloudMesh.geometry.attributes.position.needsUpdate = true;
+    pointCloudMesh.geometry.attributes.color.needsUpdate = true;
+  } else {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: true });
+    pointCloudMesh = new THREE.Points(geometry, material);
+    pcScene.add(pointCloudMesh);
   }
 }
 
-/* ──────────────────────────────────────────────────────────────
-   SIMULATION — INIT & CONTROLS
-────────────────────────────────────────────────────────────── */
+function animatePointCloud() {
+  pcAnimFrame = requestAnimationFrame(animatePointCloud);
+  if(!pcRenderer) return;
+  const canvas = pcRenderer.domElement;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = Math.floor(rect.height - 30);
+  if(canvas.width !== W || canvas.height !== H) {
+    pcRenderer.setSize(W, H, false);
+    pcCamera.aspect = W / H;
+    pcCamera.updateProjectionMatrix();
+  }
 
-function initSimulation() {
-  updateSimWizard();
-  updateSimulation();
-  setupCloud3DDrag(document.getElementById('cvs-cloud3d'));
-
-  document.getElementById('r-res').addEventListener('input', e => {
-    SIM.resIdx = parseInt(e.target.value);
-    document.getElementById('pv-res').textContent = RES_PRESETS[SIM.resIdx].label;
-    updateSimulation();
-  });
-
-  document.getElementById('r-Z').addEventListener('input', e => {
-    SIM.Z = parseFloat(e.target.value);
-    document.getElementById('pv-Z').textContent = SIM.Z.toFixed(2) + ' m';
-    updateSimulation();
-  });
-
-  document.getElementById('r-noise').addEventListener('input', e => {
-    SIM.noise = parseFloat(e.target.value);
-    document.getElementById('pv-noise').textContent = SIM.noise.toFixed(0) + ' mm';
-    updateSimulation();
-  });
-
-  document.getElementById('r-fx').addEventListener('input', e => {
-    SIM.fx = parseFloat(e.target.value);
-    document.getElementById('pv-fx').textContent = SIM.fx.toFixed(0) + ' px';
-    updateSimulation();
-  });
-
-  document.getElementById('r-flying').addEventListener('input', e => {
-    SIM.edge = parseInt(e.target.value);
-    const labels = ['Clean', 'Normal', 'High', 'Severe'];
-    document.getElementById('pv-flying').textContent = labels[SIM.edge];
-    updateSimulation();
-  });
-
-  document.getElementById('wiz-next').addEventListener('click', () => {
-    SIM.step = Math.min(SIM.step + 1, SIM_WIZARD.length - 1);
-    updateSimWizard();
-  });
-  document.getElementById('wiz-skip').addEventListener('click', () => {
-    SIM.step = SIM_WIZARD.length - 1;
-    updateSimWizard();
-  });
-  document.querySelectorAll('.wdot').forEach(d => {
-    d.addEventListener('click', () => { SIM.step = parseInt(d.dataset.ws); updateSimWizard(); });
-  });
-
-  ['btn-sim-reset', 'btn-sim-reset2'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('click', resetSimulation);
-  });
-
-  const ro = new ResizeObserver(() => updateSimulation());
-  document.querySelectorAll('.sim-card').forEach(c => ro.observe(c));
+  pcCamera.position.x = pcTargetX + pcRadius * Math.sin(pcTheta) * Math.sin(pcPhi);
+  pcCamera.position.y = pcTargetY + pcRadius * Math.cos(pcTheta);
+  pcCamera.position.z = pcTargetZ + pcRadius * Math.sin(pcTheta) * Math.cos(pcPhi);
+  pcCamera.lookAt(pcTargetX, pcTargetY, pcTargetZ);
+  
+  pcRenderer.render(pcScene, pcCamera);
 }
 
-function resetSimulation() {
-  SIM.resIdx = 1; SIM.Z = 1.5; SIM.noise = 3; SIM.fx = 700; SIM.edge = 1; SIM.step = 0;
+/* Vis 3: Frustum Cross Section (2D) */
+function drawFrustum() {
+  const canvas = document.getElementById('cvs-frustum');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height-30)) {
+    canvas.width = Math.floor(rect.width);
+    canvas.height = Math.floor(rect.height-30);
+  }
+  const W = canvas.width, H = canvas.height;
+  
+  ctx.clearRect(0, 0, W, H);
+  
+  // Draw top-down view
+  // Sensor at left (x=10), looking right.
+  const originX = 20;
+  const originY = H/2;
+  const scale = W / 10; // 10 meters fits horizontally
 
-  document.getElementById('r-res').value = 1;
-  document.getElementById('r-Z').value = 1.5;
-  document.getElementById('r-noise').value = 3;
-  document.getElementById('r-fx').value = 700;
-  document.getElementById('r-flying').value = 1;
+  // Sensor width roughly 640 pixels for calculation
+  const fov = 2 * Math.atan(320 / SIM.fx); 
+  const objZ = SIM.Z * scale;
+  
+  // Draw Frustum Rays
+  ctx.strokeStyle = '#bfdbfe';
+  ctx.lineWidth = 1;
+  const numRays = 10;
+  for(let i=0; i<=numRays; i++) {
+    const angle = -fov/2 + (i/numRays) * fov;
+    const endX = originX + Math.cos(angle) * (8 * scale); // 8m max
+    const endY = originY + Math.sin(angle) * (8 * scale);
+    ctx.beginPath();
+    ctx.moveTo(originX, originY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
 
-  document.getElementById('pv-res').textContent = '320×240';
-  document.getElementById('pv-Z').textContent = '1.50 m';
-  document.getElementById('pv-noise').textContent = '3 mm';
-  document.getElementById('pv-fx').textContent = '700 px';
-  document.getElementById('pv-flying').textContent = 'Normal';
+  // Draw Object Intersect
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  const objAngleTop = -fov/2 * (0.5 / (SIM.Z * Math.tan(fov/2)));
+  const objAngleBot = fov/2 * (0.5 / (SIM.Z * Math.tan(fov/2)));
+  const topY = originY + Math.sin(objAngleTop) * objZ;
+  const botY = originY + Math.sin(objAngleBot) * objZ;
+  ctx.moveTo(originX + objZ, topY);
+  ctx.lineTo(originX + objZ, botY);
+  ctx.stroke();
 
-  cloudRotY = 0.6; cloudRotX = -0.3;
+  // Draw annotation showing spacing
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px JetBrains Mono';
+  
+  // Calculation
+  spacing_mm = (SIM.Z / SIM.fx) * 1000;
+  ctx.fillText(`Δs: ${spacing_mm.toFixed(1)} mm`, originX + objZ + 10, originY);
+}
 
-  updateSimWizard();
-  updateSimulation();
+/* Vis 4: Flying Pixel Edge (3D) */
+let edgeScene, edgeCamera, edgeRenderer, edgeAnimFrame, edgeMesh;
+let edgePhi = Math.PI/4, edgeTheta = Math.PI/3, edgeRadius = 1.5;
+let edgeTargetX = 0, edgeTargetY = 0, edgeTargetZ = 0;
+let edgeIsDragging = false, edgeLastMouse = {x:0, y:0}, edgeButton = 0;
+
+function initFlyingPixel() {
+  const canvas = document.getElementById('cvs-flying');
+  if(!canvas || edgeRenderer) return;
+  
+  edgeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  edgeScene = new THREE.Scene();
+  edgeCamera = new THREE.PerspectiveCamera(30, 1, 0.1, 10);
+  
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('mousedown', e => { edgeIsDragging = true; edgeLastMouse = {x:e.clientX, y:e.clientY}; edgeButton = e.buttons; });
+  window.addEventListener('mouseup', () => edgeIsDragging = false);
+  window.addEventListener('mousemove', e => {
+    if(!edgeIsDragging) return;
+    const dx = e.clientX - edgeLastMouse.x;
+    const dy = e.clientY - edgeLastMouse.y;
+    edgeLastMouse = {x:e.clientX, y:e.clientY};
+    if(edgeButton === 1) { // Left click: Orbit
+      edgePhi -= dx * 0.01;
+      edgeTheta = Math.max(0.01, Math.min(Math.PI-0.01, edgeTheta + dy * 0.01));
+    } else if(edgeButton === 2) { // Right click: Pan
+      edgeTargetX -= dx * 0.01;
+      edgeTargetY += dy * 0.01;
+    }
+  });
+  canvas.addEventListener('wheel', e => { e.preventDefault(); edgeRadius = Math.max(0.5, Math.min(10, edgeRadius + e.deltaY * 0.005)); });
+
+  const ambient = new THREE.AmbientLight(0xffffff, 1.0);
+  edgeScene.add(ambient);
+
+  animateFlyingPixel();
+}
+
+function updateFlyingPixel() {
+  if(!edgeScene) return;
+  if(edgeMesh) {
+    edgeScene.remove(edgeMesh);
+    edgeMesh.geometry.dispose();
+    edgeMesh.material.dispose();
+  }
+
+  const numPts = 1000;
+  const pos = new Float32Array(numPts * 3);
+  const col = new Float32Array(numPts * 3);
+
+  for(let i=0; i<numPts; i++) {
+    // Left side = foreground object (z=0)
+    // Right side = background wall (z=-2)
+    const x = (Math.random() - 0.5) * 1.5;
+    const y = (Math.random() - 0.5) * 1.5;
+    let z = 0;
+    
+    if (x < -0.1) {
+      z = 0 + (Math.random()-0.5)*(SIM.noise/500); // Front
+      col[i*3]=0.9; col[i*3+1]=0.6; col[i*3+2]=0.1; // Orange
+    } else if (x > 0.1) {
+      z = -1.0 + (Math.random()-0.5)*(SIM.noise/500); // Back
+      col[i*3]=0.2; col[i*3+1]=0.5; col[i*3+2]=0.9; // Blue
+    } else {
+      // The boundary (Flying Pixels)
+      if (Math.random() < (SIM.flying * 0.3)) {
+         z = -Math.random(); // Streaks between 0 and -1
+         col[i*3]=0.9; col[i*3+1]=0.2; col[i*3+2]=0.2; // Red streaks!
+      } else {
+         z = Math.random() > 0.5 ? 0 : -1.0;
+         col[i*3]=0.5; col[i*3+1]=0.5; col[i*3+2]=0.5;
+      }
+    }
+
+    pos[i*3] = x;
+    pos[i*3+1] = y;
+    pos[i*3+2] = z;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  
+  const mat = new THREE.PointsMaterial({ size: 0.04, vertexColors: true });
+  edgeMesh = new THREE.Points(geo, mat);
+  edgeScene.add(edgeMesh);
+}
+
+function animateFlyingPixel() {
+  edgeAnimFrame = requestAnimationFrame(animateFlyingPixel);
+  if(!edgeRenderer) return;
+  const canvas = edgeRenderer.domElement;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = Math.floor(rect.height - 30);
+  if(canvas.width !== W || canvas.height !== H) {
+    edgeRenderer.setSize(W, H, false);
+    edgeCamera.aspect = W / H;
+    edgeCamera.updateProjectionMatrix();
+  }
+
+  edgeCamera.position.x = edgeTargetX + edgeRadius * Math.sin(edgeTheta) * Math.sin(edgePhi);
+  edgeCamera.position.y = edgeTargetY + edgeRadius * Math.cos(edgeTheta);
+  edgeCamera.position.z = edgeTargetZ + edgeRadius * Math.sin(edgeTheta) * Math.cos(edgePhi);
+  edgeCamera.lookAt(edgeTargetX, edgeTargetY, edgeTargetZ);
+  
+  edgeRenderer.render(edgeScene, edgeCamera);
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — RESET
+   SIMULATION PARAMETER UPDATES
 ────────────────────────────────────────────────────────────── */
 
-function resetSetup() {
-  Object.keys(MOUNTED).forEach(k => MOUNTED[k] = false);
+function updateSimState() {
+  if (!pcRenderer) return;
+  
+  drawRawDepth();
+  updatePointCloud();
+  drawFrustum();
+  updateFlyingPixel();
 
-  if (sensorMesh) { sensorMesh.visible = false; fovHelper.visible = false; }
-  if (mountMesh)  mountMesh.visible = false;
-  if (cubeMesh)   cubeMesh.visible = false;
-  if (wallMesh)   { wallMesh.visible = false; wallMesh.userData.gridMesh.visible = false; }
+  // Calculations
+  spacing_mm = (SIM.Z / SIM.fx) * 1000;
+  density_km2 = 1.0 / ((spacing_mm/1000) * (spacing_mm/1000) * 1000); // points per m^2 / 1000
+  rmse_mm = SIM.noise * (1.0 + (SIM.Z/8.0)); // Fake RMSE scaling
+  
+  // UI Updates
+  document.getElementById('out-points').textContent = num_points.toLocaleString();
+  document.getElementById('out-spacing').textContent = spacing_mm.toFixed(1);
+  document.getElementById('out-density').textContent = density_km2.toFixed(1);
+  document.getElementById('out-rmse').textContent = rmse_mm.toFixed(1);
 
-  SCANS.length = 0;
-  document.getElementById('scan-count').textContent = '0';
-  document.getElementById('scan-fill').style.width = '0%';
-  document.getElementById('scan-grid').innerHTML = '';
-  document.getElementById('btn-next-obs').disabled = true;
+  // Left Panel Dynamic Observation
+  const leftSpc = document.getElementById('left-out-spacing');
+  const leftDen = document.getElementById('left-out-density');
+  if (leftSpc) leftSpc.textContent = spacing_mm.toFixed(1);
+  if (leftDen) leftDen.textContent = density_km2.toFixed(1);
 
-  document.querySelectorAll('.btn-mount').forEach(b => { b.textContent = 'Mount'; b.classList.remove('mounted'); });
-  document.querySelectorAll('.comp-card').forEach(c => c.classList.remove('mounted'));
+  // Mini Diagrams
+  updateMiniDiagrams();
+}
 
-  document.getElementById('sr-cd').value = 1.5;
-  document.getElementById('sr-co').value = 0;
-  document.getElementById('sr-res').value = 1;
-  document.getElementById('sv-cd').textContent = '1.5 m';
-  document.getElementById('sv-co').textContent = '0 cm';
-  document.getElementById('sv-res').textContent = '320×240';
+function updateMiniDiagrams() {
+  // 1. Density & Spacing Grid
+  const svgGrid = document.getElementById('svg-density-grid');
+  if(svgGrid) {
+    const resLevels = [2, 4, 8, 16];
+    const lines = resLevels[SIM.res];
+    let gridHTML = '';
+    const scale = 1.0 / (SIM.Z / 2.0); // Z=2 is scale 1
+    const size = Math.min(100, Math.max(20, 60 * scale));
+    const offsetX = (100 - size) / 2;
+    const offsetY = (60 - size) / 2;
+    gridHTML += `<rect x="${offsetX}" y="${offsetY}" width="${size}" height="${size}" fill="none" stroke="#94a3b8" stroke-width="1.5"/>`;
+    for(let i=1; i<lines; i++) {
+      const px = offsetX + (i/lines)*size;
+      const py = offsetY + (i/lines)*size;
+      gridHTML += `<line x1="${px}" y1="${offsetY}" x2="${px}" y2="${offsetY + size}" stroke="#cbd5e1" stroke-width="1"/>`;
+      gridHTML += `<line x1="${offsetX}" y1="${py}" x2="${offsetX+size}" y2="${py}" stroke="#cbd5e1" stroke-width="1"/>`;
+    }
+    svgGrid.innerHTML = gridHTML;
+  }
 
-  cubeZ = 1.5; cubeOffset = 0; setupResIdx = 1;
+  // 2. Sensor Noise Curve
+  const pathNoise = document.getElementById('path-noise-curve');
+  if(pathNoise) {
+    const s = Math.max(2, SIM.noise);
+    const w = s * 1.5; 
+    const h = Math.max(10, 60 - s*0.8);
+    const d = `M${50-w*2},60 Q${50-w},60 ${50},${60-h} Q${50+w},60 ${50+w*2},60`;
+    pathNoise.setAttribute('d', d);
+  }
 
-  document.getElementById('btn-go-sim').disabled = true;
-  gotoSetupStep(0);
+  // 3. Focal Length Rays
+  const polyFx = document.getElementById('poly-fx-frustum');
+  if(polyFx) {
+    const fovW = 60 * (700 / SIM.fx);
+    polyFx.setAttribute('points', `50,60 ${50-fovW/2},0 ${50+fovW/2},0`);
+  }
+
+  // 4. Flying Pixels Edge
+  const fpContainer = document.getElementById('flying-pixels-container');
+  if(fpContainer) {
+    let fpHTML = '';
+    const count = SIM.flying * 8;
+    for(let i=0; i<count; i++) {
+      const x = 50 + (Math.random() - 0.5) * 15 * SIM.flying;
+      const y = Math.random() * 100;
+      fpHTML += `<div class="flying-pixel" style="left:${x}%; top:${y}%;"></div>`;
+    }
+    fpContainer.innerHTML = fpHTML;
+  }
+}
+
+function updateSliderFill(el) {
+  const min = parseFloat(el.min) || 0;
+  const max = parseFloat(el.max) || 100;
+  const pct = ((el.value - min) / (max - min)) * 100;
+  el.style.background = `linear-gradient(to right, var(--blue) ${pct}%, var(--slate-200) ${pct}%)`;
+}
+
+let simUpdateTimer = null;
+function bindSlider(rngId, lblId, simKey, formatter) {
+  const el = document.getElementById(rngId);
+  const lbl = document.getElementById(lblId);
+  if(!el) return;
+  el.addEventListener('input', () => {
+    SIM[simKey] = parseFloat(el.value);
+    lbl.textContent = formatter(SIM[simKey]);
+    
+    updateSliderFill(el);
+
+    if(simUpdateTimer) clearTimeout(simUpdateTimer);
+    simUpdateTimer = setTimeout(() => {
+      updateSimState();
+    }, 80);
+  });
+  // Trigger initial fill
+  updateSliderFill(el);
 }
 
 /* ──────────────────────────────────────────────────────────────
-   INIT
+   PAGE SWITCH & INIT
 ────────────────────────────────────────────────────────────── */
+
+window.showSimulation = function() {
+  initPointCloud();
+  initFlyingPixel();
+  updateSimState();
+};
 
 function init() {
-  initThree();
+  // Init Setup interactions
+  initSetupThree();
+  
+  // === WIZARD STATE MANAGEMENT ===
+  let currentSetupStep = 1;
 
-  document.querySelectorAll('.btn-mount').forEach(btn => {
-    btn.addEventListener('click', () => mountComponent(btn.dataset.comp));
-  });
-  document.getElementById('mount-all-btn').addEventListener('click', mountAll);
+  function goToSetupStep(step) {
+    currentSetupStep = step;
+    
+    // Update Left Panel Instruction
+    const badge = document.getElementById('setup-step-badge');
+    const title = document.getElementById('setup-wizard-title');
+    const text = document.getElementById('setup-wizard-text');
+    const task = document.getElementById('setup-wizard-task');
+    
+    if (badge) badge.textContent = `STEP ${step} OF 4`;
+    
+    if (step === 1) {
+      if(title) title.textContent = "Mount Apparatus";
+      if(text) text.textContent = "Mount the background wall, sensor mount arm, RGB-D sensor, and target object into the scene.";
+      if(task) task.innerHTML = "Select each component from the list and click <strong>Mount Component</strong> sequentially.";
+    } else if (step === 2) {
+      if(title) title.textContent = "Fix Object Position";
+      if(text) text.textContent = "Set the distance and offset for the target object. This position will be locked for your captures.";
+      if(task) task.innerHTML = "Adjust sliders and click <strong>Lock Position</strong> in the right panel.";
+    } else if (step === 3) {
+      if(title) title.textContent = "Capture Resolutions";
+      if(text) text.textContent = "You must capture the scene using 4 different sensor resolutions (Sparse, Low, High, Heavy) to observe their effect.";
+      if(task) task.innerHTML = "Select a resolution, click <strong>Capture Image</strong>, and repeat until 4 are captured. Then click <strong>Next Step</strong>.";
+    } else if (step === 4) {
+      if(title) title.textContent = "Live Observations";
+      if(text) text.textContent = "Review the theoretical impact of your final captured resolution before moving into the interactive 3D simulation.";
+      if(task) task.innerHTML = "Review the readings and click <strong>Launch Simulation</strong>.";
+    }
 
-  document.querySelectorAll('[data-next]').forEach(btn => {
-    btn.addEventListener('click', () => gotoSetupStep(parseInt(btn.dataset.next)));
-  });
-  document.querySelectorAll('[data-prev]').forEach(btn => {
-    btn.addEventListener('click', () => gotoSetupStep(parseInt(btn.dataset.prev)));
-  });
-  document.querySelectorAll('.sstep').forEach(el => {
-    el.addEventListener('click', () => gotoSetupStep(parseInt(el.dataset.s)));
-  });
+    const specContent = document.getElementById('spec-content');
+    if (specContent) {
+      specContent.style.display = (step === 1) ? 'block' : 'none';
+    }
 
-  document.getElementById('sr-cd').addEventListener('input', e => {
-    cubeZ = parseFloat(e.target.value);
-    document.getElementById('sv-cd').textContent = cubeZ.toFixed(1) + ' m';
-    updateCubeTransform();
-  });
-  document.getElementById('sr-co').addEventListener('input', e => {
-    cubeOffset = parseFloat(e.target.value);
-    document.getElementById('sv-co').textContent = cubeOffset.toFixed(0) + ' cm';
-    updateCubeTransform();
-  });
-  document.getElementById('sr-res').addEventListener('input', e => {
-    setupResIdx = parseInt(e.target.value);
-    document.getElementById('sv-res').textContent = RES_PRESETS[setupResIdx].label;
-    updateCubeTransform();
-  });
+    // Toggle Right Panel Containers
+    for(let i=1; i<=4; i++) {
+      const container = document.getElementById(`setup-wiz-${i}`);
+      if (container) {
+        container.style.display = (i === step) ? 'flex' : 'none';
+      }
+    }
+  }
 
-  document.getElementById('btn-capture').addEventListener('click', captureScan);
+  const componentSpecs = {
+    backdrop: "<h3 style='margin:0 0 8px 0;font-size:1rem;color:var(--slate-800);'>Calibration Backdrop</h3><p style='margin:0;font-size:0.85rem;color:var(--slate-600);line-height:1.5;'>A planar wall used to simulate the background environment. This provides a distinct depth boundary against which the target object is measured, demonstrating edge discontinuity.</p>",
+    mount: "<h3 style='margin:0 0 8px 0;font-size:1rem;color:var(--slate-800);'>Sensor Mount</h3><p style='margin:0;font-size:0.85rem;color:var(--slate-600);line-height:1.5;'>A rigid vertical stand to securely hold the RGB-D sensor at a fixed height. Prevents movement and angular misalignment during the scanning process.</p>",
+    sensor: "<h3 style='margin:0 0 8px 0;font-size:1rem;color:var(--slate-800);'>RGB-D Sensor</h3><p style='margin:0;font-size:0.85rem;color:var(--slate-600);line-height:1.5;'>A structured light or time-of-flight camera. It simultaneously captures color (RGB) and per-pixel depth (D) data, projecting infrared rays to calculate distance.</p>",
+    object: "<h3 style='margin:0 0 8px 0;font-size:1rem;color:var(--slate-800);'>Target Car & Rail</h3><p style='margin:0;font-size:0.85rem;color:var(--slate-600);line-height:1.5;'>The object being scanned, placed on a dual-axis rail system. The rails allow precise adjustments to both distance (Z-axis) and horizontal offset (X-axis).</p>"
+  };
 
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentView = btn.dataset.view;
-      switch (currentView) {
-        case 'iso':   setViewISO();   break;
-        case 'top':   setViewTop();   break;
-        case 'front': setViewFront(); break;
-        case 'side':  setViewSide();  break;
+  // Init step 1
+  goToSetupStep(1);
+  const initialSpecContent = document.getElementById('spec-content');
+  if (initialSpecContent) {
+    initialSpecContent.innerHTML = componentSpecs['backdrop'];
+  }
+
+  // Setup Step 1: Sequential Mount
+  document.querySelectorAll('.apparatus-card').forEach(card => {
+    card.addEventListener('click', () => {
+      selectedComp = card.dataset.comp;
+      document.querySelectorAll('.apparatus-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      
+      const specContent = document.getElementById('spec-content');
+      if (specContent && componentSpecs[selectedComp]) {
+        specContent.innerHTML = componentSpecs[selectedComp];
       }
     });
   });
 
-  document.getElementById('btn-go-sim').addEventListener('click', showSimulation);
-  document.getElementById('btn-launch-sim').addEventListener('click', showSimulation);
-  document.getElementById('btn-back-setup').addEventListener('click', showSetup);
-  document.getElementById('btn-reset-setup').addEventListener('click', resetSetup);
+  const btnMount = document.getElementById('btn-mount');
+  if (btnMount) {
+    btnMount.addEventListener('click', function() {
+      if (MOUNTED[selectedComp]) return;
+      const idx = MOUNT_SEQ.indexOf(selectedComp);
+      if (idx > 0 && !MOUNTED[MOUNT_SEQ[idx - 1]]) return;
+      
+      this.classList.remove('btn-mount-anim');
+      void this.offsetWidth;
+      this.classList.add('btn-mount-anim');
+      
+      mountSetupComponent(selectedComp);
+      
+      if (idx < MOUNT_SEQ.length - 1) {
+        selectedComp = MOUNT_SEQ[idx + 1];
+        document.querySelectorAll('.apparatus-card').forEach(c => c.classList.remove('selected'));
+        document.querySelector(`.apparatus-card[data-comp="${selectedComp}"]`).classList.add('selected');
+        
+        const specContent = document.getElementById('spec-content');
+        if (specContent && componentSpecs[selectedComp]) {
+          specContent.innerHTML = componentSpecs[selectedComp];
+        }
+      } else {
+        // All mounted, proceed to Step 2
+        setTimeout(() => {
+          goToSetupStep(2);
+        }, 600);
+      }
+    });
+  }
 
-  document.getElementById('three-canvas').addEventListener('contextmenu', e => e.preventDefault());
+  // Setup Step 2: Object Positioning & Locking
+  const rngSetupDist = document.getElementById('rng-setup-dist');
+  const lblSetupDist = document.getElementById('lbl-setup-dist');
+  const rngSetupOffset = document.getElementById('rng-setup-offset');
+  const lblSetupOffset = document.getElementById('lbl-setup-offset');
+  const rngSetupRot = document.getElementById('rng-setup-rot');
+  const lblSetupRot = document.getElementById('lbl-setup-rot');
+  const btnLockPos = document.getElementById('btn-lock-pos');
+
+  if (rngSetupDist) {
+    rngSetupDist.addEventListener('input', () => {
+      const v = parseFloat(rngSetupDist.value);
+      lblSetupDist.textContent = v.toFixed(1) + ' m';
+      if (objectMesh) {
+        const tStand = objectMesh.getObjectByName("tStand");
+        if (tStand) tStand.position.z = -v;
+      }
+      updateSliderFill(rngSetupDist);
+    });
+    // Give it a tiny delay to ensure DOM is ready for initial fill
+    setTimeout(() => updateSliderFill(rngSetupDist), 50);
+  }
+
+  if (rngSetupOffset) {
+    rngSetupOffset.addEventListener('input', () => {
+      const v = parseFloat(rngSetupOffset.value);
+      lblSetupOffset.textContent = v.toFixed(1) + ' m';
+      if (objectMesh) {
+        const targetCar = objectMesh.getObjectByName("targetCar");
+        if (targetCar) targetCar.position.x = v;
+      }
+      updateSliderFill(rngSetupOffset);
+    });
+    setTimeout(() => updateSliderFill(rngSetupOffset), 50);
+  }
+
+  if (rngSetupRot) {
+    rngSetupRot.addEventListener('input', () => {
+      const v = parseFloat(rngSetupRot.value);
+      lblSetupRot.textContent = v + '°';
+      if (objectMesh) {
+        const targetCar = objectMesh.getObjectByName("targetCar");
+        if (targetCar) targetCar.rotation.y = THREE.MathUtils.degToRad(v);
+      }
+      updateSliderFill(rngSetupRot);
+    });
+    setTimeout(() => updateSliderFill(rngSetupRot), 50);
+  }
+
+  if (btnLockPos) {
+    btnLockPos.addEventListener('click', () => {
+      CARRIED_SETUP.Z = parseFloat(rngSetupDist.value);
+      CARRIED_SETUP.offsetX = parseFloat(rngSetupOffset.value);
+      CARRIED_SETUP.rotationY = parseFloat(rngSetupRot.value);
+      updateLiveReadings();
+      goToSetupStep(3);
+    });
+  }
+
+  const btnBackStep2 = document.getElementById('btn-back-step2');
+  if (btnBackStep2) {
+    btnBackStep2.addEventListener('click', () => {
+      Object.keys(MOUNTED).forEach(k => MOUNTED[k] = false);
+      if (typeof backdropMesh !== 'undefined' && backdropMesh) backdropMesh.visible = false;
+      if (typeof mountMesh !== 'undefined' && mountMesh) mountMesh.visible = false;
+      if (typeof sensorMesh !== 'undefined' && sensorMesh) sensorMesh.visible = false;
+      if (typeof objectMesh !== 'undefined' && objectMesh) objectMesh.visible = false;
+      
+      ['backdrop', 'mount', 'sensor', 'object'].forEach(comp => {
+        const card = document.querySelector(`.apparatus-card[data-comp="${comp}"]`);
+        if(card) {
+          card.classList.remove('mounted');
+          card.style.borderColor = '';
+          card.style.background = '';
+          const status = card.querySelector('.apparatus-status');
+          if(status) status.textContent = 'Unmounted';
+        }
+      });
+      selectedComp = 'backdrop';
+      document.querySelectorAll('.apparatus-card').forEach(c => c.classList.remove('selected'));
+      const firstCard = document.querySelector('.apparatus-card[data-comp="backdrop"]');
+      if(firstCard) firstCard.classList.add('selected');
+      const specContent = document.getElementById('spec-content');
+      if (specContent && typeof componentSpecs !== 'undefined') specContent.innerHTML = componentSpecs['backdrop'];
+
+      goToSetupStep(1);
+    });
+  }
+
+  // Setup Step 2 & 3: Resolution Captures & Live Readings
+  let capturedRes = new Set();
+  const btnCapture = document.getElementById('btn-capture');
+  const rngSetupRes = document.getElementById('rng-setup-res');
+  
+  if(rngSetupRes) {
+    rngSetupRes.addEventListener('input', () => {
+      CARRIED_SETUP.res = parseInt(rngSetupRes.value, 10);
+      const resLabels = ['Sparse', 'Low', 'Medium', 'Heavy'];
+      const lbl = document.getElementById('lbl-setup-res');
+      if(lbl) lbl.textContent = resLabels[CARRIED_SETUP.res];
+      updateSliderFill(rngSetupRes);
+      updateLiveReadings();
+    });
+    updateSliderFill(rngSetupRes);
+  }
+
+  if (btnCapture) {
+    btnCapture.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const gallery = document.getElementById('observation-gallery');
+      const placeholder = document.getElementById('obs-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+      
+      const resVal = parseInt(rngSetupRes.value, 10);
+      const resLabels = ['160x120', '320x240', '640x480', '1280x960'];
+      
+      if (!capturedRes.has(resVal)) {
+        capturedRes.add(resVal);
+        
+        // Grab image from sensor camera
+        if (setupRenderer && setupRenderer.domElement && typeof sensorCamera !== 'undefined') {
+          sensorCamera.aspect = setupCamera.aspect;
+          sensorCamera.updateProjectionMatrix();
+          setupRenderer.render(setupScene, sensorCamera);
+          const dataURL = setupRenderer.domElement.toDataURL('image/png');
+          
+          setupRenderer.render(setupScene, setupCamera); // restore
+          
+          const itemDiv = document.createElement('div');
+          itemDiv.style.cssText = 'width: 140px; border: 1px solid var(--slate-200); border-radius: 4px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+          
+          const img = document.createElement('img');
+          img.src = dataURL;
+          img.style.cssText = 'width: 100%; height: 90px; object-fit: cover; display: block; border-bottom: 1px solid var(--slate-200);';
+          
+          const caption = document.createElement('div');
+          caption.style.cssText = 'padding: 4px; font-size: 0.75rem; color: var(--slate-700); text-align: center; background: #f8fafc;';
+          caption.innerHTML = `<strong>${resLabels[resVal]}</strong><br/>Z:${CARRIED_SETUP.Z}m | Offset:${CARRIED_SETUP.offsetX}m`;
+          
+          itemDiv.appendChild(img);
+          itemDiv.appendChild(caption);
+          gallery.appendChild(itemDiv);
+
+          // Update counter logic
+          const countSpan = document.getElementById('capture-count');
+          if(countSpan) countSpan.textContent = capturedRes.size;
+
+          if(capturedRes.size >= 4) {
+            const btnStep3Next = document.getElementById('btn-step3-next');
+            if(btnStep3Next) {
+              btnStep3Next.style.display = 'block';
+              btnStep3Next.removeAttribute('disabled');
+            }
+          }
+        }
+      }
+    });
+  }
+
+  const btnStep3Next = document.getElementById('btn-step3-next');
+  if (btnStep3Next) {
+    btnStep3Next.addEventListener('click', () => {
+      goToSetupStep(4);
+      const btnGoSim = document.getElementById('btn-go-sim');
+      if(btnGoSim) btnGoSim.removeAttribute('disabled');
+    });
+  }
+
+  const btnBackStep3 = document.getElementById('btn-back-step3');
+  if (btnBackStep3) {
+    btnBackStep3.addEventListener('click', () => {
+      goToSetupStep(2);
+    });
+  }
+
+  const btnBackStep4 = document.getElementById('btn-back-step4');
+  if (btnBackStep4) {
+    btnBackStep4.addEventListener('click', () => {
+      goToSetupStep(3);
+    });
+  }
+
+  function updateLiveReadings() {
+    const Z = CARRIED_SETUP.Z;
+    const rngSetupRes = document.getElementById('rng-setup-res');
+    const resVal = rngSetupRes ? parseInt(rngSetupRes.value, 10) : 1;
+    let w = 320, h = 240;
+    if (resVal === 0) { w = 160; h = 120; }
+    else if (resVal === 2) { w = 640; h = 480; }
+    else if (resVal === 3) { w = 1280; h = 960; }
+    
+    const pts = w * h;
+    const fx = 700.0;
+    const spacing = (Z * 1000) / fx;
+    const density = 1.0 / ((spacing/1000) * (spacing/1000));
+    const boundsX = ((w/2) * Z) / fx;
+    const boundsY = ((h/2) * Z) / fx;
+    
+    const rdPts = document.getElementById('rd-points');
+    const rdSpc = document.getElementById('rd-spacing');
+    const rdDen = document.getElementById('rd-density');
+    const rdFly = document.getElementById('rd-flying');
+    const rdBnd = document.getElementById('rd-bounds');
+    
+    if(rdPts) rdPts.textContent = pts.toLocaleString();
+    if(rdSpc) rdSpc.textContent = spacing.toFixed(1);
+    if(rdDen) rdDen.textContent = Math.round(density).toLocaleString();
+    if(rdFly) rdFly.textContent = (w * 0.05).toFixed(0);
+    if(rdBnd) rdBnd.innerHTML = `${(boundsX*2).toFixed(2)} <span style="font-family:sans-serif; margin:0 4px;">&times;</span> ${(boundsY*2).toFixed(2)} <span style="font-family:sans-serif; margin:0 4px;">&times;</span> 2.60`;
+    
+    // Sync to SIM default
+    SIM.Z = Z;
+    SIM.offsetX = CARRIED_SETUP.offsetX;
+    SIM.res = resVal;
+  }
+
+  // Init Sim Sliders
+  bindSlider('rng-res', 'lbl-res', 'res', v => ['Sparse', 'Medium', 'High', 'Heavy'][v]);
+  bindSlider('rng-Z', 'lbl-Z', 'Z', v => v.toFixed(1) + ' m');
+  bindSlider('rng-noise', 'lbl-noise', 'noise', v => v.toFixed(0) + ' mm');
+  bindSlider('rng-fx', 'lbl-fx', 'fx', v => v.toFixed(0) + ' px');
+  bindSlider('rng-flying', 'lbl-flying', 'flying', v => ['Clean', 'Low', 'Medium', 'High'][v]);
+
+  // Reset Setup
+  const btnResetSetup = document.querySelector('#setup-view .btn-reset');
+  if (btnResetSetup) {
+    btnResetSetup.addEventListener('click', () => {
+      Object.keys(MOUNTED).forEach(k => MOUNTED[k] = false);
+      if(backdropMesh) backdropMesh.visible = false;
+      if(mountMesh) mountMesh.visible = false;
+      if(sensorMesh) sensorMesh.visible = false;
+      if(objectMesh) objectMesh.visible = false;
+
+      capturedRes.clear();
+      const countSpan = document.getElementById('capture-count');
+      if(countSpan) countSpan.textContent = "0";
+
+      const btnGoSim = document.getElementById('btn-go-sim');
+      if(btnGoSim) btnGoSim.setAttribute('disabled', 'true');
+      
+      const btnStep3Next = document.getElementById('btn-step3-next');
+      if(btnStep3Next) {
+        btnStep3Next.setAttribute('disabled', 'true');
+        btnStep3Next.style.display = 'none';
+      }
+
+      const gallery = document.getElementById('observation-gallery');
+      if(gallery) {
+        gallery.innerHTML = '<p id="obs-placeholder" style="color:var(--slate-400); font-size:0.9rem; margin:auto;">Captured images will appear here.</p>';
+      }
+      
+      // Reset Step 1 locks & sliders
+      if(rngSetupDist) { rngSetupDist.disabled = false; rngSetupDist.value = "2.0"; document.getElementById('lbl-setup-dist').textContent = "2.0 m"; }
+      if(rngSetupOffset) { rngSetupOffset.disabled = false; rngSetupOffset.value = "0.0"; document.getElementById('lbl-setup-offset').textContent = "0.0 m"; }
+      if(btnLockPos) { btnLockPos.disabled = false; btnLockPos.textContent = "Lock Position"; }
+      if(selSetupRes) { selSetupRes.value = "1"; }
+      
+      if (objectMesh) {
+        const tStand = objectMesh.getObjectByName("tStand");
+        if (tStand) tStand.position.z = -2.0;
+        const targetCar = objectMesh.getObjectByName("targetCar");
+        if (targetCar) targetCar.position.x = 0;
+      }
+      
+      goToSetupStep(1);
+      
+      document.querySelectorAll('.apparatus-card').forEach(c => {
+        c.classList.remove('mounted');
+        c.style.borderColor = '';
+        c.style.background = '';
+        const status = c.querySelector('.apparatus-status');
+        if(status) status.textContent = 'Unmounted';
+      });
+
+      selectedComp = 'backdrop';
+      document.querySelectorAll('.apparatus-card').forEach(c => c.classList.remove('selected'));
+      const firstCard = document.querySelector('.apparatus-card[data-comp="backdrop"]');
+      if(firstCard) {
+        firstCard.classList.add('selected');
+      }
+      const specContent = document.getElementById('spec-content');
+      if (specContent) {
+        specContent.innerHTML = componentSpecs['backdrop'];
+      }
+    });
+  }
+
+  // Reset Simulation
+  const btnResetSim = document.querySelector('#simulation-view .btn-reset');
+  if (btnResetSim) {
+    btnResetSim.addEventListener('click', () => {
+      // Use CARRIED_SETUP values instead of hardcoded 1, 2.0
+      document.getElementById('rng-res').value = CARRIED_SETUP.res;
+      document.getElementById('rng-Z').value = CARRIED_SETUP.Z;
+      // Other sliders reset to nominal defaults
+      document.getElementById('rng-noise').value = 3;
+      document.getElementById('rng-fx').value = 700;
+      document.getElementById('rng-flying').value = 1;
+      
+      ['rng-res','rng-Z','rng-noise','rng-fx','rng-flying'].forEach(id => {
+        document.getElementById(id).dispatchEvent(new Event('input'));
+      });
+    });
+  }
+
+  // Wizard steps logic for left panel
+  const steps = [
+    { title: "Resolution Effects", text: "Change the sensor resolution and observe the density of the generated point cloud. Lower resolution results in sparse point spacing, while higher resolution captures finer details but increases computational cost." },
+    { title: "Object Distance", text: "Move the object further away by increasing Z. Notice how point spacing grows linearly with distance, reducing the overall density of points on the object surface." },
+    { title: "Sensor Noise", text: "Increase sensor noise to simulate a lower quality RGB-D sensor. Watch how the Z-coordinates of points scatter, increasing the Root Mean Square Error (RMSE) of the surface." },
+    { title: "Back-Projection Distortion", text: "Change the focal length. If the simulation uses an incorrect focal length during back-projection, the resulting 3D shape stretches or squashes incorrectly." },
+    { title: "Boundary Artifacts", text: "Increase edge discontinuity to simulate mixed pixels at object boundaries. You'll see 'flying pixels' streak between the foreground object and the background wall." }
+  ];
+  let currentStep = 0;
+  
+  const btnNext = document.getElementById('btn-next');
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      currentStep = (currentStep + 1) % steps.length;
+      document.getElementById('wizard-title').textContent = steps[currentStep].title;
+      document.getElementById('wizard-text').textContent = steps[currentStep].text;
+
+      // Remove highlight from all groups
+      ['grp-res','grp-Z','grp-noise','grp-fx','grp-flying'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.remove('highlight-active');
+      });
+
+      // Add highlight to current group
+      let activeId = '';
+      if(currentStep === 0) activeId = 'grp-res';
+      else if (currentStep === 1) activeId = 'grp-Z';
+      else if (currentStep === 2) activeId = 'grp-noise';
+      else if (currentStep === 3) activeId = 'grp-fx';
+      else if (currentStep === 4) activeId = 'grp-flying';
+
+      if(activeId) {
+        const el = document.getElementById(activeId);
+        if(el) {
+          el.classList.add('highlight-active');
+          // el.scrollIntoView({ behavior: 'smooth', block: 'center' }); // optional scroll
+        }
+      }
+    });
+  }
+
+  const btnSkip = document.getElementById('btn-skip');
+  if (btnSkip) {
+    btnSkip.addEventListener('click', () => {
+      currentStep = steps.length - 1;
+      document.getElementById('wizard-title').textContent = steps[currentStep].title;
+      document.getElementById('wizard-text').textContent = steps[currentStep].text;
+    });
+  }
+
+  // Trigger input on all range sliders to sync text and visuals upon page reload
+  document.querySelectorAll('input[type="range"]').forEach(rng => {
+    rng.dispatchEvent(new Event('input'));
+  });
 }
 
 window.addEventListener('load', init);

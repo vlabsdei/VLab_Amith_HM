@@ -2,58 +2,58 @@
   "version": 2.0,
   "questions": [
     {
-      "question": "Q1. What is a depth map?",
+      "question": "Q1. What exactly is a depth map?",
       "answers": {
-        "a": "A colour photograph showing the texture of an object's surface",
-        "b": "A 2D image where every pixel stores a distance value instead of colour or brightness",
-        "c": "A 3D model that has already been converted into a printable mesh",
-        "d": "A map showing the GPS location of where a photograph was taken"
+        "a": "A standard color photo showing surface textures",
+        "b": "A 2D grid where every pixel holds a distance value instead of color",
+        "c": "A fully finished 3D model ready for printing",
+        "d": "A map with GPS coordinates of where a photo was taken"
       },
       "explanations": {
-        "a": "Incorrect. A colour photograph stores brightness and colour information at each pixel — this is fundamentally different from a depth map. A depth map contains no colour information at all, only distance values.",
-        "b": "Correct. A depth map is a two-dimensional grid, structurally identical in layout to a regular image, but where each pixel holds a numeric distance value Z instead of colour. This is what makes it possible to later convert the depth map into a 3D point cloud through back-projection. <a href='https://en.wikipedia.org/wiki/Depth_map'>Learn more about depth maps</a>",
-        "c": "Incorrect. A depth map is raw distance data, not a mesh. A mesh is a connected surface made of triangles, which is generated later in the pipeline (Experiment 7) after the point cloud has been created from the depth map and processed further.",
-        "d": "Incorrect. GPS location data describes where in the world a photo was taken, which is unrelated to per-pixel distance measurements. A depth map specifically describes distances within the scene itself, not the location of the camera on Earth."
+        "a": "Not quite! A regular color photo stores brightness and color. A depth map is completely different—it only cares about distance, not colors.",
+        "b": "Spot on! Think of it as a regular image, but instead of RGB colors, each pixel tells you how far away that spot is. This is the raw ingredient we use to build a 3D point cloud. <a href='https://en.wikipedia.org/wiki/Depth_map'>Learn more about depth maps</a>",
+        "c": "Nope! A depth map is just raw distance data. A 3D mesh (made of connected triangles) comes much later in the pipeline (around Experiment 7) after we've built and cleaned up our point cloud.",
+        "d": "Incorrect. GPS data tells you where the camera is in the world. A depth map tells you how far objects in the scene are from the camera."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q2. What is the process called when a 2D depth map pixel is converted into a 3D point in space?",
+      "question": "Q2. When we turn a 2D depth map pixel into a 3D point in space, what do we call that magical process?",
       "answers": {
         "a": "Forward projection",
         "b": "Back-projection",
         "c": "Image segmentation",
-        "d": "Colour mapping"
+        "d": "Color mapping"
       },
       "explanations": {
-        "a": "Incorrect. Forward projection is the opposite operation — it takes a known 3D point and computes where it would land in a 2D image. This is used in camera calibration (Experiment 2) to compute reprojection error, not to generate point clouds from depth maps.",
-        "b": "Correct. Back-projection takes a 2D pixel position (u, v) along with its known depth value Z, and computes the corresponding 3D coordinate (X, Y, Z) using the camera's intrinsic parameters. It is called 'back' projection because it reverses the direction of the standard camera projection process. <a href='https://en.wikipedia.org/wiki/3D_reconstruction'>More on 3D reconstruction from depth</a>",
-        "c": "Incorrect. Image segmentation is the process of dividing an image into regions or objects, typically for classification or object detection purposes. It does not involve converting pixel positions into 3D coordinates.",
-        "d": "Incorrect. Colour mapping refers to applying or interpreting colour information, such as how depth values are visually displayed using a colour scale. It is not the mathematical process of computing 3D coordinates from depth values."
+        "a": "Close in name, opposite in action! Forward projection takes a 3D point and figures out where it lands on a 2D image. We used that in Experiment 2 for camera calibration, not for making point clouds.",
+        "b": "You got it! Back-projection takes a 2D pixel (u, v) and its depth (Z), and uses the camera's inner quirks to reverse-engineer its actual 3D location (X, Y, Z). It literally projects the pixel 'back' into the real world. <a href='https://en.wikipedia.org/wiki/3D_reconstruction'>More on 3D reconstruction from depth</a>",
+        "c": "Not this time. Image segmentation is when an AI or algorithm slices an image into different objects or regions (like finding a car in a photo).",
+        "d": "Nope. Color mapping is just how we paint the points (like using a heat map for depth). It's not the math that actually puts the points in 3D space."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q3. In the back-projection formula X = (u - cx) × Z / fx, what does the term (u - cx) represent?",
+      "question": "Q3. In our back-projection formula X = (u - cx) × Z / fx, what does the (u - cx) part actually do?",
       "answers": {
-        "a": "The total width of the depth image in pixels",
-        "b": "The pixel's horizontal distance from the principal point of the camera",
-        "c": "The focal length of the camera lens",
-        "d": "The noise added to the depth measurement"
+        "a": "It measures the total width of the depth image",
+        "b": "It finds how far the pixel is horizontally from the camera's optical center",
+        "c": "It represents the camera lens's focal length",
+        "d": "It adds some random noise to our depth measurement"
       },
       "explanations": {
-        "a": "Incorrect. Image width is a fixed property of the camera resolution and does not appear directly in the back-projection formula. The formula uses individual pixel positions, not the overall image dimensions.",
-        "b": "Correct. The term (u - cx) calculates how far the pixel's column position u is from the principal point's horizontal coordinate cx. This horizontal offset, when scaled by Z/fx, determines how far to the left or right of the camera's optical axis the corresponding 3D point lies. A pixel exactly at the principal point (u = cx) would have X = 0, placing the point directly on the optical axis.",
-        "c": "Incorrect. The focal length is represented by fx in the formula, which appears as a separate divisor. (u - cx) and fx are two distinct terms serving different geometric purposes — one is a pixel offset, the other is a lens property.",
-        "d": "Incorrect. Noise is not part of the back-projection formula itself. Noise affects the Z value (the measured depth) before back-projection is applied, but the formula X = (u - cx) × Z / fx is a clean geometric relationship with no noise term built in."
+        "a": "Incorrect. The total image width is just a fixed resolution setting. Our formula calculates things pixel by pixel.",
+        "b": "Exactly! It measures the horizontal offset between our pixel (u) and the camera's true center, the principal point (cx). This tells us if the point is to the left or right of the camera's center line. If the pixel is right in the middle (u = cx), then X = 0!",
+        "c": "Not quite. The focal length is fx, which is the other part of the formula. (u - cx) is a pixel distance, while fx is a lens property.",
+        "d": "Nope. Noise messes with our Z (depth) value before we even get to this formula. This part of the math is purely geometric."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q4. If a depth image has a resolution of 640 by 480 pixels and every pixel has a valid depth reading, approximately how many 3D points will the resulting point cloud contain?",
+      "question": "Q4. If your depth camera is running at 640x480 resolution and every single pixel gets a valid reading, roughly how many 3D points will pop out?",
       "answers": {
         "a": "1,120 points",
         "b": "30,720 points",
@@ -61,112 +61,112 @@
         "d": "640 points"
       },
       "explanations": {
-        "a": "Incorrect. This would be the result of simply adding 640 and 480 together, which is not how point count is calculated. Point count comes from multiplying the two dimensions, not adding them.",
-        "b": "Incorrect. This value is roughly one-tenth of the correct answer — it appears to result from a calculation error. The correct formula multiplies width by height directly: 640 × 480, not a scaled-down version of that product.",
-        "c": "Correct. N_total = image_width × image_height = 640 × 480 = 307,200. Every valid pixel in the depth map produces exactly one 3D point through back-projection, so the total point count equals the total pixel count when all pixels have valid depth readings.",
-        "d": "Incorrect. This value equals just the image width alone, ignoring the height dimension entirely. The total number of points must account for both dimensions of the 2D grid, since every pixel — not just one row — contributes a point."
+        "a": "You just added the width and height together! We need the total area, so we multiply, not add.",
+        "b": "You're off by a factor of 10! The math here is simply 640 multiplied by 480.",
+        "c": "Spot on! 640 × 480 = 307,200. Since every valid pixel gives us exactly one 3D point, we get over 300,000 points. That's a lot of data from a single frame!",
+        "d": "This is just the width. You can't forget about all the rows below the first one!"
       },
       "correctAnswer": "c",
       "difficulty": "beginner"
     },
     {
-      "question": "Q5. According to the point spacing formula Δs = Z / fx, what happens to point spacing on a surface as the surface moves farther from the camera?",
+      "question": "Q5. According to our point spacing formula Δs = Z / fx, what happens to the distance between points as the object moves further away?",
       "answers": {
-        "a": "Point spacing decreases, making the surface appear more densely sampled",
-        "b": "Point spacing increases, making the surface appear more sparsely sampled",
-        "c": "Point spacing stays exactly the same regardless of distance",
-        "d": "Point spacing becomes negative, which is mathematically impossible"
+        "a": "The points get closer together, making the object look super dense",
+        "b": "The points spread further apart, making the object look sparse and ghost-like",
+        "c": "The points stay exactly the same distance apart no matter what",
+        "d": "The spacing becomes negative, causing points to overlap"
       },
       "explanations": {
-        "a": "Incorrect. This describes the opposite of what actually happens. As Z (distance) increases in the numerator of Δs = Z/fx, the spacing value Δs also increases, not decreases. Closer objects, not farther ones, are sampled more densely.",
-        "b": "Correct. Since Z appears in the numerator of Δs = Z/fx, increasing the distance Z directly increases the point spacing Δs, assuming the focal length fx stays constant. This means the same camera, at the same resolution, captures points that are farther apart from each other when scanning distant surfaces compared to nearby ones. This is why fine surface details are harder to capture at greater scanning distances.",
-        "c": "Incorrect. Point spacing is explicitly a function of Z in the formula — it is not a fixed constant. If spacing were independent of distance, the formula would not include Z at all. The dependence on Z is the entire point of this relationship.",
-        "d": "Incorrect. Z, fx, and therefore Δs are all positive physical quantities in any realistic scanning scenario. Distance cannot be negative, and dividing a positive number by another positive number always yields a positive result."
+        "a": "Backwards! As distance (Z) goes up, the spacing (Δs) goes up too. So things get less dense, not more.",
+        "b": "Correct! Because Z is in the numerator, bigger distances mean bigger gaps between your points. This is exactly why it’s so hard to capture fine details on objects that are far away from your scanner.",
+        "c": "Nope! If spacing didn't care about distance, Z wouldn't even be in the formula.",
+        "d": "Mathematically impossible! Z and fx are always positive numbers in the real world, so their result will always be positive too."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q6. What does the noise model Z_measured = Z_true + N(0, σ²) describe?",
+      "question": "Q6. What exactly does our noise model Z_measured = Z_true + N(0, σ²) tell us?",
       "answers": {
-        "a": "That every depth measurement is always exactly twice the true value",
-        "b": "That the measured depth equals the true depth plus a random error drawn from a Gaussian distribution with standard deviation σ",
-        "c": "That depth measurements only contain noise when the object is moving",
-        "d": "That σ represents the focal length of the camera in this formula"
+        "a": "That the camera always doubles the actual distance by mistake",
+        "b": "That our measured depth is the real depth plus a random error pulled from a bell curve",
+        "c": "That we only get noisy data if the camera or object is moving around",
+        "d": "That σ stands for the camera's focal length"
       },
       "explanations": {
-        "a": "Incorrect. There is no fixed multiplicative relationship like doubling in this formula. The relationship is additive — a random noise term is added to the true value, not a fixed scaling factor applied to it.",
-        "b": "Correct. This formula states that the depth value actually measured by the sensor (Z_measured) equals the true physical depth (Z_true) plus a random sample drawn from a normal distribution with mean zero and standard deviation σ. This is the standard way to model random sensor noise — it captures the idea that errors are unbiased (centered at zero) but vary unpredictably from one measurement to the next within a range determined by σ. <a href='https://en.wikipedia.org/wiki/Gaussian_noise'>More on Gaussian noise models</a>",
-        "c": "Incorrect. This noise model applies to static scanning as well as scanning of moving objects. Sensor noise originates from electronic and optical limitations in the depth sensing hardware itself, not from object motion. Motion can introduce additional error sources, but the Gaussian noise term here models inherent measurement imprecision present even for stationary scenes.",
-        "d": "Incorrect. σ in this formula represents the standard deviation of the noise distribution, measured in the same units as depth (typically metres or millimetres). Focal length is a completely separate parameter, denoted f or fx/fy, and does not appear in this noise formula at all."
+        "a": "Nope. This is an additive formula, meaning we are just adding a random hiccup, not multiplying the whole distance by two.",
+        "b": "Exactly! It basically says 'what you measure = the real distance + a random guess from a bell curve'. It’s the standard way to admit that our sensors aren't perfect and have unbiased, random jitter. <a href='https://en.wikipedia.org/wiki/Gaussian_noise'>More on Gaussian noise models</a>",
+        "c": "Incorrect. This noise happens even if everything is completely frozen in place. It’s just inherent jitter in the electronics and optics.",
+        "d": "Nope. σ (sigma) is the standard deviation of our noise. Focal length is fx or fy."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q7. What is a 'flying pixel' in the context of point cloud generation?",
+      "question": "Q7. In point cloud lingo, what's a 'flying pixel'?",
       "answers": {
-        "a": "A pixel that captures a bird or insect that flew through the scene during scanning",
-        "b": "A 3D point that appears isolated in space between a foreground object and the background, caused by unreliable depth measurement at object edges",
-        "c": "A pixel that has a depth value of exactly zero",
-        "d": "A pixel that is brighter than all the surrounding pixels in the depth map"
+        "a": "A scan of a bug or bird that flew past the camera",
+        "b": "A weird, isolated point floating between a foreground object and the background, caused by a confused sensor",
+        "c": "A pixel that recorded a distance of absolute zero",
+        "d": "The brightest, most colorful pixel in the point cloud"
       },
       "explanations": {
-        "a": "Incorrect. While the name might suggest something literally flying through the scene, this term has nothing to do with actual moving objects like birds or insects. It specifically describes an artefact in depth measurement caused by the camera's sensing limitations at sharp depth discontinuities.",
-        "b": "Correct. Flying pixels occur at the boundary between a foreground object and the background behind it. At these transition pixels, the depth sensor's measurement becomes unreliable, sometimes returning a depth value that is neither the correct foreground distance nor the correct background distance. When back-projected, such a pixel creates an isolated 3D point that appears to float in empty space between the two surfaces, disconnected from both. <a href='https://en.wikipedia.org/wiki/Time-of-flight_camera'>Related depth sensing artefacts</a>",
-        "c": "Incorrect. A depth value of exactly zero typically indicates an invalid or unmeasured reading, which is usually excluded from the point cloud entirely rather than included as a flying point. Flying pixels have a depth value — just an incorrect one — that places them in an impossible intermediate position.",
-        "d": "Incorrect. A depth map does not contain brightness information in the way a regular photograph does — it contains distance values. The concept of a pixel being 'brighter' than its neighbours applies to colour or intensity images, not to the distance-based artefact described by flying pixels."
+        "a": "It sounds fun, but no! It has nothing to do with actual flying creatures.",
+        "b": "Correct! When your camera looks at the sharp edge of an object, it gets confused between the object and the background wall. It ends up guessing a depth right in the middle, creating a rogue point that hovers in mid-air. <a href='https://en.wikipedia.org/wiki/Time-of-flight_camera'>Related depth sensing artefacts</a>",
+        "c": "Incorrect. A depth of zero usually means the sensor failed completely, and that point gets thrown out, not left floating in space.",
+        "d": "Nope. Flying pixels are about distance errors, not color or brightness."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q8. Why must Experiment 2 (Camera Calibration) be completed accurately before generating a metrically correct point cloud in this experiment?",
+      "question": "Q8. Why is it absolutely critical to get camera calibration (Experiment 2) right before making a point cloud?",
       "answers": {
-        "a": "Calibration has no effect on point cloud generation — any focal length value can be used",
-        "b": "The back-projection formula directly uses fx, fy, cx, and cy from calibration; incorrect values cause every 3D point to be displaced, distorting the overall shape of the cloud",
-        "c": "Calibration only affects the colour of the points displayed in the point cloud viewer",
-        "d": "Calibration is needed only when using a stereo camera, not when using a single depth sensor"
+        "a": "It isn't—you can just guess a focal length and it'll be fine",
+        "b": "Because the back-projection math relies totally on those calibration numbers. Bad numbers mean a warped, funhouse-mirror point cloud.",
+        "c": "Calibration just makes the colors in the 3D viewer look nicer",
+        "d": "Calibration is only for stereo cameras, not regular depth sensors"
       },
       "explanations": {
-        "a": "Incorrect. The back-projection formula directly multiplies and divides by the intrinsic parameters fx, fy, cx, and cy. Using arbitrary or incorrect values for these parameters produces systematically wrong 3D coordinates for every single point in the cloud, not just a few isolated errors.",
-        "b": "Correct. The formulas X = (u - cx) × Z / fx and Y = (v - cy) × Z / fy depend entirely on having accurate values for the principal point (cx, cy) and focal lengths (fx, fy). If these values are wrong — for example, if fx is overestimated by 10 percent — every X coordinate in the resulting point cloud will be stretched by that same 10 percent, distorting the overall shape and dimensions of the reconstructed surface. This is precisely why calibration is performed before point cloud generation, not after.",
-        "c": "Incorrect. Camera calibration deals exclusively with the geometric properties of the camera system — focal length, principal point, and distortion. Point cloud colour (if displayed) typically comes from a separate colour camera or a depth-based colour mapping scheme, and is unrelated to the geometric calibration parameters used in back-projection.",
-        "d": "Incorrect. Calibration is required for any camera system used to extract metric 3D information, whether it is a stereo pair, a single depth camera, or a structured light scanner. All of these rely on accurate intrinsic parameters to convert pixel measurements into real-world coordinates."
+        "a": "Terrible idea! If you guess, your 3D points will be thrown all over the place.",
+        "b": "Spot on. Our formulas X = (u - cx) × Z / fx depend entirely on fx, fy, cx, and cy. If these are even slightly off, every single point gets placed in the wrong spot, stretching or shrinking your 3D model. Calibration is non-negotiable!",
+        "c": "Incorrect. Calibration is all about the pure geometry of the lenses, not the paint job.",
+        "d": "Nope! Every single device that extracts 3D data—whether stereo, LiDAR, or structured light—needs perfect intrinsic calibration to work."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q9. What does cloud density (ρ = N_valid / A_surface) measure?",
+      "question": "Q9. What exactly does cloud density (ρ = N_valid / A_surface) measure?",
       "answers": {
-        "a": "The total weight of all points in the point cloud",
-        "b": "How many valid 3D points exist per unit of surface area, such as points per square metre",
-        "c": "The colour intensity of the point cloud when viewed on screen",
-        "d": "The distance between the camera and the centre of the scanned object"
+        "a": "How heavy the point cloud file is in megabytes",
+        "b": "How tightly packed the points are over a physical area (like points per square meter)",
+        "c": "How bright or intense the colors are",
+        "d": "The distance from the camera to the center of the object"
       },
       "explanations": {
-        "a": "Incorrect. Point clouds are mathematical representations of spatial coordinates and do not have physical weight. The term 'density' in this context refers to spatial concentration of points, not a physical mass property.",
-        "b": "Correct. Cloud density divides the number of valid 3D points (N_valid) by the surface area they cover (A_surface), giving a measure such as points per square metre. A higher density value means the surface is more finely sampled, with points closer together, while a lower density means points are more sparsely distributed across the same area.",
-        "c": "Incorrect. Colour intensity relates to how a point cloud might be rendered visually, often based on depth value or actual photographed colour. Cloud density is a purely geometric and statistical measure of point distribution, unrelated to how it might be displayed visually.",
-        "d": "Incorrect. The distance from camera to object is captured directly by the depth values (Z) in the point cloud, not by the density formula. Density specifically measures spatial concentration of points across an area, which is a different quantity from a single distance measurement."
+        "a": "Nope! While a dense cloud means a bigger file size, this formula measures geometric density in the real world, not disk space.",
+        "b": "Exactly! It’s literally just counting how many points (N_valid) are squeezed into a specific area (A_surface). High density means a rich, highly detailed scan. Low density means a sparse, dotty mess.",
+        "c": "Incorrect. Density is all about spatial crowding, not visuals.",
+        "d": "Nope. Distance is Z. Density is about how many points cover a specific patch of surface at that distance."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "Q10. Which 3D scanning technologies produce point clouds as their primary output format?",
+      "question": "Q10. Which of these 3D scanning setups produce point clouds as their main output?",
       "answers": {
-        "a": "Only laser-based LiDAR systems produce point clouds; all other methods produce meshes directly",
-        "b": "LiDAR, structured light scanners, and stereo camera systems (after depth computation) all produce point clouds",
-        "c": "Point clouds are only used in video game graphics and have no role in real-world 3D scanning",
-        "d": "Point clouds are exclusively a software visualisation feature with no connection to actual sensor hardware"
+        "a": "Only expensive laser LiDARs; everything else skips straight to meshes",
+        "b": "Pretty much all of them! LiDAR, structured light, and stereo cameras all generate point clouds.",
+        "c": "Point clouds are just for video games, real engineers don't use them",
+        "d": "They are just a visualization trick on the screen, not real data"
       },
       "explanations": {
-        "a": "Incorrect. LiDAR is one of several technologies that produce point clouds, but it is far from the only one. Structured light scanners and stereo vision systems also fundamentally produce point cloud data as their output, before any mesh generation step is applied.",
-        "b": "Correct. Point clouds are the universal output format across nearly all 3D scanning technologies. LiDAR systems directly produce point clouds from time-of-flight measurements (Experiment 5). Structured light scanners produce point clouds after decoding projected fringe patterns into depth values (Experiment 6). Stereo camera systems, once depth is computed using the disparity formula from Experiment 1, are back-projected into point clouds exactly as described in this experiment. Meshes (Experiment 7) are generated afterward, from the point cloud, not before it.",
-        "c": "Incorrect. Point clouds are extensively used in real-world engineering, manufacturing inspection, autonomous vehicle perception, archaeological documentation, and medical imaging — far beyond video game graphics. They are a foundational data structure in modern computer vision and robotics, not a purely entertainment-focused concept.",
-        "d": "Incorrect. Point clouds originate directly from physical sensor measurements — LiDAR pulse returns, structured light phase decoding, or stereo disparity calculations. They are a genuine representation of real-world sensor data, not merely a software visualisation construct invented for display purposes."
+        "a": "Nope. LiDAR definitely uses them, but so does almost every other 3D tech.",
+        "b": "Correct! Point clouds are the universal language of 3D scanning. Whether you're shooting lasers (LiDAR), projecting patterns (structured light), or using two cameras (stereo), the raw output is always a point cloud. Making a mesh comes later!",
+        "c": "Couldn't be further from the truth. Engineers, doctors, archaeologists, and self-driving cars all rely heavily on point clouds.",
+        "d": "Incorrect. Point clouds are raw, hard mathematical data representing physical reality. They are definitely not just a display trick."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
