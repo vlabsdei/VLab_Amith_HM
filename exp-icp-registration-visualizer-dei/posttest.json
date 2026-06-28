@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is the fundamental goal of the Iterative Closest Point (ICP) algorithm?",
+      "answers": {
+        "a": "To compress large 3D scans into smaller, manageable files",
+        "b": "To mathematically rotate and slide two overlapping point clouds until they seamlessly align",
+        "c": "To convert 3D coordinates into a 2D photograph",
+        "d": "To remove static noise from a laser scan"
+      },
+      "explanations": {
+        "a": "Incorrect. File compression is a data storage technique, completely unrelated to 3D geometry.",
+        "b": "Correct! ICP takes two point clouds and figures out exactly how much to twist (rotate) and slide (translate) one of them so that they perfectly overlap and form a single, coherent 3D model.",
+        "c": "Incorrect. This describes rendering, which is how you display 3D data on a screen, not how you align it.",
+        "d": "Incorrect. Noise removal is done via filtering (like Statistical Outlier Removal), which must be done *before* registration."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. In the first step of the ICP loop, how does the algorithm pair points together?",
+      "answers": {
+        "a": "By randomly assigning points in the source cloud to the target cloud",
+        "b": "By finding the nearest physical neighbour in the target cloud for every point in the source cloud",
+        "c": "By matching the colors of the points",
+        "d": "By deleting any point that doesn't perfectly overlap"
+      },
+      "explanations": {
+        "a": "Incorrect. Random pairing would completely destroy any chance of alignment.",
+        "b": "Correct! ICP makes a very logical assumption: if two points are right next to each other in 3D space, they probably represent the exact same spot on the physical object.",
+        "c": "Incorrect. ICP strictly calculates geometric distances (X, Y, Z); it ignores colors.",
+        "d": "Incorrect. Because of real-world scanner noise, perfect overlaps are basically impossible. It just looks for the *closest* point."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. What mathematical trick does ICP use to instantly calculate the perfect rotation and translation in a single step?",
+      "answers": {
+        "a": "Gradient Descent",
+        "b": "Singular Value Decomposition (SVD)",
+        "c": "Fourier Transforms",
+        "d": "Ray Tracing"
+      },
+      "explanations": {
+        "a": "Incorrect. Gradient descent involves slow, trial-and-error guessing. ICP uses a direct calculation.",
+        "b": "Correct! Singular Value Decomposition (SVD) is a powerful linear algebra tool. Once ICP pairs up the points, SVD can crunch the numbers and instantly spit out the absolute best rotation and translation to align them.",
+        "c": "Incorrect. Fourier transforms are used in signal processing (like audio), not 3D spatial alignment.",
+        "d": "Incorrect. Ray tracing is a technique used in video games and movies to simulate realistic lighting."
+      },
+      "correctAnswer": "b",
+      "difficulty": "intermediate"
+    },
+    {
+      "question": "Q4. If two scans of a coffee mug only share a 5% overlap, what will likely happen when you run ICP?",
+      "answers": {
+        "a": "The algorithm will run faster because there are fewer points to match",
+        "b": "The algorithm will aggressively force incorrect matches, tearing the alignment apart and completely failing",
+        "c": "The algorithm will intelligently ignore the non-overlapping points and align the 5% perfectly",
+        "d": "The file size will shrink"
+      },
+      "explanations": {
+        "a": "Incorrect. While fewer matches might calculate faster, the result will be completely broken.",
+        "b": "Correct! ICP blindly assumes every point in the source cloud *must* have a partner in the target cloud. With only 5% overlap, it will violently force the other 95% of points into places they don't belong, ruining the registration.",
+        "c": "Incorrect. Basic ICP isn't smart enough to know which points overlap and which don't. It forces a match for every single point.",
+        "d": "Incorrect. File sizes are unrelated to algorithm failure."
+      },
+      "correctAnswer": "b",
+      "difficulty": "intermediate"
+    },
+    {
+      "question": "Q5. Why is a perfectly smooth, symmetrical sphere a total nightmare for the ICP algorithm?",
+      "answers": {
+        "a": "Because spheres have too many points for a computer to handle",
+        "b": "Because the algorithm can't tell the top of the sphere from the bottom—there are infinite valid alignments",
+        "c": "Because scanner lasers bounce off curved surfaces",
+        "d": "Because spheres cannot be mathematically represented in 3D space"
+      },
+      "explanations": {
+        "a": "Incorrect. The number of points depends on scanning resolution, not shape.",
+        "b": "Correct! ICP relies on unique bumps, edges, and asymmetries to lock pieces together like a jigsaw puzzle. Because a sphere looks identical from every angle, ICP will happily accept any random rotation, resulting in a 'local minimum' trap.",
+        "c": "Incorrect. While reflections can be an issue in the physical scanning phase, this question is about the software registration phase.",
+        "d": "Incorrect. Spheres are easily represented as point clouds."
+      },
+      "correctAnswer": "b",
+      "difficulty": "intermediate"
+    },
+    {
+      "question": "Q6. You notice your ICP algorithm stops running, but the Root Mean Square Error (RMSE) is stuck at 0.04 instead of 0.00. Why did this happen?",
+      "answers": {
+        "a": "The computer ran out of RAM",
+        "b": "The inherent noise from the 3D scanner establishes a 'floor' that the error cannot drop below",
+        "c": "The algorithm needs a higher maximum iteration limit",
+        "d": "The point clouds were colored differently"
+      },
+      "explanations": {
+        "a": "Incorrect. If RAM runs out, the program crashes; it doesn't gracefully stop with an RMSE of 0.04.",
+        "b": "Correct! Because real-world scanners aren't perfect, the captured points are slightly noisy and jittery. Even if the overall shapes are perfectly aligned, those tiny jitters mean the points will never overlap 100% flawlessly. That noise is your 0.04 error floor.",
+        "c": "Incorrect. If the algorithm stopped, it means it already reached convergence. Extra iterations won't fix scanner noise.",
+        "d": "Incorrect. Color has absolutely zero impact on RMSE."
+      },
+      "correctAnswer": "b",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "Q7. What exactly triggers the ICP algorithm to 'converge' and stop running?",
+      "answers": {
+        "a": "When every single point overlaps its target with 0.00 distance",
+        "b": "When the change in the RMSE between the current loop and the previous loop is virtually zero",
+        "c": "When the rotation matrix reaches exactly 360 degrees",
+        "d": "When the user presses the Escape key"
+      },
+      "explanations": {
+        "a": "Incorrect. Due to scanner noise, a 0.00 distance is impossible.",
+        "b": "Correct! Convergence simply means 'stability.' Once the algorithm realizes that moving the cloud isn't dropping the error any further, it knows it has found the best possible alignment and stops the loop.",
+        "c": "Incorrect. Rotations are rarely exactly 360 degrees, and that has nothing to do with stopping.",
+        "d": "Incorrect. While a user *can* force stop an algorithm, mathematical convergence is an automatic trigger."
+      },
+      "correctAnswer": "b",
+      "difficulty": "intermediate"
+    },
+    {
+      "question": "Q8. If you manually rotate a source cloud by a massive 150 degrees before running ICP, what is the most likely outcome?",
+      "answers": {
+        "a": "The algorithm will take slightly longer but align perfectly",
+        "b": "The algorithm will fall into a local minimum trap, pairing up the wrong sides of the object and failing",
+        "c": "The algorithm will delete the source cloud",
+        "d": "The file size will double"
+      },
+      "explanations": {
+        "a": "Incorrect. ICP is notoriously bad at handling large initial offsets.",
+        "b": "Correct! ICP is 'greedy'—it looks for the closest matches *right now*. If you start 150 degrees off, the front of the source might mistakenly pair with the back of the target. ICP will lock these wrong pieces together, completely breaking the model.",
+        "c": "Incorrect. Algorithms don't delete data just because they fail.",
+        "d": "Incorrect. Rotation does not change file size."
+      },
+      "correctAnswer": "b",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "Q9. Look at the formula: E(R, t) = Σ ||qi − (Rpi + t)||². What does the (Rpi + t) part actually do?",
+      "answers": {
+        "a": "It applies the Rotation and Translation to move the source point to its new position",
+        "b": "It calculates the color difference between the two points",
+        "c": "It deletes points that are too far away",
+        "d": "It measures the total runtime of the loop"
+      },
+      "explanations": {
+        "a": "Correct! In math terms, you multiply the source point (pi) by the Rotation matrix (R) and add the translation vector (t). This literally moves the point in 3D space so you can check how close it is to the target point (qi).",
+        "b": "Incorrect. This formula handles physical distances, not colors.",
+        "c": "Incorrect. Filtering is a separate process; this formula just measures the distance between pairs.",
+        "d": "Incorrect. This is a spatial calculation, completely unrelated to time."
+      },
+      "correctAnswer": "a",
+      "difficulty": "advanced"
+    },
+    {
+      "question": "Q10. As the algorithm gets closer and closer to convergence, what happens to the size of the incremental rotation and translation applied in each loop?",
+      "answers": {
+        "a": "They stay exactly the same size until it stops",
+        "b": "They get progressively smaller because most of the massive misalignment was fixed in the early loops",
+        "c": "They get progressively larger to speed up the finish",
+        "d": "They alternate between massive jumps and tiny steps randomly"
+      },
+      "explanations": {
+        "a": "Incorrect. If it moved by the same large amount every time, it would overshoot the target.",
+        "b": "Correct! In the first few loops, the algorithm makes huge, sweeping corrections. But as the clouds get closer together, the remaining errors become tiny, so the algorithm naturally applies smaller and smaller tweaks until it locks into place.",
+        "c": "Incorrect. Larger steps would violently throw the alignment off course.",
+        "d": "Incorrect. The movements are highly calculated, smooth, and deliberate, not random."
+      },
+      "correctAnswer": "b",
+      "difficulty": "advanced"
+    }
+  ]
+}

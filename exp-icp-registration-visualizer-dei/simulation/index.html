@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exp 4 — ICP Registration Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css?v=2"/>
+  
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      startup: { typeset: false } 
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE A — SETUP LAB (shown first)
+═══════════════════════════════════════════════════════ -->
+
+<div id="page-setup" class="page active">
+  <main id="app-main">
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside id="wizard-panel">
+      <div id="wizard-info">
+        <div class="step-badge" id="step-badge">STEP 1 OF 5</div>
+        <h2 id="wizard-title">Components</h2>
+        <p id="wizard-text">These are the data components used in a scan registration session. Click Mount to bring each one into the 3D workspace.</p>
+        <div id="wizard-task" class="task-box">
+          Select <strong>Component</strong> from the apparatus list → Click <strong>Mount Component</strong>.
+        </div>
+      </div>
+      <!-- 3D View Controls -->
+      <div id="view-controls">
+        <div class="legend-title">3D View Controls</div>
+        <div class="control-hints desktop-controls">
+          <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+          <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+          <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+        </div>
+        <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+        <div class="preset-btns">
+          <button class="btn-preset view-btn active" data-view="iso">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+            Isometric
+          </button>
+          <button class="btn-preset view-btn" data-view="top">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+            Top
+          </button>
+          <button class="btn-preset view-btn" data-view="front">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+            Front
+          </button>
+          <button class="btn-preset view-btn" data-view="side">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+            Side
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- ═══ CENTER PANEL ═══ -->
+    <section id="canvas-area">
+      <div class="top-row" style="display: flex; flex-direction: row; flex: 2; gap: 6px; min-height: 0;">
+        <div class="canvas-card" id="card-3d" style="flex: 4; position: relative;">
+          <div class="card-header">
+            <span class="card-title">
+              <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              3D Rig Setup — Interactive View
+            </span>
+            <span class="card-sub" id="canvas-status">Mount components sequentially to build the setup</span>
+          </div>
+          <div id="setup-canvas-container" style="position: relative; width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;">
+            <canvas id="three-canvas" style="flex: 1; min-height: 0; width: 100%; display: block;"></canvas>
+            <div class="obs-overlay" id="obs-overlay" style="display:none; position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
+              <div class="obs-row"><span class="obs-key">Source points </span><span class="obs-val" id="obs-srcpts">—</span></div>
+              <div class="obs-row"><span class="obs-key">Target points </span><span class="obs-val" id="obs-tgtpts">—</span></div>
+              <div class="obs-row"><span class="obs-key">Overlap region </span><span class="obs-val" id="obs-overlap">—</span></div>
+              <div class="obs-row"><span class="obs-key">Initial RMSE </span><span class="obs-val" id="obs-initrmse">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <aside id="controls-panel">
+      <!-- Step 0: Components -->
+      <div id="sc-0" class="step-content active">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Apparatus
+        </h3>
+        <div class="apparatus-list" id="comp-list">
+          <div class="apparatus-card selected" data-comp="source">
+            <div class="comp-icon source-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#ebf8ff;border-radius:4px;"><div class="ci-cloud-dot" style="background:#3b82f6;"></div><div class="ci-cloud-dot" style="background:#3b82f6;"></div><div class="ci-cloud-dot" style="background:#3b82f6;"></div></div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Source Point Cloud</span>
+              <span class="apparatus-status" id="state-source">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="target">
+            <div class="comp-icon target-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#fffaf0;border-radius:4px;"><div class="ci-cloud-dot t" style="background:#f59e0b;"></div><div class="ci-cloud-dot t" style="background:#f59e0b;"></div><div class="ci-cloud-dot t" style="background:#f59e0b;"></div></div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Target Point Cloud</span>
+              <span class="apparatus-status" id="state-target">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="frame">
+            <div class="comp-icon frame-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:4px;"><div class="fi-axis-x" style="background:#ef4444;"></div><div class="fi-axis-y" style="background:#22c55e;"></div><div class="fi-axis-z" style="background:#3b82f6;"></div></div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Shared Frame</span>
+              <span class="apparatus-status" id="state-frame">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="shape">
+            <div class="comp-icon shape-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:4px;"><div class="si-l-shape" style="border:2px solid #94a3b8; width:12px; height:12px; border-top:none; border-right:none;"></div></div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Reference Object</span>
+              <span class="apparatus-status" id="state-shape">Unmounted</span>
+            </div>
+          </div>
+        </div>
+        <button id="btn-mount" class="btn-primary btn-mount-anim" style="display:flex; justify-content:center; align-items:center; width:100%;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+          Mount Component
+        </button>
+        <p id="mount-warning" class="mount-warning"></p>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Step 1: Load Clouds -->
+      <div id="sc-1" class="step-content">
+        <h3 class="panel-heading">Load the Two Scans</h3>
+        <p class="panel-p">Both point clouds are sampled from the same object. The target cloud is fixed. The source cloud currently sits perfectly aligned.</p>
+        <div class="info-card">
+          <div class="info-row"><span class="info-label">Source cloud</span><span class="info-val">Blue</span></div>
+          <div class="info-row"><span class="info-label">Target cloud</span><span class="info-val">Orange</span></div>
+          <div class="info-row"><span class="info-label">Points per cloud</span><span class="info-val">~1,800</span></div>
+        </div>
+        <div class="step-nav" style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn-ghost" data-prev="0" style="flex:1;">Back</button>
+          <button class="btn-primary" data-next="2" style="flex:2;">Next: Misalign</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Misalign -->
+      <div id="sc-2" class="step-content">
+        <h3 class="panel-heading">Introduce Initial Misalignment</h3>
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Rotation &theta;</span><span class="ctrl-val" id="sv-rot">20&deg;</span></div>
+          <div class="slider-track">
+            <input type="range" class="setup-range" id="sr-rot" min="0" max="60" value="20" step="1" />
+          </div>
+          <div class="ctrl-range-row"><span>0&deg;</span><span>60&deg;</span></div>
+        </div>
+        <div class="ctrl-group" style="margin-top:12px;">
+          <div class="ctrl-top"><span class="ctrl-name">Translation</span><span class="ctrl-val" id="sv-trans">0.3 m</span></div>
+          <div class="slider-track">
+            <input type="range" class="setup-range" id="sr-trans" min="0" max="1.2" value="0.3" step="0.05" />
+          </div>
+          <div class="ctrl-range-row"><span>0 m</span><span>1.2 m</span></div>
+        </div>
+        <div class="step-nav" style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn-ghost" data-prev="1" style="flex:1;">Back</button>
+          <button class="btn-primary" data-next="3" style="flex:2;">Next: Overlap</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Overlap -->
+      <div id="sc-3" class="step-content">
+        <h3 class="panel-heading">Set Overlap Region</h3>
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Overlap %</span><span class="ctrl-val" id="sv-overlap">65%</span></div>
+          <div class="slider-track">
+            <input type="range" class="setup-range" id="sr-overlap" min="20" max="95" value="65" step="5" />
+          </div>
+          <div class="ctrl-range-row"><span>20%</span><span>95%</span></div>
+        </div>
+        <div class="scan-counter" style="text-align:center; margin-top:12px;">
+          <div class="pc-num" id="overlap-display" style="font-size:24px; font-weight:bold; color:#2563eb;">65%</div>
+          <div class="pc-label" style="font-size:12px; color:#64748b;">shared surface region</div>
+        </div>
+        <div class="step-nav" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <button class="btn-secondary" id="btn-capture">Confirm Config</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" data-prev="2" style="flex:1;">Back</button>
+            <button class="btn-primary" id="btn-next-obs" disabled data-next="4" style="flex:2;">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Observation -->
+      <div id="sc-4" class="step-content">
+        <h3 class="panel-heading">Live Observations</h3>
+        <div class="result-grid" id="result-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Rotation</div><div class="rcard-val" id="r-rot" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">deg</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Translation</div><div class="rcard-val" id="r-trans" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">m</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Overlap</div><div class="rcard-val" id="r-overlap" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">%</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Valid Pts</div><div class="rcard-val" id="r-corr" style="font-size:16px; font-weight:bold;">—</div></div>
+          <div class="rcard full-span" style="grid-column: span 2; background:#ebf8ff; padding:12px; border-radius:4px;">
+            <div class="rcard-label" style="color:#1d4ed8;">Initial RMSE</div>
+            <div class="rcard-val large" id="r-rmse" style="font-size:24px; font-weight:bold; color:#1e40af;">—</div>
+          </div>
+        </div>
+        
+        <div class="step-nav" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <button id="btn-go-sim" class="btn-primary btn-sim" disabled style="display:flex; justify-content:center; align-items:center; box-sizing:border-box;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Go To Simulation
+          </button>
+          <button class="btn-ghost" data-prev="3" style="width:100%;">Back</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <button id="btn-reset-setup" class="btn-ghost">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Reset Setup
+      </button>
+    </aside>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE B — SIMULATION
+═══════════════════════════════════════════════════════ -->
+<div id="page-sim" class="page">
+
+
+
+  <div class="sim-body">
+
+    <aside class="sim-left">
+
+      <div class="wiz-box">
+        <div class="wiz-step-dots" id="wiz-dots">
+          <span class="wdot active" data-ws="0"></span>
+          <span class="wdot" data-ws="1"></span>
+          <span class="wdot" data-ws="2"></span>
+          <span class="wdot" data-ws="3"></span>
+        </div>
+        <div class="wiz-title" id="wiz-title">Step Through ICP</div>
+        <div class="wiz-text" id="wiz-text"></div>
+        <div class="wiz-task" id="wiz-task"></div>
+        <div class="wiz-btns" style="display: flex; flex-direction: column; gap: 4px;">
+          <button class="btn-primary" id="wiz-next">Next Step</button>
+          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
+          <button class="btn-ghost" id="btn-back-setup" style="color: var(--slate-500);">Back to Setup</button>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="readouts-section">
+        <div class="icp-controls" style="margin-bottom: 15px;">
+          <button class="btn-secondary full-w" id="btn-step">Step One Iteration</button>
+          <button class="btn-primary full-w" id="btn-run">Run to Convergence</button>
+        </div>
+
+        <div class="params-title">Live Readouts</div>
+        <div class="ro-grid">
+          <div class="ro-card"><div class="ro-label">Iteration</div><div class="ro-val" id="ro-iter">0</div><div class="ro-unit">/ 150</div></div>
+          <div class="ro-card"><div class="ro-label">RMSE</div><div class="ro-val" id="ro-rmse">—</div><div class="ro-unit">units</div></div>
+          <div class="ro-card"><div class="ro-label">&Delta;RMSE</div><div class="ro-val" id="ro-drmse">—</div><div class="ro-unit">per step</div></div>
+          <div class="ro-card"><div class="ro-label">Status</div><div class="ro-val" id="ro-status" style="font-size:12px">Idle</div><div class="ro-unit"></div></div>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="k-panel">
+        <div class="kp-title">Recovered Transform</div>
+        <div class="kp-matrix" id="km-latex-container" style="display:flex; justify-content:center; align-items:center; padding:12px 0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:8px; min-height:80px; font-size:1.1rem; overflow-x:auto;">
+          \( \begin{bmatrix} 1.00 & 0.00 & 0.00 \\ 0.00 & 1.00 & 0.00 \\ 0.00 & 0.00 & 1.00 \end{bmatrix} \)
+        </div>
+
+        <div class="kp-legend">
+          <div class="kl-row"><span class="kl-dot blue"></span><span>R — rotation matrix</span></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Translation Vector t</div>
+        <div class="dist-grid">
+          <div class="dist-card"><div class="dc-label">tx</div><div class="dc-val" id="dc-tx">0.00</div></div>
+          <div class="dist-card"><div class="dc-label">ty</div><div class="dc-val" id="dc-ty">0.00</div></div>
+          <div class="dist-card"><div class="dc-label">tz</div><div class="dc-val" id="dc-tz">0.00</div></div>
+          <div class="dist-card"><div class="dc-label">|t|</div><div class="dc-val" id="dc-tmag">0.00</div></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Convergence Iteration</div>
+        <div class="bbox-grid">
+          <div class="bbox-row"><span>Converged at</span><span id="bb-conviter">—</span></div>
+          <div class="bbox-row"><span>Final RMSE</span><span id="bb-finalrmse">—</span></div>
+          <div class="bbox-row"><span>Local minimum risk</span><span id="bb-risk">—</span></div>
+        </div>
+      </div>
+
+      <div class="sim-divider" style="margin-top: auto;"></div>
+      <button class="btn-reset-sm" id="btn-sim-reset2" style="align-self: center; margin-bottom: 8px;">Reset Defaults</button>
+
+    </aside>
+
+    <section class="sim-center">
+
+      <div class="sim-row" id="sr-A">
+        <div class="sim-card" id="sc-overlay">
+          <div class="sc-head"><span class="sc-title">3D Alignment Overlay</span><span class="sc-sub">Blue = source, Orange = target. Drag to rotate view</span></div>
+          <canvas id="cvs-overlay" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-rmsegraph">
+          <div class="sc-head"><span class="sc-title">RMSE vs Iteration</span><span class="sc-sub">Should drop fast then plateau near convergence</span></div>
+          <canvas id="cvs-rmsegraph" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="sim-row" id="sr-B">
+        <div class="sim-card" id="sc-corr">
+          <div class="sc-head"><span class="sc-title">Correspondence Lines</span><span class="sc-sub">Lines connect each matched point pair</span></div>
+          <canvas id="cvs-corr" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-before-after">
+          <div class="sc-head"><span class="sc-title">Before / After Comparison</span><span class="sc-sub">Initial misalignment vs current state</span></div>
+          <canvas id="cvs-before-after" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <aside class="sim-right">
+
+      <div class="params-section">
+        <div class="params-title">Parameters</div>
+
+        <div class="ctrl-group" id="pg-rot">
+          <div class="ctrl-top"><span class="ctrl-name">Initial Rotation <em>&theta;</em></span><span class="ctrl-val" id="pv-rot">20&deg;</span></div>
+          <div class="slider-track" id="track-rotS">
+            <input type="range" class="sim-range" id="r-rotS" min="0" max="60" step="1" value="20"/>
+          </div>
+          <div class="ctrl-range-row"><span>0&deg;</span><span>25&deg;</span><span>60&deg;</span></div>
+          <p class="ctrl-hint">Above 45° ICP often locks onto the wrong local minimum.</p>
+        </div>
+
+        <div class="ctrl-group" id="pg-overlap">
+          <div class="ctrl-top"><span class="ctrl-name">Overlap</span><span class="ctrl-val" id="pv-overlap">65%</span></div>
+          <div class="slider-track" id="track-overlapS">
+            <input type="range" class="sim-range" id="r-overlapS" min="20" max="95" step="5" value="65"/>
+          </div>
+          <div class="ctrl-range-row"><span>20%</span><span>50%</span><span>95%</span></div>
+          <p class="ctrl-hint">Below 30%, correspondences become unreliable.</p>
+        </div>
+
+        <div class="ctrl-group" id="pg-eps">
+          <div class="ctrl-top"><span class="ctrl-name">Convergence <em>&epsilon;</em></span><span class="ctrl-val" id="pv-eps">0.005</span></div>
+          <div class="slider-track" id="track-eps">
+            <input type="range" class="sim-range" id="r-eps" min="0.001" max="0.1" step="0.001" value="0.005"/>
+          </div>
+          <div class="ctrl-range-row"><span>0.001 strict</span><span></span><span>0.1 loose</span></div>
+          <p class="ctrl-hint">Looser threshold stops earlier with more residual error.</p>
+        </div>
+
+        <div class="ctrl-group" id="pg-noise">
+          <div class="ctrl-top"><span class="ctrl-name">Point Noise <em>&sigma;</em></span><span class="ctrl-val" id="pv-noise">0 mm</span></div>
+          <div class="slider-track" id="track-noise">
+            <input type="range" class="sim-range" id="r-noise" min="0" max="10" step="0.5" value="0"/>
+          </div>
+          <div class="ctrl-range-row"><span>0 mm</span><span>4 mm</span><span>10 mm</span></div>
+          <p class="ctrl-hint">Noise sets a non-zero floor on final RMSE.</p>
+        </div>
+
+        <div class="ctrl-group" id="pg-shape">
+          <div class="ctrl-top"><span class="ctrl-name">Cloud Shape</span></div>
+          <select class="sim-select" id="r-shape" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-family:'DM Sans', sans-serif; margin-top:8px; outline:none; cursor:pointer;">
+            <option value="0">L-shape (Asymmetric)</option>
+            <option value="1">Arc (Semi-symmetric)</option>
+            <option value="2">Sphere-like (Symmetric)</option>
+            <optgroup label="Real-World Objects">
+              <option value="3">Car (Vehicle)</option>
+              <option value="4">Scooter (2-Wheeler)</option>
+              <option value="5">Tree (Organic)</option>
+            </optgroup>
+          </select>
+          <p class="ctrl-hint" style="margin-top:6px;">Symmetric shapes risk converging to the wrong minimum.</p>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="k-panel">
+        <div class="kp-title">Convergence Gauge</div>
+        <div class="quality-wrap">
+          <div class="quality-arc"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
+          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-sub" id="quality-sub">Press Step or Run to begin</div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Formulas</div>
+        <div class="formula-card-sm" style="margin-top: 8px;">
+          <div class="fcs-row" style="padding: 4px 0;"><span class="fcs-eq">\( E(R,t) = \sum \| q_i - (R p_i + t) \|^2 \)</span><span class="fcs-desc" style="white-space:nowrap">objective</span></div>
+          <div class="fcs-row" style="padding: 4px 0;"><span class="fcs-eq">\( H = U \Sigma V^T, R = V U^T \)</span><span class="fcs-desc" style="white-space:nowrap">SVD solve</span></div>
+          <div class="fcs-row" style="padding: 4px 0;"><span class="fcs-eq">\( | \text{RMSE}_k - \text{RMSE}_{k-1} | < \epsilon \)</span><span class="fcs-desc" style="white-space:nowrap">stop rule</span></div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

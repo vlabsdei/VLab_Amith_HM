@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is the main purpose of point cloud registration?",
+      "answers": {
+        "a": "To remove noise and outliers from a single point cloud",
+        "b": "To mathematically align two or more overlapping point clouds into one shared coordinate system",
+        "c": "To convert a point cloud into a solid 3D mesh",
+        "d": "To compress a point cloud into a smaller file size"
+      },
+      "explanations": {
+        "a": "Incorrect. Removing noise is done through filtering. Registration is specifically about geometric alignment, not cleaning up noise.",
+        "b": "Correct! Because scanners only capture one side of an object at a time, you have to take multiple scans. Registration is the process of stitching those separate scans together into one coherent 3D space.",
+        "c": "Incorrect. Turning points into a solid surface is called meshing, which happens *after* all your point clouds are successfully registered together.",
+        "d": "Incorrect. Registration has nothing to do with file compression. It's all about physical alignment in 3D space."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. What does the abbreviation ICP stand for?",
+      "answers": {
+        "a": "Image Capture Processing",
+        "b": "Iterative Closest Point",
+        "c": "Integrated Cloud Projection",
+        "d": "Initial Calibration Procedure"
+      },
+      "explanations": {
+        "a": "Incorrect. ICP works on 3D data, not 2D images.",
+        "b": "Correct! It's called Iterative Closest Point because it repeatedly (iteratively) finds the closest matching points between two clouds to pull them together.",
+        "c": "Incorrect. While it deals with clouds, it doesn't project them.",
+        "d": "Incorrect. Calibration is what you do to your scanner hardware before you even start scanning."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. In the ICP algorithm, what happens during the 'find correspondences' step?",
+      "answers": {
+        "a": "The algorithm randomly pairs points between the two clouds",
+        "b": "For every point in the moving cloud, the algorithm finds its closest physical neighbour in the target cloud",
+        "c": "The algorithm deletes points that don't have an exact mathematical match",
+        "d": "The algorithm changes the colour of the points to match"
+      },
+      "explanations": {
+        "a": "Incorrect. Random pairing would cause chaos. ICP relies on physical proximity to make smart guesses.",
+        "b": "Correct! ICP essentially asks, 'Where is the closest point to me on the other object?' and assumes that they must represent the same physical spot on the surface.",
+        "c": "Incorrect. Real-world scans never match exactly due to scanner noise. ICP just looks for the *closest* point, not a perfect duplicate.",
+        "d": "Incorrect. ICP only cares about geometry (X, Y, Z coordinates), not colors."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. What do the rotation matrix (R) and translation vector (t) represent?",
+      "answers": {
+        "a": "The color and brightness correction applied to the scan",
+        "b": "The exact rigid movement (twisting and sliding) needed to align the source cloud with the target cloud",
+        "c": "The resolution and static noise level of the scanner",
+        "d": "The number of loops the algorithm has run so far"
+      },
+      "explanations": {
+        "a": "Incorrect. R and t are purely geometric. They have nothing to do with color.",
+        "b": "Correct! The Translation (t) is how far you slide the object, and the Rotation (R) is how much you twist it. Together, they describe exactly how to move the point cloud into alignment.",
+        "c": "Incorrect. These are hardware specs, not alignment calculations.",
+        "d": "Incorrect. The loop count is just a tracker. R and t are the actual physical movements calculated."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. What does RMSE measure in the context of ICP?",
+      "answers": {
+        "a": "The total file size of both point clouds combined",
+        "b": "The average physical distance between all the matched point pairs",
+        "c": "The amount of computer memory the algorithm is using",
+        "d": "The total time the algorithm took to run"
+      },
+      "explanations": {
+        "a": "Incorrect. RMSE stands for Root Mean Square Error, which measures geometric distance, not file size.",
+        "b": "Correct! RMSE is the ultimate scorecard. It calculates the average distance between all your matched points. A smaller RMSE means the clouds are tightly aligned.",
+        "c": "Incorrect. Memory usage is a software performance metric, not an alignment metric.",
+        "d": "Incorrect. Running time doesn't tell you if the alignment was actually successful."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What does it mean when we say ICP has 'converged'?",
+      "answers": {
+        "a": "The algorithm has reached its absolute maximum time limit",
+        "b": "The error (RMSE) has stopped dropping, meaning the alignment is as good as it's going to get",
+        "c": "Every single point now overlaps perfectly with a target point",
+        "d": "The two point clouds have been saved into a single file"
+      },
+      "explanations": {
+        "a": "Incorrect. Hitting a time limit usually means the algorithm failed or got stuck, not that it successfully converged.",
+        "b": "Correct! Convergence means stability. Once the RMSE stops changing between loops, it means the algorithm has settled into its final position and cannot improve the alignment any further.",
+        "c": "Incorrect. Because of real-world scanner noise, a perfect, flawless overlap is practically impossible.",
+        "d": "Incorrect. Merging files is an entirely separate software step that happens later."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. Why does ICP absolutely require the two point clouds to physically overlap?",
+      "answers": {
+        "a": "It doesn't—ICP works perfectly fine on completely disjointed scans",
+        "b": "Because if they don't overlap, the algorithm will be forced to match points that don't actually belong together, ripping the alignment apart",
+        "c": "To ensure the final file size remains small",
+        "d": "So the software can easily blend their colors together"
+      },
+      "explanations": {
+        "a": "Incorrect. If the scans don't share any surface area, ICP will completely fail.",
+        "b": "Correct! ICP operates by pairing up points. If you scan the front and back of a mug with no overlap, ICP will aggressively try to smush the front and back together, resulting in a broken, mashed-up model.",
+        "c": "Incorrect. Overlap actually increases the number of points and file size.",
+        "d": "Incorrect. ICP doesn't care about colors, only geometry."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. What is the 'local minimum problem' in ICP?",
+      "answers": {
+        "a": "When the algorithm runs out of computer memory",
+        "b": "When ICP happily locks onto a completely wrong alignment because it mistakenly thought the points were a good match",
+        "c": "When the point cloud is too small to be analyzed",
+        "d": "When the scanner was placed too close to the object"
+      },
+      "explanations": {
+        "a": "Incorrect. This is a geometry trap, not a hardware limit.",
+        "b": "Correct! ICP is greedy—it blindly takes whatever looks like the best step right now. If your starting position is way off, it might match the wrong parts of the object together, creating a perfectly stable, but entirely incorrect, alignment.",
+        "c": "Incorrect. Even massive point clouds can fall into local minima traps.",
+        "d": "Incorrect. This is an algorithm flaw, not a scanning flaw."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. What ultimately sets the 'floor'—the lowest possible error (RMSE)—that ICP can achieve?",
+      "answers": {
+        "a": "The graphics card of your computer",
+        "b": "The inherent static and noise captured by the 3D scanner",
+        "c": "The speed of the algorithm",
+        "d": "The color resolution of the texture"
+      },
+      "explanations": {
+        "a": "Incorrect. Hardware rendering speed doesn't affect mathematical alignment accuracy.",
+        "b": "Correct! Real scanners produce noisy, jittery points. Because those points aren't perfectly smooth, they will never perfectly overlap, establishing a hard mathematical limit on how low your error can go.",
+        "c": "Incorrect. Running the math faster doesn't make the math better.",
+        "d": "Incorrect. Color resolution has no impact on geometric error."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. Why are complex, asymmetrical shapes generally easier for ICP to align correctly?",
+      "answers": {
+        "a": "Because they always have more points than smooth shapes",
+        "b": "Because their unique bumps and curves ensure there is only one true way to fit them together",
+        "c": "Because they bounce scanner lasers more effectively",
+        "d": "They aren't; smooth symmetrical spheres are the easiest to align"
+      },
+      "explanations": {
+        "a": "Incorrect. Point count is entirely dependent on your scanner's resolution, not the object's shape.",
+        "b": "Correct! Think of it like a puzzle piece. A piece with lots of crazy edges only fits in one specific spot. A perfectly smooth sphere, however, looks identical no matter how you rotate it, thoroughly confusing the algorithm.",
+        "c": "Incorrect. Laser bounce is a hardware issue covered in earlier experiments.",
+        "d": "Incorrect. Spheres are a nightmare for ICP because their perfect symmetry creates infinite valid alignments."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}
