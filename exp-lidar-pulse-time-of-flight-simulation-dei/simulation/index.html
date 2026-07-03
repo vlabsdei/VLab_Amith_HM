@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exp 5 — LiDAR Pulse Time-of-Flight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE A — SETUP LAB (shown first)
+═══════════════════════════════════════════════════════ -->
+<div id="page-setup" class="page active">
+  <main id="app-main">
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside id="wizard-panel">
+      <div id="wizard-info">
+        <div class="step-badge" id="step-badge">STEP 1 OF 5</div>
+        <h2 id="wizard-title">Components</h2>
+        <p id="wizard-text">These are the components used in a rotating LiDAR scanning session. Click Mount to bring each one into the workspace.</p>
+        <div id="wizard-task" class="task-box">
+          Select <strong>Component</strong> from the apparatus list → Click <strong>Mount Component</strong>.
+        </div>
+      </div>
+      <!-- 3D View Controls -->
+      <div id="view-controls">
+        <div class="legend-title">3D View Controls</div>
+        <div class="control-hints desktop-controls">
+          <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+          <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+          <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+        </div>
+        <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+        <div class="preset-btns">
+          <button class="btn-preset view-btn active" data-view="iso">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+            Isometric
+          </button>
+          <button class="btn-preset view-btn" data-view="top">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+            Top
+          </button>
+          <button class="btn-preset view-btn" data-view="front">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+            Front
+          </button>
+          <button class="btn-preset view-btn" data-view="side">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+            Side
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- ═══ CENTER PANEL ═══ -->
+    <section id="canvas-area">
+      <div class="top-row" style="display: flex; flex-direction: row; flex: 2; gap: 6px; min-height: 0;">
+        <div class="canvas-card" id="card-3d" style="flex: 4; position: relative;">
+          <div class="card-header">
+            <span class="card-title">
+              <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              3D Rig Setup — Interactive View
+            </span>
+            <span class="card-sub" id="canvas-status">Mount components sequentially to build the setup</span>
+          </div>
+          <div id="setup-canvas-container" style="position: relative; width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;">
+            <canvas id="three-canvas" style="flex: 1; min-height: 0; width: 100%; display: block;"></canvas>
+            <div class="obs-overlay" id="obs-overlay" style="display:none; position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
+              <div class="obs-row"><span class="obs-key">Angular resolution</span><span class="obs-val" id="obs-angres">—</span></div>
+              <div class="obs-row"><span class="obs-key">Points per rotation</span><span class="obs-val" id="obs-ptsrot">—</span></div>
+              <div class="obs-row"><span class="obs-key">Rotation period</span><span class="obs-val" id="obs-trot">—</span></div>
+              <div class="obs-row"><span class="obs-key">Coverage check</span><span class="obs-val" id="obs-coverage">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <aside id="controls-panel">
+      <!-- Step 0: Components -->
+      <div id="sc-0" class="step-content active">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Apparatus
+        </h3>
+        <div class="apparatus-list" id="comp-list">
+          <div class="apparatus-card selected" data-comp="lidar">
+            <div class="comp-icon lidar-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#ebf8ff;border-radius:4px;">
+              <div class="li-drum"></div><div class="li-base"></div>
+            </div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Rotating LiDAR Head</span>
+              <span class="apparatus-status" id="state-lidar">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="tripod">
+            <div class="comp-icon tripod-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#fffaf0;border-radius:4px;">
+              <svg fill="none" height="18" stroke="#64748b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><path d="M12 3v4M8 7h8M6 22l3.5-11M18 22l-3.5-11M12 11v11"></path><circle cx="12" cy="5" fill="#64748b" r="2"></circle></svg>
+            </div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Sensor Tripod</span>
+              <span class="apparatus-status" id="state-tripod">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="walls">
+            <div class="comp-icon walls-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:4px;">
+              <div class="wi-wall"></div><div class="wi-wall b"></div>
+            </div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Room Wall Set</span>
+              <span class="apparatus-status" id="state-walls">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="obstacle">
+            <div class="comp-icon obstacle-icon" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:4px;">
+              <div class="oi-pole"></div>
+            </div>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Narrow Obstacle</span>
+              <span class="apparatus-status" id="state-obstacle">Unmounted</span>
+            </div>
+          </div>
+        </div>
+        <button id="btn-mount" class="btn-primary btn-mount-anim" style="display:flex; justify-content:center; align-items:center; width:100%;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+          Mount Component
+        </button>
+        <button id="btn-next-sc0" class="btn-primary" data-next="1" style="width:100%; margin-top:8px; display:none; background:var(--green); border-color:var(--green); justify-content:center; align-items:center;">
+          Proceed to Next Step
+          <svg fill="none" height="14" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-left:4px" viewBox="0 0 24 24" width="14"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+        </button>
+        <p id="mount-warning" class="mount-warning"></p>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Step 1: Mount LiDAR -->
+      <div id="sc-1" class="step-content">
+        <h3 class="panel-heading">Mount the LiDAR Head</h3>
+        <p class="panel-p">The rotating LiDAR sits at the centre of the room on its tripod. As it spins, it fires a laser pulse at every angular step, timing the return of each pulse to calculate distance using d = (c &times; t_return) / 2.</p>
+        <div class="info-card">
+          <div class="info-row"><span class="info-label">Mounting position</span><span class="info-val">Room centre, fixed</span></div>
+          <div class="info-row"><span class="info-label">Rotation axis</span><span class="info-val">Vertical (yaw)</span></div>
+          <div class="info-row"><span class="info-label">Speed of light c</span><span class="info-val">3 &times; 10<sup>8</sup> m/s</span></div>
+          <div class="info-row"><span class="info-label">Sweep type</span><span class="info-val">Full 360&deg;</span></div>
+        </div>
+        <div class="step-nav" style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn-ghost" data-prev="0" style="flex:1;">Back</button>
+          <button class="btn-primary" data-next="2" style="flex:2;">Next: Build Room</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Build Room -->
+      <div id="sc-2" class="step-content">
+        <h3 class="panel-heading">Shape the Room</h3>
+        <p class="panel-p">Adjust the room dimensions and add the narrow obstacle pole. A larger room tests detection at greater range; the pole tests whether your angular resolution is fine enough to catch narrow features.</p>
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Room half-width <em>W</em></span><span class="ctrl-val" id="sv-roomw">3.5 m</span></div>
+          <div class="slider-track" id="track-roomw">
+            <input type="range" class="setup-range" id="sr-roomw" min="2" max="8" value="3.5" step="0.5"/>
+          </div>
+          <div class="ctrl-range-row"><span>2.0 m</span><span>8.0 m</span></div>
+          <p class="ctrl-hint">Adjust the physical dimensions of the room walls.</p>
+        </div>
+        <div class="ctrl-group" style="margin-top:12px;">
+          <div class="ctrl-top"><span class="ctrl-name">Pole distance <em>D</em></span><span class="ctrl-val" id="sv-poled">2.5 m</span></div>
+          <div class="slider-track" id="track-poled">
+            <input type="range" class="setup-range" id="sr-poled" min="1" max="6" value="2.5" step="0.5"/>
+          </div>
+          <div class="ctrl-range-row"><span>1.0 m</span><span>6.0 m</span></div>
+          <p class="ctrl-hint">Distance of the obstacle from the sensor.</p>
+        </div>
+        <div class="step-nav" style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn-ghost" data-prev="1" style="flex:1;">Back</button>
+          <button class="btn-primary" data-next="3" style="flex:2;">Next: Set Surfaces</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Set Surfaces -->
+      <div id="sc-3" class="step-content">
+        <h3 class="panel-heading">Assign Wall Materials</h3>
+        <p class="panel-p">Choose how reflective the far wall is. Low reflectivity surfaces absorb most of the pulse energy, producing weaker, less reliable returns even though the wall is physically present.</p>
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Far wall reflectivity <em>R</em></span><span class="ctrl-val" id="sv-reflect">0.90</span></div>
+          <div class="slider-track" id="track-reflect-setup">
+            <input type="range" class="setup-range" id="sr-reflect" min="0.05" max="1.0" value="0.90" step="0.05"/>
+          </div>
+          <div class="ctrl-range-row"><span>0.05 dark</span><span>1.0 white</span></div>
+          <p class="ctrl-hint">Lower reflectivity causes more missed detections.</p>
+        </div>
+        <div class="scan-counter" style="text-align:center; margin-top:12px;">
+          <div class="pc-num" id="reflect-display" style="font-size:24px; font-weight:bold; color:#2563eb;">90%</div>
+          <div class="pc-label" style="font-size:12px; color:#64748b;">return signal strength</div>
+          <div class="pc-bar"><div class="pc-fill" id="reflect-fill" style="width:90%"></div></div>
+          <div class="pc-sub" style="font-size:10px; color:#94a3b8;">Below 20% — frequent missed detections expected</div>
+        </div>
+        <div class="step-nav" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <button class="btn-secondary" id="btn-capture">Confirm Config</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" data-prev="2" style="flex:1;">Back</button>
+            <button class="btn-primary" id="btn-next-obs" disabled data-next="4" style="flex:2;">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Observation -->
+      <div id="sc-4" class="step-content">
+        <h3 class="panel-heading">Live Observations</h3>
+        <p class="panel-p">This is the scan configuration that will launch in the simulation. Review the angular coverage calculation before proceeding.</p>
+        <div class="result-grid" id="result-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Room Width</div><div class="rcard-val" id="r-roomw" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">m</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Pole Dist.</div><div class="rcard-val" id="r-poled" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">m</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Far Wall Ref.</div><div class="rcard-val" id="r-reflect" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">ratio</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Default Res.</div><div class="rcard-val" id="r-angres" style="font-size:16px; font-weight:bold;">0.5&deg;</div><div class="rcard-unit">deg</div></div>
+          <div class="rcard full-span" style="grid-column: span 2; background:#ebf8ff; padding:12px; border-radius:4px;">
+            <div class="rcard-label" style="color:#1d4ed8;">Points Generated Per Rotation</div>
+            <div class="rcard-val large" id="r-pts" style="font-size:24px; font-weight:bold; color:#1e40af;">—</div>
+            <div class="rcard-unit">points (N = 360&deg; / resolution)</div>
+          </div>
+        </div>
+        
+        <div class="step-nav" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <button id="btn-launch-sim" class="btn-primary btn-sim" style="display:flex; justify-content:center; align-items:center; box-sizing:border-box;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Launch Simulation
+          </button>
+          <button class="btn-ghost" data-prev="3" style="width:100%;">Back</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <button id="btn-reset-setup" class="btn-ghost">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Reset Setup
+      </button>
+    </aside>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE B — SIMULATION
+═══════════════════════════════════════════════════════ -->
+<div id="page-sim" class="page">
+
+  <div class="sim-body">
+
+    <aside class="sim-left">
+      <div class="wiz-box">
+        <div class="wiz-step-dots" id="wiz-dots">
+          <span class="wdot active" data-ws="0"></span>
+          <span class="wdot" data-ws="1"></span>
+          <span class="wdot" data-ws="2"></span>
+          <span class="wdot" data-ws="3"></span>
+        </div>
+        <div class="wiz-title" id="wiz-title">Sweep the Room</div>
+        <div class="wiz-text" id="wiz-text"></div>
+        <div class="wiz-task" id="wiz-task"></div>
+        <div class="wiz-btns">
+          <button class="btn-primary" id="wiz-next">Next Step</button>
+          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
+          <button class="btn-secondary" id="btn-back-setup" style="margin-top: 8px; width: 100%;">← Back to Setup</button>
+          <button id="btn-sim-reset" style="display:none;"></button>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="icp-controls">
+        <button class="btn-secondary full-w" id="btn-sweep-toggle">Start Sweep</button>
+        <button class="btn-primary full-w" id="btn-full-scan">Complete Full Scan</button>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="readouts-section">
+        <div class="params-title">Live Readouts</div>
+        <div class="ro-grid">
+          <div class="ro-card"><div class="ro-label">Points/Rotation</div><div class="ro-val" id="ro-pts">720</div><div class="ro-unit">pts</div></div>
+          <div class="ro-card"><div class="ro-label">T_rotation</div><div class="ro-val" id="ro-trot">—</div><div class="ro-unit">sec</div></div>
+          <div class="ro-card"><div class="ro-label">Coverage P/N</div><div class="ro-val" id="ro-coverage">—</div><div class="ro-unit">ratio</div></div>
+          <div class="ro-card"><div class="ro-label">Completeness</div><div class="ro-val" id="ro-complete">—</div><div class="ro-unit">%</div></div>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="k-panel">
+        <div class="kp-title">Scan Statistics</div>
+        <div class="dist-grid">
+          <div class="dist-card"><div class="dc-label">Total Pulses</div><div class="dc-val" id="st-pulses">—</div></div>
+          <div class="dist-card"><div class="dc-label">Hits</div><div class="dc-val" id="st-hits">—</div></div>
+          <div class="dist-card"><div class="dc-label">Dead Zones</div><div class="dc-val" id="st-dead">—</div></div>
+          <div class="dist-card"><div class="dc-label">Gaps</div><div class="dc-val" id="st-gaps">—</div></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <div class="kp-title">Detected Room Dimensions</div>
+        <div class="bbox-grid">
+          <div class="bbox-row"><span>Measured width</span><span id="bb-width">—</span></div>
+          <div class="bbox-row"><span>Measured depth</span><span id="bb-depth">—</span></div>
+          <div class="bbox-row"><span>Pole detected</span><span id="bb-pole">—</span></div>
+        </div>
+      </div>
+
+    </aside>
+
+    <section class="sim-center">
+
+      <div class="sim-row" id="sr-A">
+        <div class="sim-card" id="sc-polar">
+          <div class="sc-head"><span class="sc-title">Live Polar Map</span><span class="sc-sub">Builds as the beam rotates &mdash; dead zones in red</span></div>
+          <canvas id="cvs-polar" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-distangle">
+          <div class="sc-head"><span class="sc-title">Distance vs Angle</span><span class="sc-sub">360&deg; radar-style profile of the room</span></div>
+          <canvas id="cvs-distangle" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="sim-row" id="sr-B">
+        <div class="sim-card" id="sc-coverage">
+          <div class="sc-head"><span class="sc-title">Pulse Coverage Timeline</span><span class="sc-sub">Pulses fired vs angular steps required</span></div>
+          <canvas id="cvs-coverage" width="320" height="200"></canvas>
+        </div>
+
+        <div class="sim-card" id="sc-completeness">
+          <div class="sc-head"><span class="sc-title">Map Completeness Breakdown</span><span class="sc-sub">Detected, gapped, and dead-zone segments</span></div>
+          <canvas id="cvs-completeness" width="320" height="200"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <aside class="sim-right">
+      <div class="params-section">
+        <div class="params-title">Parameters</div>
+        <div class="param-grp" id="pg-angres">
+          <div class="param-top"><span class="param-name">Angular Resolution</span><span class="param-val" id="pv-angres">0.5&deg;</span></div>
+          <div class="slider-track" id="track-angres">
+            <input type="range" class="sim-range" id="r-angres" min="0.1" max="10" step="0.1" value="0.5"/>
+          </div>
+          <div class="range-labels"><span>0.1&deg; fine</span><span>2&deg;</span><span>10&deg; coarse</span></div>
+          <p class="param-hint">Above 5°, narrow objects fall between angular steps.</p>
+        </div>
+
+        <div class="param-grp" id="pg-rpm">
+          <div class="param-top"><span class="param-name">Rotation Speed</span><span class="param-val" id="pv-rpm">600 RPM</span></div>
+          <div class="slider-track" id="track-rpm">
+            <input type="range" class="sim-range" id="r-rpm" min="60" max="1800" step="60" value="600"/>
+          </div>
+          <div class="range-labels"><span>60</span><span>900</span><span>1800 RPM</span></div>
+          <p class="param-hint">Faster spin needs higher pulse frequency to keep coverage.</p>
+        </div>
+
+        <div class="param-grp" id="pg-pulsefreq">
+          <div class="param-top"><span class="param-name">Pulse Frequency</span><span class="param-val" id="pv-pulsefreq">8000 Hz</span></div>
+          <div class="slider-track" id="track-pulsefreq">
+            <input type="range" class="sim-range" id="r-pulsefreq" min="500" max="20000" step="500" value="8000"/>
+          </div>
+          <div class="range-labels"><span>500 Hz</span><span>10k</span><span>20k Hz</span></div>
+          <p class="param-hint">Must satisfy P = freq &times; T_rotation &ge; N.</p>
+        </div>
+
+        <div class="param-grp" id="pg-reflect">
+          <div class="param-top"><span class="param-name">Far Wall Reflectivity</span><span class="param-val" id="pv-reflect">0.90</span></div>
+          <div class="slider-track" id="track-reflect">
+            <input type="range" class="sim-range" id="r-reflect" min="0.05" max="1.0" step="0.05" value="0.9"/>
+          </div>
+          <div class="range-labels"><span>0.05</span><span>0.4</span><span>1.0</span></div>
+          <p class="param-hint">Below 0.2, expect gaps in that wall's dot pattern.</p>
+        </div>
+
+        <div class="param-grp" id="pg-noise">
+          <div class="param-top"><span class="param-name">Range Noise <em>&sigma;</em></span><span class="param-val" id="pv-noise">5 mm</span></div>
+          <div class="slider-track" id="track-noise">
+            <input type="range" class="sim-range" id="r-noise" min="0" max="80" step="2" value="5"/>
+          </div>
+          <div class="range-labels"><span>0 mm</span><span>30 mm</span><span>80 mm</span></div>
+          <p class="param-hint">Corners scatter more than flat wall segments.</p>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="formula-card-sm" style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <span class="fcs-eq"><i>d</i> = (<i>c</i> &middot; <i>t</i>) / 2</span>
+          <span class="fcs-desc" style="font-size:10px; color:#64748b; font-weight:600;">DISTANCE</span>
+        </div>
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <span class="fcs-eq"><i>N</i> = 360&deg; / &Delta;&theta;</span>
+          <span class="fcs-desc" style="font-size:10px; color:#64748b; font-weight:600;">PTS/ROTATION</span>
+        </div>
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="fcs-eq"><i>P</i> = <i>f</i><sub>pulse</sub> &middot; <i>T</i><sub>rot</sub></span>
+          <span class="fcs-desc" style="font-size:10px; color:#64748b; font-weight:600;">COVERAGE CHECK</span>
+        </div>
+      </div>
+
+      <div class="sim-divider"></div>
+
+      <div class="k-panel">
+        <div class="kp-title">Map Completeness Gauge</div>
+        <div class="quality-wrap">
+          <div class="quality-arc"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
+          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-sub" id="quality-sub">Start the sweep to begin</div>
+        </div>
+      </div>
+      
+      <button class="btn-reset-sm" id="btn-sim-reset2" style="margin-top: 10px; width: 100%;">Reset Defaults</button>
+    </aside>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

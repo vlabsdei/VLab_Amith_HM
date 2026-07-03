@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What physical principle does LiDAR use to measure distance?",
+      "answers": {
+        "a": "It compares two camera images taken from slightly different positions",
+        "b": "It measures the time taken for a laser pulse to travel to a surface and return, using the known speed of light",
+        "c": "It projects a pattern of light and measures how the pattern bends on the surface",
+        "d": "It measures the change in colour of reflected light to estimate distance"
+      },
+      "explanations": {
+        "a": "Comparing two camera images from different positions describes stereo vision (Experiment 1), which uses triangulation, not LiDAR. LiDAR requires only a single sensor and does not rely on comparing two separate viewpoints.",
+        "b": "LiDAR works on the time-of-flight principle: a laser pulse is emitted, travels to a surface, reflects back, and the elapsed time for this round trip is measured. Since light travels at a known, constant speed, this time measurement directly converts into a distance using d = (c \u00d7 t_return) / 2. <a href='https://en.wikipedia.org/wiki/Lidar'>Learn more about LiDAR</a>",
+        "c": "Projecting a pattern of light and measuring how it bends on a surface describes structured light scanning (Experiment 6), a fundamentally different technology. LiDAR uses a single pulsed laser beam, not a projected pattern.",
+        "d": "LiDAR does not rely on colour changes in the reflected light. It measures the timing of the pulse's return, which is a purely temporal measurement, not a spectral or colour-based one."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. In the formula d = (c \u00d7 t_return) / 2, why is the result divided by 2?",
+      "answers": {
+        "a": "Because the speed of light value used is actually double the real value, so dividing corrects this error",
+        "b": "Because the laser pulse must travel out to the surface and then back to the sensor, covering the distance d twice during the measured time",
+        "c": "Because LiDAR sensors always have exactly two laser emitters that need to be averaged",
+        "d": "Because the angular resolution of the sensor is always 2 degrees by default"
+      },
+      "explanations": {
+        "a": "The speed of light value c used in the formula is the correct, actual physical constant \u2014 approximately 3 \u00d7 10\u2078 m/s. There is no artificial doubling or error in this value that needs correcting through this division.",
+        "b": "The measured time t_return captures the complete round-trip duration: the pulse travels from the sensor to the surface (a distance of d) and then reflects back from the surface to the sensor (another distance of d), for a total path length of 2d. Dividing the total round-trip distance (c \u00d7 t_return) by 2 isolates the actual one-way distance d to the surface.",
+        "c": "The basic time-of-flight LiDAR principle described here works with a single laser pulse and a single return measurement. The division by 2 has nothing to do with the number of physical emitters in any particular sensor design.",
+        "d": "Angular resolution is a separate parameter describing the spacing between consecutive laser pulses during a rotational scan. It is unrelated to why the round-trip distance calculation requires division by 2."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. A LiDAR pulse takes 10 nanoseconds (10 \u00d7 10\u207b\u2079 seconds) to return after being emitted. Approximately what distance does this correspond to? (Use c = 3 \u00d7 10\u2078 m/s)",
+      "answers": {
+        "a": "0.5 metres",
+        "b": "1.5 metres",
+        "c": "3.0 metres",
+        "d": "10 metres"
+      },
+      "explanations": {
+        "a": "This value is too small. Using the formula d = (c \u00d7 t) / 2 = (3\u00d710\u2078 \u00d7 10\u00d710\u207b\u2079) / 2 = (3) / 2 = 1.5 m, not 0.5 m.",
+        "b": "d = (c \u00d7 t_return) / 2 = (3\u00d710\u2078 m/s \u00d7 10\u00d710\u207b\u2079 s) / 2 = 3 / 2 = 1.5 metres. This matches the example given in the theory: a surface roughly 1.5 metres away reflects a pulse back in about 10 nanoseconds, illustrating just how extremely fast this round-trip timing measurement actually is.",
+        "c": "This value would result from forgetting to divide by 2 \u2014 that is, treating the full round-trip distance (3 metres) as if it were the one-way distance to the surface, rather than applying the necessary division for the round trip.",
+        "d": "This value is far too large for the given time of 10 nanoseconds. Achieving 10 metres of one-way distance would require a round-trip time significantly longer than 10 nanoseconds, given how fast light travels."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. What does angular resolution control in a rotating LiDAR sensor?",
+      "answers": {
+        "a": "How loud the sensor's motor sounds while rotating",
+        "b": "The angular spacing between consecutive laser pulses during one full rotation, which determines how many distance measurements are taken per sweep",
+        "c": "The exact colour of the laser light being emitted",
+        "d": "How many separate LiDAR units are needed to scan a room"
+      },
+      "explanations": {
+        "a": "Motor noise is a mechanical and acoustic property of the physical hardware, completely unrelated to angular resolution, which is a purely geometric parameter describing how finely the rotation is divided into measurement steps.",
+        "b": "Angular resolution defines the angle between each successive pulse during the rotational sweep. A small angular resolution value (such as 0.225\u00b0) means pulses are fired very close together angularly, producing many points per rotation (N = 360\u00b0/0.225\u00b0 = 1600 points). A larger angular resolution value means fewer, more widely spaced pulses, producing a coarser map with fewer total points per rotation.",
+        "c": "Laser colour (wavelength) is a separate optical property of the laser source itself, unrelated to how the rotational angle is divided into measurement steps. Angular resolution is purely about spacing in the rotation, not about the optical properties of the light being used.",
+        "d": "The theory describes a single rotating LiDAR unit capable of producing a complete 360-degree scan on its own. Angular resolution does not determine how many separate physical units are required \u2014 a single well-specified unit can achieve very fine angular resolution by itself."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. If a LiDAR sensor has an angular resolution of 1.0 degree, approximately how many distance measurement points will it generate in one complete 360-degree rotation?",
+      "answers": {
+        "a": "36 points",
+        "b": "360 points",
+        "c": "1600 points",
+        "d": "3600 points"
+      },
+      "explanations": {
+        "a": "This value is ten times too small. N = 360\u00b0 / angular_resolution = 360 / 1.0 = 360, not 36.",
+        "b": "N = 360\u00b0 / 1.0\u00b0 = 360 points per full rotation. at 1.0\u00b0 angular resolution, exactly 360 points are generated per rotation, since each point corresponds to exactly one degree of angular coverage around the full circle.",
+        "c": "1600 points corresponds to a much finer angular resolution of 0.225\u00b0, not the 1.0\u00b0 resolution given in this question. This value would be correct for a higher-precision sensor setting, not the one specified here.",
+        "d": "This value is ten times too large. It might result from confusing the formula or performing an incorrect multiplication rather than the correct division of 360\u00b0 by the angular resolution value of 1.0\u00b0."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What does the rotation speed, measured in RPM (revolutions per minute), determine about a LiDAR sensor's output?",
+      "answers": {
+        "a": "The maximum distance the sensor can detect in metres",
+        "b": "How many complete 360-degree environment scans are produced per second, affecting how quickly the map can be refreshed",
+        "c": "The exact angular resolution the sensor is capable of achieving",
+        "d": "Whether the sensor can detect glass surfaces or not"
+      },
+      "explanations": {
+        "a": "Maximum detection range is a separate sensor specification related to laser power and receiver sensitivity, not to how fast the sensor head spins. A sensor's rotation speed and its maximum range are independent characteristics.",
+        "b": "Using T_rotation = 60/RPM, a sensor's rotation speed directly determines how long one complete scan takes. At 600 RPM, T_rotation = 60/600 = 0.1 seconds, meaning the sensor completes 10 full scans every second. This refresh rate determines how quickly the LiDAR can update its map to reflect a changing environment, which is especially important for applications like autonomous vehicle navigation.",
+        "c": "Angular resolution and rotation speed are related but distinct parameters \u2014 rotation speed determines how much time is available per rotation, while angular resolution is determined by how many pulses are fired within that time (governed by pulse frequency). A sensor could rotate quickly with either fine or coarse angular resolution depending on its pulse rate.",
+        "d": "The ability to detect glass is governed by the surface's reflectivity and how it interacts with the laser pulse (specular reflection or transmission through the material), not by how fast the sensor head physically rotates. Rotation speed and surface detection reliability are unrelated factors."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. Why might a black velvet surface produce unreliable or missing distance readings in a LiDAR scan, even though it is physically present within the sensor's range?",
+      "answers": {
+        "a": "Black velvet absorbs most of the laser pulse's energy, producing a return signal too weak to be reliably detected by the sensor",
+        "b": "The LiDAR sensor's motor automatically slows down whenever it detects dark colours",
+        "c": "Black surfaces always exceed the maximum detection range of any LiDAR sensor",
+        "d": "The angular resolution automatically changes when scanning dark materials"
+      },
+      "explanations": {
+        "a": "Surface reflectivity describes what fraction of the pulse's energy reflects back toward the sensor. Dark, absorptive materials like black velvet absorb a large portion of the incoming laser energy rather than reflecting it, resulting in a weak return pulse. If the returning signal is too weak relative to the sensor's detection threshold, the reading may be missed entirely or detected only intermittently, even though the surface is well within the sensor's normal operating range.",
+        "b": "There is no mechanism by which a LiDAR sensor's rotational motor speed changes based on the colour or reflectivity of surfaces it scans. The motor's rotation speed is a fixed, independently controlled mechanical parameter, unrelated to the optical properties of whatever the sensor happens to be looking at.",
+        "c": "Surface colour does not change the physical distance to that surface, and a black surface within the sensor's normal operating range does not somehow become farther away. The issue is the strength of the reflected signal, not the actual distance exceeding range limits.",
+        "d": "Angular resolution is a fixed configuration parameter related to pulse timing and rotation speed, not something that automatically adjusts based on the material properties of surfaces being scanned. The sensor's angular resolution remains constant regardless of what it happens to be measuring at any given angle."
+      },
+      "correctAnswer": "a",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. Why does a glass surface often appear as open, empty space in a LiDAR scan rather than as a solid wall?",
+      "answers": {
+        "a": "Glass is always located outside the sensor's maximum detection range",
+        "b": "The laser pulse can pass through transparent glass or reflect specularly away from the sensor, so little or no return signal reaches back to be detected",
+        "c": "LiDAR sensors are specifically designed to ignore any surface that is transparent to human eyes",
+        "d": "Glass surfaces move too quickly for the sensor's rotation speed to track"
+      },
+      "explanations": {
+        "a": "Glass walls in typical indoor or outdoor environments are usually well within normal LiDAR detection range. The problem is not distance, but rather what happens to the laser pulse when it interacts with the transparent or highly specular surface.",
+        "b": "Glass is largely transparent to laser light at common LiDAR wavelengths, meaning much of the pulse simply passes through rather than reflecting back. Additionally, even the portion that does reflect can do so specularly (like a mirror), sending the reflected pulse off at an angle away from the sensor rather than straight back toward it. In either case, the sensor receives little to no usable return signal, so it interprets that direction as having no detected obstacle \u2014 making the glass appear as open space in the resulting map, which is a genuine safety hazard for any system relying on LiDAR alone for navigation.",
+        "c": "There is no intentional design feature in standard LiDAR sensors that deliberately ignores transparent surfaces. The empty-space appearance is an unintended physical consequence of how the laser interacts with transparent and specular materials, not a deliberate engineering choice to exclude such surfaces.",
+        "d": "Stationary glass surfaces, such as windows or glass walls, do not move at all. The glass detection problem has nothing to do with motion or the sensor's rotational speed \u2014 it is purely about how the material interacts optically with the laser pulse."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. What is the effect of adding random measurement noise to LiDAR distance readings on the resulting 2D map?",
+      "answers": {
+        "a": "The map becomes completely black and no surfaces are visible at all",
+        "b": "Wall and corner positions appear slightly uncertain or fuzzy rather than perfectly sharp, since each individual distance reading has some random error",
+        "c": "Noise causes the sensor's rotation speed to increase automatically",
+        "d": "Noise only affects measurements taken during the daytime"
+      },
+      "explanations": {
+        "a": "Realistic measurement noise causes small random variations around the true distance value \u2014 it does not eliminate the signal or make surfaces undetectable entirely. A map with noise still clearly shows the overall room layout, just with reduced positional precision.",
+        "b": "Each individual distance measurement reading contains some random error due to electronic and timing measurement limitations. When many such slightly-off readings are converted into 2D map coordinates using x = d\u00b7cos(\u03b8) and y = d\u00b7sin(\u03b8), the result is that wall positions and especially corner positions (where two noisy measurements intersect) show small positional scatter, making them appear fuzzy or uncertain in the map rather than perfectly sharp and precise.",
+        "c": "Measurement noise is a property of the distance-sensing electronics and timing circuitry, unrelated to the mechanical rotation speed of the sensor head. There is no mechanism by which adding noise to distance readings would cause the physical rotation rate to change.",
+        "d": "Time-of-flight LiDAR noise originates from the electronic and timing measurement process itself, not from ambient lighting conditions. Unlike some optical sensing methods that are sensitive to ambient light (such as structured light scanning), LiDAR's core timing measurement is not inherently dependent on whether it is day or night."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. What is one major practical advantage of LiDAR compared to structured light scanning (Experiment 6)?",
+      "answers": {
+        "a": "LiDAR requires no external light source to be projected onto the scene and works effectively across a wide range of lighting conditions and longer distances",
+        "b": "LiDAR can only be used indoors, while structured light works both indoors and outdoors",
+        "c": "LiDAR measurements are always perfectly free of any noise or error",
+        "d": "LiDAR does not require any moving parts of any kind"
+      },
+      "explanations": {
+        "a": "Structured light scanning requires projecting a specific light pattern onto the object and is highly sensitive to ambient lighting conditions, generally needing a controlled, often darkened environment to work well, and is limited to relatively short measurement distances. LiDAR's time-of-flight measurement does not depend on projecting a pattern that must be visually decoded \u2014 it works by direct timing of a returning pulse, making it effective in a much wider range of lighting conditions (including outdoor daylight) and over substantially longer distances, which is why it is the dominant technology for outdoor and long-range applications like autonomous vehicle navigation.",
+        "b": "This is the reverse of the actual relationship. LiDAR is specifically well-suited to outdoor use and long-range operation, which structured light scanning generally struggles with due to its sensitivity to ambient light and limited range. Structured light is the technology more constrained to controlled indoor conditions, not LiDAR.",
+        "c": "As established in the theory, LiDAR measurements do contain random measurement noise, just like every other sensing technology studied in this lab. No real-world sensing technology, including LiDAR, achieves perfectly error-free measurements.",
+        "d": "A typical rotating LiDAR sensor, as described throughout this experiment's theory, relies on a rotating mechanical head to sweep the laser across a full 360-degree field of view. This rotation is itself a moving mechanical part, so the claim that LiDAR has no moving parts at all is inaccurate for this common rotating scanning design."
+      },
+      "correctAnswer": "a",
+      "difficulty": "beginner"
+    }
+  ]
+}
