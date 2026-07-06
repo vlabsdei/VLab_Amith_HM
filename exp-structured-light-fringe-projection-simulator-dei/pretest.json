@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is the biggest difference between how structured light and LiDAR scan a room?",
+      "answers": {
+        "a": "LiDAR uses visible light, while structured light uses infrared.",
+        "b": "LiDAR measures depth one point at a time by timing laser pulses, while structured light projects a pattern over the whole scene and decodes depth simultaneously based on how the pattern bends.",
+        "c": "Structured light only works on flat surfaces.",
+        "d": "LiDAR requires two sensors, but structured light only needs one."
+      },
+      "explanations": {
+        "a": "Not quite! The difference isn't about the colour of the light. Both can use various wavelengths. The real difference is in how they gather data.",
+        "b": "Spot on! LiDAR measures one point at a time by timing how long a laser takes to bounce back. Structured light throws a patterned 'net' over the whole scene; the camera captures the entire distorted pattern at once, letting us calculate the height of every point simultaneously. <a href='https://en.wikipedia.org/wiki/Structured_light'>Learn more about structured light</a>",
+        "c": "Incorrect. Structured light is fantastic at measuring complex, curvy, and bumpy surfaces!",
+        "d": "Incorrect. A structured light setup actually requires two devices (a projector and a camera), whereas a LiDAR scanner is often an integrated single unit."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. In a fringe projection system, what exactly is the 'phase' (&phi;) at a specific pixel?",
+      "answers": {
+        "a": "The average brightness of that pixel.",
+        "b": "Your exact position within one black-and-white cycle of the wavy pattern, which tells us the height of the object at that spot.",
+        "c": "The specific color of the light hitting the object.",
+        "d": "The angle of the camera sensor."
+      },
+      "explanations": {
+        "a": "Nope, average brightness is the 'DC term' (A), not the phase. Phase is what actually encodes the 3D shape!",
+        "b": "Exactly! Phase tells you where you are within a single wave cycle (from 0 to 2&pi;). When the surface height changes, the wave physically shifts sideways from the camera's perspective. That shift changes the phase, and we use that phase to calculate height!",
+        "c": "Incorrect. Structured light usually uses simple white or single-color light. The depth secret is hidden in the geometry of the stripes, not their color.",
+        "d": "Incorrect. The angle of the camera is a fixed physical setup parameter (baseline angle &alpha;), not the phase."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. Why do we need to project multiple shifted fringe images instead of just snapping one picture?",
+      "answers": {
+        "a": "It just makes the computer process it faster.",
+        "b": "A single image can't tell if a dark spot is a shadow on the object or the dark part of the projected stripe. Multiple images give us enough mathematical clues to figure it out.",
+        "c": "Cameras aren't sensitive enough to capture a single image.",
+        "d": "We don't; one image is always enough."
+      },
+      "explanations": {
+        "a": "Incorrect. Taking multiple images actually slows down the capture process, but it's mathematically necessary!",
+        "b": "Correct! If you only take one picture, you have one equation but three unknowns (ambient light, fringe contrast, and phase). By shifting the pattern and taking at least 3 pictures, we get enough equations to separate the object's actual color from the phase (the height data).",
+        "c": "Incorrect. Even with a perfect, noise-free camera, you physically cannot extract phase from a single static image without making assumptions.",
+        "d": "Incorrect. A single image leaves the math 'underdetermined'—you can't solve it!"
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. In the math that drives this (I = A + B &times; cos(&phi; + shift)), what does 'B' represent?",
+      "answers": {
+        "a": "The distance between the camera and projector.",
+        "b": "The fringe contrast—how strongly the stripes stand out against the background.",
+        "c": "The total number of images taken.",
+        "d": "Whether the pixel is perfectly black or perfectly white."
+      },
+      "explanations": {
+        "a": "Incorrect. The baseline distance is a completely different parameter related to triangulation.",
+        "b": "Spot on! 'B' is the modulation amplitude—basically, how punchy and visible the stripes are. If B is high, the stripes are clear and we get great 3D data. If B is low, the stripes are washed out and the math fails.",
+        "c": "Incorrect. The number of images is 'N', not 'B'.",
+        "d": "Incorrect. These are smooth, continuous cosine waves, not harsh binary black-and-white pixels."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. If we use the standard four-step phase shifting formula, how many separate photos do we need to take?",
+      "answers": {
+        "a": "1",
+        "b": "2",
+        "c": "3",
+        "d": "4"
+      },
+      "explanations": {
+        "a": "Incorrect. One photo doesn't give us enough math equations.",
+        "b": "Incorrect. Two photos still leaves us short.",
+        "c": "Almost! While 3 is the absolute mathematical minimum for phase shifting, the four-step formula specifically requires 4.",
+        "d": "Exactly! The four-step formula requires four distinct photos, each with the projector pattern shifted by exactly a quarter of a cycle (0, &pi;/2, &pi;, and 3&pi;/2). <a href='https://en.wikipedia.org/wiki/Phase-shift_interferometry'>More on phase shifting</a>"
+      },
+      "correctAnswer": "d",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What does 'phase wrapping' look like in a structured light measurement?",
+      "answers": {
+        "a": "Wrapping a printed calibration pattern around a cylinder.",
+        "b": "A weird visual glitch where the 3D surface suddenly drops off like a cliff because the math hit its &pi; limit and reset to -&pi;.",
+        "c": "A protective lens cover for the projector.",
+        "d": "Compressing the image files to save space."
+      },
+      "explanations": {
+        "a": "Incorrect. It's a mathematical glitch, not a physical action.",
+        "b": "Correct! Because the arctan function can only spit out values between -&pi; and +&pi;, anything taller than that 'wraps' around, creating ugly sawtooth cliffs in your 3D model. We have to 'unwrap' these jumps later in software to get the true height.",
+        "c": "Incorrect. It has nothing to do with hardware casing.",
+        "d": "Incorrect. It's a fundamental math constraint, not a data compression trick."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. Why is the modulation ratio (M = B / A) such a big deal for scan quality?",
+      "answers": {
+        "a": "It's the magnification of the lens—higher means bigger stripes.",
+        "b": "It's the signal-to-noise ratio. If M is low, the stripes are too faint to see against the background, and the math fails.",
+        "c": "It tells you how many stripes fit on the screen.",
+        "d": "It measures how shiny the object is."
+      },
+      "explanations": {
+        "a": "Incorrect. It has nothing to do with optical magnification.",
+        "b": "Spot on! M measures how strongly the stripes stand out. If you have a ton of ambient light (high A) but dim stripes (low B), M drops near zero. The camera just sees a washed-out blur, and your 3D scan is ruined.",
+        "c": "Incorrect. That's fringe frequency, not modulation ratio.",
+        "d": "Incorrect. While shininess affects B, M is a ratio of fringe contrast to background light, not a direct material property."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. How does widening the angle (&alpha;) between the projector and camera affect your scan?",
+      "answers": {
+        "a": "It makes the system less sensitive to height changes.",
+        "b": "It makes the system MORE sensitive to height changes—small bumps become much more obvious to the camera.",
+        "c": "It doesn't affect height sensitivity at all.",
+        "d": "It only changes how wide an area you can scan."
+      },
+      "explanations": {
+        "a": "Incorrect. Actually, a wider angle increases sensitivity!",
+        "b": "Correct! Think of it like shining a flashlight across a textured wall from an angle—the shadows and distortions get much longer and more exaggerated. A wider angle &alpha; means the same tiny bump causes a much bigger phase shift, giving you better depth resolution.",
+        "c": "Incorrect. The angle &alpha; is a core part of the triangulation math.",
+        "d": "Incorrect. While it does change the overlapping field of view, its primary mathematical effect is on depth sensitivity."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. Why do professionals usually scan in a dark room?",
+      "answers": {
+        "a": "To stop the projector from overheating.",
+        "b": "Because ambient room light acts like visual noise, washing out the projected stripes and destroying the contrast needed for the math.",
+        "c": "It just makes the colors on the 3D model look prettier.",
+        "d": "To keep the stripes from rotating."
+      },
+      "explanations": {
+        "a": "Incorrect. Heat management is handled by fans, not room lighting.",
+        "b": "Exactly! Ambient light raises the background intensity (A) without adding to the fringe strength (B). This plummets your modulation ratio (M = B/A). If the stripes wash out, the phase math returns pure garbage.",
+        "c": "Incorrect. Ambient light ruins the *geometry* of the scan, not just the color.",
+        "d": "Incorrect. Light doesn't cause optical rotation."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. What is the annoying trade-off when you use super thin stripes (high frequency)?",
+      "answers": {
+        "a": "You have to buy a more expensive projector.",
+        "b": "You get amazing detail on small bumps, but tall or steep objects cause the math to 'wrap' and fail.",
+        "c": "There is no trade-off; thinner is always better.",
+        "d": "It takes longer for the computer to process."
+      },
+      "explanations": {
+        "a": "Incorrect. While good projectors cost more, the trade-off is a law of physics, not economics.",
+        "b": "Correct! Thin stripes give you insane resolution for microscopic details. But because the stripes are so close together, a steep cliff on the object will make neighboring stripes overlap from the camera's perspective. This confuses the unwrapping algorithm and creates massive errors.",
+        "c": "Incorrect. If thinner was always better, everyone would just project microscopic stripes. The wrapping problem prevents this.",
+        "d": "Incorrect. The math takes the same amount of time regardless of how wide the stripes are."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}

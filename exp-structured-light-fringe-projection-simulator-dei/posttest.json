@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. You ran a 4-step scan on a bumpy sine-wave surface with 12 fringes. The phase map looked great! But when you cranked the frequency up to 36 fringes, the 3D height profile suddenly looked like a jagged sawtooth pattern at the peaks. What caused this glitch?",
+      "answers": {
+        "a": "The projector overheated from drawing too many lines.",
+        "b": "At 36 fringes, the stripes became so thin that the maximum measurable height (h_max) dropped below the height of the bumps, causing phase wrapping at every steep slope.",
+        "c": "4 phase steps aren't enough for high frequencies; you need 8 steps.",
+        "d": "The camera sensor saturated because more fringes mean more total light energy."
+      },
+      "explanations": {
+        "a": "Incorrect. Hardware temperature doesn't cause mathematically predictable sawtooth patterns.",
+        "b": "Correct! Tripling the number of fringes makes each stripe three times thinner (smaller period p). Since h_max = p / (2 &times; tan(&alpha;)), h_max also drops to one-third. If the bumps were taller than this new, smaller h_max limit, the math 'wraps' around, causing those jagged sawtooth resets!",
+        "c": "Incorrect. The number of steps (N) helps average out noise, but it doesn't prevent phase wrapping. Wrapping is purely about the fringe thickness vs. object height.",
+        "d": "Incorrect. The total amount of light stays the same whether you project 10 thick stripes or 100 thin stripes."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q2. You scanned a stepped block twice: once with 3 phase steps (RMSE = 0.18 mm) and once with 8 phase steps (RMSE = 0.06 mm). Why did the error drop so much, and would taking 32 images make the scan perfectly noise-free?",
+      "answers": {
+        "a": "Yes! More steps always proportionally reduce noise. 32 images would be near-perfect.",
+        "b": "Taking more images acts like an optical average, smoothing out camera noise and slight projector imperfections. But the improvement plateaus around 8 steps, because you hit the physical limits of the sensor.",
+        "c": "8 is just a better number because it is divisible by 4.",
+        "d": "The improvement was just a lucky random occurrence."
+      },
+      "explanations": {
+        "a": "Incorrect. The math doesn't scale perfectly to infinity. Eventually, you hit irreducible hardware noise.",
+        "b": "Correct! With just 3 images, the math has exactly the bare minimum data it needs—so any noise goes straight into your 3D model. With 8 images, the system is 'overdetermined', meaning it can use the extra data to mathematically average out the noise. But this trick hits diminishing returns fast; taking 32 images just wastes time without making the scan noticeably better.",
+        "c": "Incorrect. Any number higher than 3 improves the noise averaging, regardless of divisibility.",
+        "d": "Incorrect. This is a highly predictable and mathematically proven effect of oversampling."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q3. You tried scanning a shiny, mirror-like metal surface, but the simulation output pure garbage noise. The Modulation ratio (M) was sitting near zero! Why do shiny surfaces break structured light?",
+      "answers": {
+        "a": "Shiny surfaces reflect all light away from the camera.",
+        "b": "Mirrors reflect the projector's stripes as blindingly bright hotspots in some areas and pitch black in others. This destroys the smooth, wavy math the algorithm relies on.",
+        "c": "The simulation is bugged; shiny surfaces are actually perfect for scanning.",
+        "d": "Shiny surfaces absorb infrared light."
+      },
+      "explanations": {
+        "a": "Incorrect. They don't reflect *all* light away; they reflect it in highly concentrated beams based on the angle.",
+        "b": "Spot on! The phase-shifting algorithm assumes the surface reflects light evenly in all directions (diffuse reflection). A mirror-like (specular) surface acts like a laser pointer, bouncing blinding hot spots directly into the camera while leaving neighboring pixels totally dark. This destroys the smooth sine wave pattern, dropping the modulation (M) to zero and crashing the math. (This is why engineers spray chalk dust on shiny parts before scanning!)",
+        "c": "Incorrect. Shiny and transparent surfaces are the absolute worst nightmares for structured light scanners.",
+        "d": "Incorrect. The issue is about the *geometry* of the reflection, not the wavelength absorption."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q4. You scanned an 8mm tall block with a wide camera angle (&alpha; = 30&deg;) and got a perfect 8mm scan. But when you narrowed the angle to 10&deg;, the height profile was horribly noisy and only measured about 2.4mm! Using the height formula, why did a narrower angle ruin the scan?",
+      "answers": {
+        "a": "At 10&deg;, the projector is too close to the camera, creating shadows.",
+        "b": "At a narrow angle, the same 8mm height produces a much smaller physical shift in the projected stripes. The geometric phase shift (&phi;) becomes so tiny it gets lost in the camera's background noise.",
+        "c": "Narrow angles stretch the stripes, causing phase wrapping.",
+        "d": "The math formula doesn't work for angles under 15&deg;."
+      },
+      "explanations": {
+        "a": "Incorrect. Shadows (occlusions) actually happen at WIDE angles, not narrow ones.",
+        "b": "Correct! Think of shining a flashlight across a bump on the wall. If you shine it almost straight on (narrow angle), the bump barely casts a shadow. If you shine it from the side (wide angle), the shadow is huge! A narrow baseline angle &alpha; means the surface height barely distorts the stripes. That tiny phase shift (&phi;) gets completely swallowed up by camera noise, resulting in a terrible, inaccurate height measurement.",
+        "c": "Incorrect. Narrowing the angle actually reduces the risk of phase wrapping because the phase shifts are smaller.",
+        "d": "Incorrect. The math works at any angle, but the signal-to-noise ratio becomes physically disastrous at small angles."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q5. You accidentally left the room lights on, pushing the ambient light from 5% up to 60%. The scan quality plummeted, and the RMSE skyrocketed from 0.04mm to 0.71mm. Which simulated metric warned you this was happening?",
+      "answers": {
+        "a": "The phase steps dropped automatically.",
+        "b": "The Modulation Ratio (M = B/A) tanked toward zero because the background brightness (A) spiked while the fringe contrast (B) stayed the same.",
+        "c": "The fringe period physically stretched out.",
+        "d": "The baseline angle changed."
+      },
+      "explanations": {
+        "a": "Incorrect. The software never changes your phase steps automatically.",
+        "b": "Exactly! The ambient room light flooded the camera sensor, drastically increasing the background brightness 'A' in our equation. Because the projector's stripes 'B' didn't get any brighter to compensate, the stripes basically vanished into the glare. When M (the signal-to-noise ratio) approaches zero, the math collapses into pure noise.",
+        "c": "Incorrect. Light doesn't stretch physical dimensions.",
+        "d": "Incorrect. The physical hardware didn't move."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q6. You are designing a scanner for a bumpy object with 15mm of height variation. Your projector angle &alpha; is 25&deg;. To avoid the dreaded phase wrapping, what is the absolute minimum fringe period (p) you can use? (Hint: h_max = p / (2 &times; tan(&alpha;)))",
+      "answers": {
+        "a": "p = 7mm",
+        "b": "p = 10mm",
+        "c": "p = 14mm",
+        "d": "p = 30mm"
+      },
+      "explanations": {
+        "a": "Incorrect. This would wrap terribly.",
+        "b": "Incorrect. Still too small.",
+        "c": "Correct! Let's do the math: If we set our maximum height limit (h_max) to the object's 15mm height, then 15 = p / (2 &times; 0.466). Rearranging this: p = 15 &times; 2 &times; 0.466 = 13.98mm. If you make the stripes any thinner than 14mm, the math will wrap and ruin your scan! In the real world, engineers would use a much thicker stripe (like 30mm) just to be safe.",
+        "d": "While 30mm would definitely work and be safe, 14mm is the *absolute minimum* mathematical threshold before it breaks."
+      },
+      "correctAnswer": "c",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q7. You scanned a perfectly flat wall using 4 phase steps in a perfectly dark room. Strangely, the 3D model wasn't perfectly flat—it had faint, microscopic ripples all over it. The ripples occurred exactly 4 times for every 1 projected stripe. What caused this 'ghost' ripple?",
+      "answers": {
+        "a": "The camera lens was dirty.",
+        "b": "Real projectors can't draw perfect sine waves; they project slight digital jaggedness (harmonics). The 4-step math algorithm accidentally turns the 4th harmonic of the projection into a tiny physical ripple in the 3D data.",
+        "c": "The wall actually had ripples on it.",
+        "d": "The math formula is wrong."
+      },
+      "explanations": {
+        "a": "Incorrect. Dust doesn't cause perfect, mathematically repeating ripples.",
+        "b": "Correct! This is a hardcore engineering problem. Because projectors use digital pixels, their 'smooth' waves actually have tiny invisible steps (harmonics) in them. The 4-step algorithm perfectly filters out the 2nd and 3rd harmonics, but it is mathematically blind to the 4th harmonic! This tiny digital error leaks into the phase calculation, creating a physical ripple in your 3D mesh. The fix? Just use 5 or more phase steps to filter it out!",
+        "c": "Incorrect. We stated the wall was a perfect reference flat.",
+        "d": "Incorrect. The formula is correct, but it relies on perfect sine waves, which real-world hardware struggles to produce."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q8. You scanned a coin that had a 3mm deep engraving and a microscopic 0.1mm scratch. Scan A used thick stripes (8mm). Scan B used super thin stripes (2mm). What happened?",
+      "answers": {
+        "a": "Scan A captured everything perfectly.",
+        "b": "Scan B captured everything perfectly.",
+        "c": "Scan A easily captured the 3mm engraving but totally missed the microscopic scratch. Scan B captured the scratch beautifully, but the math 'wrapped' and exploded on the 3mm engraving.",
+        "d": "Neither scan worked."
+      },
+      "explanations": {
+        "a": "Incorrect. Thick stripes don't have the resolution for microscopic scratches.",
+        "b": "Incorrect. Thin stripes don't have the range for deep engravings without wrapping.",
+        "c": "Correct! This is the ultimate trade-off in structured light. Thick stripes (Scan A) have a massive range (no wrapping) but terrible sensitivity, making them blind to tiny scratches. Thin stripes (Scan B) are hyper-sensitive to tiny details but wrap easily on deep features. This is exactly why modern, expensive industrial scanners project multiple frequencies—thick ones for the general shape, and thin ones for the HD details!",
+        "d": "Incorrect. They both worked, just for different aspects of the coin."
+      },
+      "correctAnswer": "c",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q9. You scanned a flat surface with zero camera noise (σ = 0) in the simulation. However, the room lights were on, and they cast a slight shadow on one side of the wall. The resulting 3D scan was slightly tilted and warped. Why did a flat wall warp if there was no camera noise?",
+      "answers": {
+        "a": "Because ambient light gradients cause systematic phase bias in the math, which cannot be fixed by averaging.",
+        "b": "Because the simulation is broken; zero noise should always mean a perfect flat.",
+        "c": "Because the projector moved.",
+        "d": "Because the camera lens bent."
+      },
+      "explanations": {
+        "a": "Correct! The phase-shifting math assumes that ambient light ('A') is perfectly equal across all four captured images. If a shadow or light gradient exists on the wall, 'A' changes slightly across the image. The algorithm misinterprets this lighting gradient as a physical height change, physically warping your 3D mesh. This is a 'systematic' error, meaning it doesn't matter how many times you scan it—it will always be warped until you turn off the room lights!",
+        "b": "Incorrect. Zero 'random' noise doesn't magically fix 'systematic' mathematical errors caused by uneven lighting.",
+        "c": "Incorrect. Hardware movement wasn't a factor.",
+        "d": "Incorrect. Lens distortion is a separate calibration issue, not related to ambient light."
+      },
+      "correctAnswer": "a",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q10. You took two 3D scans from different angles and stitched them together using ICP (from Experiment 4). A classmate complains that 'the stitched point cloud looks way noisier than the individual scans, so the ICP algorithm must be breaking the data.' Why are they wrong?",
+      "answers": {
+        "a": "ICP actually smooths data, so it should look better.",
+        "b": "Each structured light scan has its own inherent camera noise. When you merge them, you are overlaying two noisy point clouds on top of each other, plus adding the tiny alignment error from ICP. It looks noisier because you have double the noisy points, but ICP didn't 'break' the data.",
+        "c": "The classmate is right; ICP always warps the data.",
+        "d": "ICP requires exact matches, so unmatched noisy points get deleted."
+      },
+      "explanations": {
+        "a": "Incorrect. ICP just moves points around; it doesn't smooth them.",
+        "b": "Correct! This bridges your knowledge between Exp 4 and Exp 6! Structured light always generates slightly fuzzy point clouds because of sensor noise. When ICP aligns two clouds, it doesn't average them or smooth them—it just overlaps them rigidly. You now have two distinct layers of noise overlapping, plus whatever microscopic alignment error ICP failed to converge on. The data isn't broken, it's just the reality of combining multiple imperfect sensor readings!",
+        "c": "Incorrect. ICP applies a rigid transformation (rotation and translation). It physically cannot warp or deform the shape of a scan.",
+        "d": "Incorrect. ICP works via nearest-neighbor approximation; it doesn't delete points."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}
