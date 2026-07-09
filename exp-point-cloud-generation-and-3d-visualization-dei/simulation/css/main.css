@@ -1594,6 +1594,10 @@ input[type="range"]::-moz-range-track {
   #simulation-view #card-frustum { order: 23; min-height: 250px; }
   #simulation-view #card-flying { order: 24; min-height: 300px; }
   #simulation-view #controls-panel { order: 3; }
+
+  #observation-gallery img {
+    object-fit: contain !important;
+  }
 }
 
 /* ── CONCEPT MODULES (RIGHT PANEL) ──────────────────────────── */
