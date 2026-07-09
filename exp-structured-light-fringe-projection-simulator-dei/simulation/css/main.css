@@ -399,8 +399,9 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   .sim-body { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow: visible; }
   .sim-left  { order: 1; }
   .sim-center { order: 2; padding: 0; }
+  .sim-row { grid-template-columns: 1fr; }
   .sim-right { order: 3; }
-  .sim-card canvas { min-height: 160px; }
+  .sim-card canvas { aspect-ratio: 320 / 200; height: auto; min-height: 0; }
 }
 /* ──────────────────────────────────────────────────────────────
    SIMULATION SLIDER GRADIENTS
