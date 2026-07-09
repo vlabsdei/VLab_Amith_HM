@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Surface Normal Estimation & Mesh Generation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+  <!-- ================= SETUP VIEW ================= -->
+  <div id="setup-view">
+    <main id="app-main">
+      <!-- ═══ LEFT PANEL ═══ -->
+      <aside id="wizard-panel">
+        <div id="wizard-info">
+          <div class="step-badge" id="step-badge">STEP 1 OF 5</div>
+          <h2 id="wizard-title">Mount Processing Modules</h2>
+          <p id="wizard-text">This experiment processes existing scan data. Mount each software module onto the virtual processing workbench.</p>
+        </div>
+        
+        <!-- Component Specs injected here by JS -->
+        <h3 class="panel-heading" style="margin-top: 10px;">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Component Specs
+        </h3>
+        <div id="spec-content" class="spec-content">
+          <p class="specs-placeholder">Mount components to view specifications.</p>
+        </div>
+
+        <div id="view-controls" style="margin-top: auto;">
+          <div class="legend-title">3D View Controls</div>
+          <div class="control-hints desktop-controls">
+            <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="control-hints mobile-controls" style="display:none;">
+            <div class="hint-row"><span class="hint-key">👆 1 Finger</span><span class="hint-val">Orbit</span></div>
+            <div class="hint-row"><span class="hint-key">✌️ 2 Fingers</span><span class="hint-val">Pan</span></div>
+            <div class="hint-row"><span class="hint-key">🤏 Pinch</span><span class="hint-val">Zoom</span></div>
+          </div>
+          <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+          <div class="preset-btns">
+            <button class="btn-preset active" data-view="iso"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>Isometric</button>
+            <button class="btn-preset" data-view="top"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>Top</button>
+            <button class="btn-preset" data-view="front"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>Front</button>
+            <button class="btn-preset" data-view="side"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>Side</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══ CENTER PANEL — 3D CANVAS ═══ -->
+      <section id="canvas-area">
+        <div class="canvas-card" style="height: 100%;">
+          <div class="card-header">
+            <span class="card-title">
+              <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              3D Rig Setup — Interactive View
+            </span>
+          </div>
+          <div id="setup-canvas-container" style="flex:1; position:relative; min-height:0; border-radius:5px; overflow:hidden;">
+            <canvas id="three-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+            <div class="obs-overlay" id="obs-overlay" style="display:none; position:absolute; bottom:10px; right:10px; z-index:10; background:rgba(255,255,255,0.9); padding:10px; border-radius:5px; font-size:11px;">
+              <div class="obs-row"><span class="obs-key">Points loaded: </span><span class="obs-val" id="obs-pts">—</span></div>
+              <div class="obs-row"><span class="obs-key">k neighbours: </span><span class="obs-val" id="obs-k">—</span></div>
+              <div class="obs-row"><span class="obs-key">Avg normal dev.: </span><span class="obs-val" id="obs-dev">—</span></div>
+              <div class="obs-row"><span class="obs-key">Est. curvature κ: </span><span class="obs-val" id="obs-kappa">—</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ RIGHT PANEL ═══ -->
+      <aside id="controls-panel">
+        
+        <!-- STEP 0 — Mount Modules -->
+        <div class="step-content active" id="sc-0">
+          <h3 class="panel-heading">
+            <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Apparatus
+          </h3>
+          <div class="apparatus-list">
+            <div class="apparatus-card" data-comp="cloud">
+              <div class="apparatus-thumb proj-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+              <div class="apparatus-info">
+                <span class="apparatus-name">Point Cloud Dataset</span>
+                <span class="apparatus-status" id="state-cloud">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="knn">
+              <div class="apparatus-thumb cam6-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+              <div class="apparatus-info">
+                <span class="apparatus-name">k-NN Search Engine</span>
+                <span class="apparatus-status" id="state-knn">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="pca">
+              <div class="apparatus-thumb surf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <div class="apparatus-info">
+                <span class="apparatus-name">PCA Covariance Solver</span>
+                <span class="apparatus-status" id="state-pca">Unmounted</span>
+              </div>
+            </div>
+            <div class="apparatus-card" data-comp="mesh">
+              <div class="apparatus-thumb encl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+              <div class="apparatus-info">
+                <span class="apparatus-name">Greedy Triangulator</span>
+                <span class="apparatus-status" id="state-mesh">Unmounted</span>
+              </div>
+            </div>
+          </div>
+          
+          <button id="btn-mount-seq" class="btn-primary" style="margin-bottom:10px;">
+            Mount Component
+          </button>
+          
+          <div class="divider"></div>
+          <button class="btn-primary btn-sim" id="btn-next-0" disabled>Next Step</button>
+          <button class="btn-reset-sm btn-reset-setup" style="margin-top:8px;">Reset Setup</button>
+        </div>
+
+        <!-- STEP 1 — Load Cloud -->
+        <div class="step-content" id="sc-1">
+          <h3 class="panel-heading">Point Cloud Stats</h3>
+          <div class="info-card" style="margin-bottom: 10px;">
+            <div class="info-row"><span class="info-label">Point count</span><span class="info-val">2,400 pts</span></div>
+            <div class="info-row"><span class="info-label">Bounding box</span><span class="info-val">0.6 &times; 0.3 &times; 0.2 m</span></div>
+            <div class="info-row"><span class="info-label">Noise level &sigma;</span><span class="info-val">2.5 mm</span></div>
+          </div>
+          <div class="step-nav" style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-primary" id="btn-next-1">Next Step</button>
+            <button class="btn-ghost" data-prev="0">Back</button>
+            <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+          </div>
+        </div>
+
+        <!-- STEP 2 — Configure kNN -->
+        <div class="step-content" id="sc-2">
+          <h3 class="panel-heading">Configure Neighbourhood</h3>
+          <div class="ctrl-group">
+            <div class="ctrl-top"><span class="ctrl-name">Neighbourhood <em>k</em></span><span class="ctrl-val" id="sv-k">10</span></div>
+            <div class="slider-track"><input type="range" class="setup-range" id="sr-k" min="4" max="40" value="10" step="1"/></div>
+            <div class="ctrl-range-row"><span>4</span><span>40</span></div>
+          </div>
+          <div class="step-nav" style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-primary" id="btn-next-2">Next Step</button>
+            <button class="btn-ghost" data-prev="1">Back</button>
+            <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 — Run PCA -->
+        <div class="step-content" id="sc-3">
+          <h3 class="panel-heading">Estimate Normals</h3>
+          <div class="scan-counter" style="margin-bottom:10px;">
+            <div class="pc-num" id="normals-count">0</div>
+            <div class="pc-label">normals estimated</div>
+            <div class="pc-bar"><div class="pc-fill" id="normals-fill" style="width:0%;"></div></div>
+            <div class="pc-sub" style="font-size:10px; color:#64748b;">Target: 2,400 normals</div>
+          </div>
+          <button class="btn-secondary full-w" id="btn-estimate" style="margin-bottom:10px;">Estimate Normals</button>
+          <div class="step-nav" style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-primary" id="btn-next-3" disabled>Next Step</button>
+            <button class="btn-ghost" data-prev="2">Back</button>
+            <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+          </div>
+        </div>
+
+        <!-- STEP 4 — Observe -->
+        <div class="step-content" id="sc-4">
+          <h3 class="panel-heading">Live Readouts</h3>
+          <div class="readout-grid">
+            <div class="readout-card"><span class="rc-label">k</span><span class="rc-value" id="ro-setup-k">—</span></div>
+            <div class="readout-card"><span class="rc-label">Avg &kappa;</span><span class="rc-value" id="ro-setup-kappa">—</span></div>
+            <div class="readout-card"><span class="rc-label">Consistency</span><span class="rc-value" id="ro-setup-consist">—</span></div>
+            <div class="readout-card"><span class="rc-label">Normals</span><span class="rc-value" id="ro-setup-normals">2,400</span></div>
+          </div>
+          <div class="step-nav" style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-primary btn-sim" id="btn-launch-sim">Launch Simulation</button>
+            <button class="btn-ghost" data-prev="3">Back</button>
+            <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+  </div>
+
+    <!-- ================= SIMULATION VIEW ================= -->
+  <div id="simulation-view" style="display:none;">
+    <main id="app-main">
+      <!-- LEFT PANEL -->
+      <aside id="wizard-panel">
+        <div class="wiz-box">
+          <div class="wiz-step-dots" id="wiz-dots">
+            <span class="wdot active" data-ws="0"></span>
+            <span class="wdot" data-ws="1"></span>
+            <span class="wdot" data-ws="2"></span>
+            <span class="wdot" data-ws="3"></span>
+          </div>
+          <div class="wiz-title" id="wiz-title">Grow the Neighbourhood</div>
+          <div class="wiz-text" id="wiz-text"></div>
+          <div class="wiz-task" id="wiz-task"></div>
+          <div class="wiz-btns">
+            <button class="btn-primary" id="wiz-next" style="margin-bottom:5px;">Next Step</button>
+            <button class="btn-ghost" id="wiz-skip" style="margin-bottom:5px;">Skip to Free Explore</button>
+            <button class="btn-back full-w" id="btn-back-setup">← Back to Setup</button>
+          </div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <h3 class="panel-heading">Live Readouts</h3>
+        <div class="ro-grid">
+          <div class="ro-card"><div class="ro-label">Avg &kappa;</div><div class="ro-val" id="ro-kappa">—</div></div>
+          <div class="ro-card"><div class="ro-label">Consistency</div><div class="ro-val" id="ro-consist">—</div></div>
+          <div class="ro-card"><div class="ro-label">Triangles</div><div class="ro-val" id="ro-tris">—</div></div>
+          <div class="ro-card"><div class="ro-label">Min angle</div><div class="ro-val" id="ro-minangle">—</div></div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <h3 class="panel-heading">Mesh Statistics</h3>
+        <div class="bbox-grid">
+          <div class="bbox-row"><span>Triangle count</span><span id="bb-tris">—</span></div>
+          <div class="bbox-row"><span>Min angle</span><span id="bb-minang">—</span></div>
+          <div class="bbox-row"><span>Mesh holes</span><span id="bb-holes">—</span></div>
+          <div class="bbox-row"><span>Normal consistency</span><span id="bb-consist">—</span></div>
+        </div>
+      </aside>
+
+      <!-- CENTER PANEL -->
+      <section id="canvas-area">
+        <div class="sim-row" style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+          <div class="canvas-card" style="flex:1;">
+            <div class="sc-head"><span class="sc-title">3D Normal Hedgehog View</span><span class="sc-sub">Coloured spikes = estimated surface normals</span></div>
+            <div style="flex:1; position:relative;"><canvas id="cvs-hedgehog" style="position:absolute; top:0; left:0; width:100%; height:100%; cursor:grab;"></canvas></div>
+          </div>
+          <div class="canvas-card" style="flex:1;">
+            <div class="sc-head"><span class="sc-title">Curvature Map &kappa;</span><span class="sc-sub">Blue = flat (&kappa;&#8776;0), Red = high curvature / noisy</span></div>
+            <div style="flex:1; position:relative;"><canvas id="cvs-curvature" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas></div>
+          </div>
+        </div>
+        <div class="sim-row" style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+          <div class="canvas-card" style="flex:1;">
+            <div class="sc-head"><span class="sc-title">Generated Mesh (Wireframe)</span><span class="sc-sub">Triangle connectivity from greedy Delaunay</span></div>
+            <div style="flex:1; position:relative;"><canvas id="cvs-mesh" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas></div>
+          </div>
+          <div class="canvas-card" style="flex:1;">
+            <div class="sc-head"><span class="sc-title">Normal Deviation vs k</span><span class="sc-sub">How consistency changes with neighbourhood size</span></div>
+            <div style="flex:1; position:relative;"><canvas id="cvs-kvalues" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL -->
+      <aside id="controls-panel">
+        <h3 class="panel-heading">Parameters</h3>
+        
+        <div class="ctrl-group" id="pg-k">
+          <div class="ctrl-top"><span class="ctrl-name">Neighbourhood <em>k</em></span><span class="ctrl-val" id="pv-k">10</span></div>
+          <div class="slider-track"><input type="range" class="sim-range" id="r-k" min="4" max="50" step="1" value="10"/></div>
+          <div class="ctrl-range-row"><span>4</span><span>50</span></div>
+          <div class="ctrl-desc">Determines the size of the local neighborhood used for PCA covariance.</div>
+        </div>
+
+        <div class="ctrl-group" id="pg-noise">
+          <div class="ctrl-top"><span class="ctrl-name">Point Noise &sigma;</span><span class="ctrl-val" id="pv-noise">2 mm</span></div>
+          <div class="slider-track"><input type="range" class="sim-range" id="r-noise" min="0" max="15" step="0.5" value="2"/></div>
+          <div class="ctrl-range-row"><span>0 mm</span><span>15 mm</span></div>
+          <div class="ctrl-desc">Adds random displacement to points, affecting eigenvalue stability.</div>
+        </div>
+
+        <div class="ctrl-group" id="pg-surface">
+          <div class="ctrl-top"><span class="ctrl-name">Surface Shape</span></div>
+          <div class="btn-group-toggle" id="r-surface-group">
+            <button class="btn-toggle active" data-val="0">Bumpy</button>
+            <button class="btn-toggle" data-val="1">L-Shape</button>
+            <button class="btn-toggle" data-val="2">Sphere</button>
+          </div>
+          <div class="ctrl-desc">Selects the underlying 3D structure to scan.</div>
+        </div>
+
+        <div class="ctrl-group" id="pg-orient">
+          <div class="ctrl-top"><span class="ctrl-name">Orientation</span><span class="ctrl-val" id="pv-orient">Viewpoint</span></div>
+          <div class="slider-track"><input type="range" class="sim-range" id="r-orient" min="0" max="1" step="1" value="0"/></div>
+          <div class="ctrl-range-row"><span>Viewpoint</span><span>Raw</span></div>
+          <div class="ctrl-desc">Toggles between camera-viewpoint alignment and ambiguous raw normals.</div>
+        </div>
+
+        <div class="ctrl-group" id="pg-maxedge">
+          <div class="ctrl-top"><span class="ctrl-name">Max Triangle Edge</span><span class="ctrl-val" id="pv-maxedge">0.05 m</span></div>
+          <div class="slider-track"><input type="range" class="sim-range" id="r-maxedge" min="0.01" max="0.15" step="0.005" value="0.05"/></div>
+          <div class="ctrl-range-row"><span>0.01 m</span><span>0.15 m</span></div>
+          <div class="ctrl-desc">Maximum triangle edge length for greedy meshing. Shorter edges reject noise.</div>
+        </div>
+
+        <div class="sim-divider"></div>
+
+        <h3 class="panel-heading">Mesh Quality Gauge</h3>
+        <div class="quality-wrap">
+          <div class="quality-arc" style="width:100%; display:flex; justify-content:center;"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
+          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-sub" id="quality-sub">Adjust parameters</div>
+        </div>
+
+        <div class="sim-divider"></div>
+        <button class="btn-reset-sm" id="btn-sim-reset2">Reset Defaults</button>
+      </aside>
+    </main>
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

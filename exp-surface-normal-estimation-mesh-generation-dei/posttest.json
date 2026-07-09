@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. In the simulation you scanned a smooth sphere and set k=6. The normal visualisation showed spiky, inconsistent normals with large angular deviations between adjacent points. You then changed k to 20 while keeping everything else identical. The normals became visibly smoother and more consistent. Explain this improvement in terms of the PCA covariance matrix, and identify one situation where k=20 would perform worse than k=6.",
+      "answers": {
+        "a": "k=20 improves normals because 20 is always the mathematically optimal neighbourhood size for any surface",
+        "b": "k=20 provides more equations for the covariance matrix, averaging out individual point measurement noise and producing a more stable minimum eigenvector estimate. However on a surface with sharp edges or corners, k=20 would span across the edge, mixing points from two different surface orientations and producing a biased averaged normal that misrepresents the local surface at the edge point",
+        "c": "k=20 improves normals by automatically removing outlier points from the computation",
+        "d": "The improvement is purely visual rendering \u2014 the actual normals are the same for both k values"
+      },
+      "explanations": {
+        "a": "Close, but no. There is no universally optimal k \u2014 the appropriate neighbourhood size depends on point density, noise level, and surface curvature. k=20 happened to be better than k=6 for a noisy, smooth sphere scan, but would not be universally optimal for all surface types.",
+        "b": "Spot on! With k=6 on a noisy scan, each individual point has a large noise displacement relative to the ideal surface position. With only 6 points defining the covariance matrix, this noise has a large relative effect on the minimum eigenvector \u2014 each noisy point contributes roughly 1/6 of the total matrix, making the eigenvector sensitive to individual point errors. With k=20, each point's noise contribution is diluted to 1/20, and the mean position of 20 points is a much more stable estimate of the local tangent plane centroid. The minimum eigenvector therefore aligns much more reliably with the true surface normal. However at a sharp edge, the 20-nearest neighbours inevitably include points from both faces meeting at the edge, producing a covariance matrix whose minimum eigenvector bisects the two face normals \u2014 a completely wrong normal at the edge point. k=6 would capture a smaller, tighter region that might stay on one face and produce a more accurate local normal at the edge.",
+        "c": "Not exactly. PCA-based normal estimation using all k neighbours does not include any outlier removal step \u2014 it computes the covariance matrix from all k points regardless of how noisy they are. Outlier removal is a separate pre-processing step covered in Experiment 8.",
+        "d": "Oops, that's not quite right. The normals are genuinely mathematically different \u2014 the covariance matrix and its eigenvectors depend directly on which k points are included. A change in k changes the input data, changes the covariance matrix, and therefore changes the computed minimum eigenvector."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q2. You ran the simulation on a cylinder and noticed that the top circular rim produced clearly incorrect normals \u2014 they pointed in random directions rather than radially outward from the cylinder axis. The rest of the cylinder surface had correct normals. What is most likely causing this specific failure at the rim?",
+      "answers": {
+        "a": "The scanner could not detect the rim because it is too thin",
+        "b": "Points on the rim sit at the boundary between the curved side surface and the flat top face, so their k-nearest neighbourhood contains a mix of points from both surfaces. PCA cannot find a single meaningful tangent plane for this mixed neighbourhood, producing an unreliable minimum eigenvector",
+        "c": "The rim always has higher noise than other parts of the surface due to the scanner angle",
+        "d": "The simulation has a known rendering bug specifically affecting circular shapes"
+      },
+      "explanations": {
+        "a": "That's a common misconception, but no. The rim is physically present in the point cloud as captured coordinates \u2014 the simulation does not have an issue detecting it. The problem is with the normal estimation step, not with the scanning step.",
+        "b": "Exactly right. Points on the rim of the cylinder are genuinely at the junction of two surfaces: the curved lateral surface (whose normals point radially outward) and the flat top face (whose normals point upward). Their k-nearest neighbourhood naturally includes points from both surfaces, since the rim is spatially adjacent to both. The covariance matrix built from this mixed neighbourhood does not have a clearly defined minimum eigenvector because the data does not approximate a single local plane \u2014 it approximates two planes meeting at the rim. The resulting minimum eigenvector can point in any direction that is perpendicular to neither surface specifically, explaining the random-looking normals at this location. This is a fundamental limitation of local PCA normal estimation at sharp feature boundaries.",
+        "c": "Ah, incorrect. While scanner angle does affect the density and coverage of points on curved surfaces, this would produce a smooth variation in normal quality, not the specific random failure pattern described at the rim boundary.",
+        "d": "Close, but no. This behaviour is a physically accurate and expected result of PCA normal estimation at sharp geometric boundaries \u2014 it reproduces the correct real-world behaviour of the algorithm, not a software error."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q3. In the simulation, you generated a point cloud of a smooth bumpy surface and ran normal estimation with k=10. The resulting mesh looked correct from the outside but appeared completely black (incorrectly shaded) when you rotated the view to look from the back. What caused this, and how does viewpoint-based orientation correction fix it?",
+      "answers": {
+        "a": "The mesh appears black from the back because the simulation renderer does not support double-sided rendering",
+        "b": "Some normals were assigned the inward-pointing sign rather than the outward-pointing sign during PCA estimation. The renderer computes lighting using the dot product of the normal and light direction \u2014 an inward normal produces a negative dot product, resulting in zero or black lighting from the standard viewing direction. Viewpoint-based orientation flips any normal whose dot product with the vector toward the scanner position is negative, ensuring all normals face outward",
+        "c": "The black appearance from the back is physically correct because surfaces have no material on their back side",
+        "d": "This only occurs when k=10 specifically \u2014 changing to any other k value would fix the orientation problem automatically"
+      },
+      "explanations": {
+        "a": "Oops, that's not quite right. While double-sided rendering is a real concept, the problem described here is specifically about some normals pointing inward and some outward \u2014 an inconsistency in the mesh that double-sided rendering would not fully fix. The real issue is that the orientation of normals is inconsistent across the mesh.",
+        "b": "You got it! PCA computes a normal direction (eigenvector) but assigns it a sign arbitrarily \u2014 both n and \u2212n are equally valid minimum eigenvectors. If some points received the inward-pointing assignment and others the outward-pointing assignment, the mesh has inconsistently oriented normals. Standard lighting calculations compute intensity proportional to max(0, n\u00b7L) where L is the light direction vector. An inward normal produces a negative dot product with a light source outside the object, yielding zero illumination (black). Viewpoint-based correction checks whether n\u00b7(scanner_position \u2212 P) > 0 for each point P \u2014 if negative, the normal is flipped. This consistently assigns outward normals relative to the scanner viewpoint.",
+        "c": "Ah, incorrect. Standard 3D graphics rendering can shade both sides of a surface, but correct per-face or per-vertex lighting requires consistently oriented normals. Real physical surfaces do have material on both sides \u2014 the issue is purely a computational one with normal sign consistency.",
+        "d": "Not exactly. The sign ambiguity is inherent to PCA eigenvector computation and occurs regardless of the k value chosen. Different k values affect the direction of the estimated normal but not the fundamental sign ambiguity property of the eigenvector decomposition."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q4. You ran the simulation comparing two meshes: Mesh A generated from a clean (zero noise) point cloud with k=8, and Mesh B generated from the same geometry with \u03c3=5mm noise added and k=8. The normal consistency metric (average angle between adjacent triangle normals) was 2.1\u00b0 for Mesh A and 11.4\u00b0 for Mesh B. Explain what this difference reveals, and why normal consistency specifically reflects noise rather than just surface curvature.",
+      "answers": {
+        "a": "The difference shows Mesh B has a more complex shape than Mesh A",
+        "b": "Noise displaces each point randomly from its true surface position, causing the local PCA neighbourhood to fit a tangent plane that is slightly tilted from the true surface tangent. Adjacent points receive independently noisy normal estimates, so neighbouring normals point in slightly different random directions even on a surface that should be smooth \u2014 increasing the average inter-normal angle. Surface curvature also increases this metric but does so smoothly and predictably, while noise adds an irregular, spatially uncorrelated component",
+        "c": "Normal consistency only measures mesh triangle count and is unaffected by normal directions",
+        "d": "The 11.4\u00b0 value for Mesh B proves the normal estimation algorithm failed completely on noisy data"
+      },
+      "explanations": {
+        "a": "Close, but no. Both meshes were generated from the same underlying geometry \u2014 the shape is identical. Only the presence of measurement noise differs between the two cases. Any difference in metrics is attributable to noise, not shape complexity.",
+        "b": "That's correct. Each noisy point is displaced from its true surface position by a random vector. When PCA builds the covariance matrix from k noisy neighbours, the minimum eigenvector (normal estimate) tilts slightly from the true surface normal by an amount that depends on the noise magnitude and the local point density. Adjacent points receive independently tilted normals because their noise displacements are independent random variables. When the normal consistency metric computes the angle between normals at adjacent triangles, it picks up these random tilts as elevated angular differences even on nominally smooth regions. In contrast, surface curvature produces systematic, spatially smooth variation in normals \u2014 the angle between adjacent normals on a curved surface increases gradually and predictably, whereas noise produces spatially uncorrelated, irregular variation.",
+        "c": "Not exactly. Normal consistency is explicitly defined as the average angle between neighbouring triangle normals, making it directly a measure of normal direction agreement. It is geometrically meaningful and strongly sensitive to both surface curvature and measurement noise.",
+        "d": "That's a common misconception, but no. An 11.4\u00b0 average deviation is a measurable quality degradation but not a catastrophic failure. The normals are still pointing approximately in the right direction \u2014 they are just noisier. Complete failure would produce random normal directions with average deviations approaching 90\u00b0."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q5. In the simulation you applied greedy triangulation to a point cloud of an L-shaped object. The concave inner corner of the L produced a region where several triangles had minimum angles below 12\u00b0, while the rest of the mesh had minimum angles above 40\u00b0. What geometric property of the concave corner causes this deterioration in triangle quality?",
+      "answers": {
+        "a": "Concave regions are always more noisy than convex regions during scanning",
+        "b": "At the concave inner corner, the nearest neighbours of corner-region points must jump across the empty space inside the L rather than staying on the surface \u2014 the resulting 2D tangent plane projection contains points spread across a wide angular range with a gap in the middle, which forces the Delaunay triangulation to create long, narrow triangles to span the gap",
+        "c": "The triangulation algorithm always fails completely inside concave shapes",
+        "d": "Triangle quality at concave corners depends only on the k value and not on the surface geometry"
+      },
+      "explanations": {
+        "a": "Oops, that's not quite right. Scan noise characteristics are primarily determined by sensor properties and surface material, not by concave versus convex geometry. The triangle quality problem at the concave corner is a geometric issue with the triangulation step, not a noise issue from the scanning step.",
+        "b": "You got it! At the inner concave corner of an L-shape, the nearest k neighbours of a point on the corner wall are geometrically forced to include points from the perpendicular wall face, because those points are the actual closest neighbours in 3D Euclidean distance even though they are on a different surface face. When these neighbours are projected onto the local tangent plane for triangulation, the projection contains points clustered in two distinct directions (corresponding to the two wall faces) with a large angular gap between them. Delaunay triangulation must then connect points from both clusters across this gap, producing elongated triangles with very small angles at the gap boundaries \u2014 exactly the pattern described. This is a known limitation of greedy triangulation at concave sharp features.",
+        "c": "Not exactly. The triangulation does not fail completely \u2014 it produces a mesh covering the concave corner, but the triangle quality is degraded as described. Many triangles are still well-formed; it is specifically the triangles spanning the geometric gap at the concave corner that have poor minimum angles.",
+        "d": "Oops, that's not quite right. The surface geometry at the corner is the primary cause of the triangle quality degradation \u2014 the k value influences how many points from the other face are included in the neighbourhood but the fundamental geometric constraint (concave gap) is present regardless of k."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q6. You ran normal estimation on a point cloud with spatially non-uniform density \u2014 one region had 200 points/m\u00b2 and another had 800 points/m\u00b2. With k=15 fixed, the sparse region produced noticeably worse normals than the dense region. A classmate suggested fixing this by using a radius-based neighbourhood (all points within a fixed radius r) instead of k fixed nearest neighbours. Critically evaluate this suggestion and explain the specific trade-off each approach makes.",
+      "answers": {
+        "a": "The classmate is wrong \u2014 k-nearest neighbours always outperforms radius-based search regardless of density",
+        "b": "The classmate's suggestion is well-founded: in the sparse region, k=15 forces the neighbourhood to extend over a large physical area to find 15 points, including geometrically distant points from different surface orientations. Radius-based search with appropriate r captures only physically nearby points in both regions. However radius-based search then provides very different numbers of neighbourhood points in dense vs sparse regions \u2014 the dense region may have hundreds of points in radius r while the sparse has only 3\u20134, making the dense-region normal very stable and the sparse-region normal still unreliable with few points",
+        "c": "Both approaches give identical results since they are mathematically equivalent in all cases",
+        "d": "Radius-based search should never be used because it always includes too many points"
+      },
+      "explanations": {
+        "a": "Close, but no. K-nearest neighbours performs poorly when the point cloud density is non-uniform, specifically because k is a count rather than a physical scale \u2014 the physical area covered by k neighbours is much larger in sparse regions than dense ones. The classmate's identification of this problem is correct.",
+        "b": "You got it! K-nearest neighbours with k=15 in a sparse region (200 pts/m\u00b2) must search over a much larger physical area than in the dense region (800 pts/m\u00b2) to collect 15 points \u2014 roughly 4\u00d7 larger. This large search radius includes points from further away on the surface, potentially spanning surface curvature or features that should not be in a local neighbourhood, degrading normal quality. Radius-based search with a single fixed r instead captures all points within the same physical scale everywhere, which is geometrically more meaningful. However, the sparse region now provides very few points (perhaps 3\u20135 within radius r) making the covariance matrix poorly conditioned and normal estimation statistically unreliable due to insufficient data. The dense region provides many more points within the same r, producing stable, low-variance normal estimates. Neither approach perfectly handles non-uniform density \u2014 adaptive methods that choose r or k based on local density are the proper solution, but these are more complex.",
+        "c": "Ah, incorrect. K-nearest neighbours and radius-based search are mathematically equivalent only in the specific case of perfectly uniform density, where the two approaches select nearly identical point sets. In non-uniform density, they produce fundamentally different neighbourhood compositions and therefore different covariance matrices and normal estimates.",
+        "d": "Ah, incorrect. Radius-based search is a standard and widely-used alternative to k-nearest neighbours in point cloud processing. Its appropriateness depends on the specific scenario \u2014 it has genuine advantages for density-robust processing but the trade-off of variable neighbourhood size described in answer b is real and must be managed."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q7. In the simulation you processed a point cloud of a thin flat sheet (2mm thick, 200mm \u00d7 200mm) with k=12. The normal estimation produced normals that were roughly correct on the large flat faces but severely incorrect on the thin 2mm edges \u2014 pointing in random directions. You tried reducing k to 4 for the edge regions. The edge normals improved but the face normals became noisier. Explain the mathematical reason why no single fixed k can simultaneously give accurate normals on both the thin edges and the large flat faces of this object.",
+      "answers": {
+        "a": "There is no relationship between k and the accuracy achieved \u2014 the result is determined entirely by noise level",
+        "b": "The flat faces require a large k (many neighbours spread over the face) to average out noise and produce stable PCA, but the thin edges are physically only 2mm wide. Any neighbourhood large enough to collect k=12 points on a 2mm edge inevitably extends beyond the edge onto the face, mixing two perpendicular surface orientations. A small k=4 stays within the 2mm edge but provides too few points for stable PCA on the larger noisy flat faces. This is a fundamental multi-scale geometry problem \u2014 the feature scale (2mm edge width) is much smaller than the noise-averaging scale (neighbourhood size needed for stable PCA on large flat areas)",
+        "c": "The problem is caused by the flat faces reflecting scanner light poorly",
+        "d": "The solution is simply to use a larger k value everywhere since more neighbours always improve results"
+      },
+      "explanations": {
+        "a": "Not exactly. Noise level and k value both independently and interactively affect normal estimation quality. The specific multi-scale problem described here is fundamentally about the relationship between neighbourhood size k, physical point density, and feature scale \u2014 not purely about noise.",
+        "b": "Precisely! This is a genuine multi-scale normal estimation challenge. The flat 200mm \u00d7 200mm faces have abundant space for large neighbourhoods \u2014 k=12 covers a modest area of the face and provides good statistical stability for PCA. The 2mm edge is a geometrically narrow feature: the edge is so thin that points from the face (a perpendicular surface) are physically closer to edge points than other edge points farther along the edge length. With k=12, those face points inevitably enter the neighbourhood of edge points (since they are nearer), contaminating the covariance matrix with mixed-orientation data. Reducing k to 4 helps the edge by limiting the neighbourhood to truly close edge points, but 4 points provide a poorly conditioned 3\u00d73 covariance matrix on the flat faces where measurement noise is comparable to the variance from surface curvature. This multi-scale conflict \u2014 between the scale at which noise is averaged and the scale at which features change orientation \u2014 is a fundamental limitation of fixed-k PCA normal estimation that motivates multi-scale or feature-adaptive approaches in research literature.",
+        "c": "Not exactly. Light reflectance affects the scanner's ability to capture points in the first place (see Experiments 5 and 6) but not the normal estimation algorithm applied afterward to the already-captured point coordinates. The PCA computation operates on coordinates only, regardless of how the light interacted with the surface during scanning.",
+        "d": "Close, but no. This directly contradicts what the question demonstrates \u2014 increasing k on the thin edges makes them worse, not better, because the larger neighbourhood crosses the geometric boundary onto the perpendicular face."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q8. The simulation computed curvature \u03ba = \u03bb\u2080/(\u03bb\u2080+\u03bb\u2081+\u03bb\u2082) for every point on a scan. You observed that \u03ba values were elevated not only at genuine sharp edges of the object but also randomly scattered across smooth flat regions of the surface. Explain both phenomena and describe how you would distinguish between genuine curvature features and noise-induced curvature artefacts in the simulation output.",
+      "answers": {
+        "a": "Elevated \u03ba on flat regions proves the flat regions are not actually flat \u2014 they must have undetected curvature",
+        "b": "Genuine curvature at edges causes \u03bb\u2080 to increase systematically because the neighbourhood spans multiple surface orientations. Noise-induced \u03ba elevation on flat regions occurs because measurement noise adds random displacement to each point, inflating \u03bb\u2080 (the variance in the normal direction) even when the true surface is flat. These can be distinguished: genuine curvature produces spatially coherent, continuous regions of elevated \u03ba (edges run continuously through the point cloud), while noise-induced artefacts produce spatially uncorrelated, isolated high-\u03ba values scattered randomly with no spatial pattern",
+        "c": "Curvature \u03ba only reflects surface curvature, not noise \u2014 elevated \u03ba on flat regions is impossible and must indicate a bug",
+        "d": "Both phenomena have identical visual signatures and cannot be distinguished without external information"
+      },
+      "explanations": {
+        "a": "That's a common misconception, but no. Assuming the surface is genuinely flat (as confirmed by the scan setup), elevated \u03ba values on flat regions represent measurement artefacts from noise, not undetected surface structure. The curvature estimator \u03ba is sensitive to both genuine geometric curvature and noise-induced variance.",
+        "b": "That's correct. At a genuine sharp edge or corner, the k-nearest neighbours span two or more surface faces with different orientations. The resulting covariance matrix has a relatively large minimum eigenvalue \u03bb\u2080 because the neighbourhood points do not lie in a single plane \u2014 there is genuine variance in the normal direction due to the mixed orientations. On a truly flat region with measurement noise, each point is displaced from the ideal flat plane by a random noise vector. This random displacement adds variance in the normal direction (\u03bb\u2080) even though the underlying surface is flat, elevating \u03ba. The two are physically distinct: genuine curvature produces \u03ba elevation that is spatially organised along edge paths or curves, with smooth transitions matching the object's geometry. Noise-induced \u03ba elevation is spatially uncorrelated \u2014 adjacent points can have very different \u03ba values with no spatial pattern. In the simulation, examining the spatial distribution of \u03ba values (or its spatial autocorrelation) allows distinguishing between the two causes.",
+        "c": "That's a common misconception, but no. The curvature estimate \u03ba = \u03bb\u2080/(\u03bb\u2080+\u03bb\u2081+\u03bb\u2082) is derived from the covariance matrix eigenvalues, which are affected by both genuine surface curvature and measurement noise. The formula does not distinguish between these two sources of variance \u2014 both can inflate \u03bb\u2080.",
+        "d": "Oops, that's not quite right. Spatial coherence is a reliable distinguishing criterion: genuine edges and curvature features are spatially connected and geometrically organised, while noise artefacts are spatially random. This distinction is both visually observable in the simulation and quantifiable through spatial statistics."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q9. You processed a point cloud scan of an object with the full pipeline: noise filtering (Experiment 8 preview), normal estimation with k=10, viewpoint-based orientation, and greedy triangulation. The final mesh was visually correct but had significant holes where the object's surface was steeply angled relative to the scanner (grazing incidence). Explain why grazing incidence regions specifically cause mesh holes, connecting both the scanning and normal estimation stages.",
+      "answers": {
+        "a": "Holes form because the triangulation algorithm does not work on angled surfaces",
+        "b": "At grazing incidence, the scanner captures very few points per unit surface area (point spacing grows as 1/cos(angle)), creating locally sparse regions. These sparse regions may not provide enough points for reliable PCA neighbourhood formation, and even when normals are estimated, the greedy triangulation rejects triangle candidates that exceed its maximum edge length constraint \u2014 because the large gaps between sparse points create long edges. Both the scanning physics (fewer returns at grazing angle) and the algorithmic constraints (maximum edge length filter) jointly create holes at these locations",
+        "c": "The scanner physically cannot measure surfaces at angles beyond 45\u00b0 in any case",
+        "d": "Holes at grazing incidence are caused entirely by normal orientation errors and nothing else"
+      },
+      "explanations": {
+        "a": "Not exactly. The greedy triangulation algorithm does work on angled surfaces \u2014 it specifically uses the local tangent plane projection precisely to handle arbitrary surface orientations. The problem at grazing incidence is not an algorithm orientation failure but a combination of sparse data and constraint rejection.",
+        "b": "Exactly right. At grazing incidence, the scanner beam strikes the surface at a shallow angle. The effective footprint of each laser pulse or depth pixel on the surface grows as the angle increases (proportional to 1/cos(\u03b8) for angle \u03b8 from the surface normal direction), so the same number of measurement pixels now cover a much larger surface area. The resulting point cloud has a much lower spatial density in these regions. Two consequences follow: (1) normal estimation with a fixed k must span a larger physical area to find k neighbours, increasing neighbourhood contamination and potentially producing inaccurate normals; (2) the larger inter-point spacing means that triangles formed between neighbouring points would have edges exceeding the greedy triangulation's maximum acceptable edge length, so these triangles are rejected as likely gap-spanning artefacts, leaving holes in the mesh. This illustrates how scanning physics and reconstruction algorithm constraints interact \u2014 a limitation from the scanning stage propagates through to affect the reconstruction stage.",
+        "c": "Oops, that's not quite right. Many scanning technologies, including LiDAR and stereo vision, can capture returns at incidence angles well beyond 45\u00b0. The quality degrades progressively but does not abruptly fail at 45\u00b0. The grazing incidence problem is a continuous degradation effect, not a hard cutoff.",
+        "d": "That's a common misconception, but no. While normal orientation errors do occur at grazing incidence regions, they alone would not produce mesh holes \u2014 incorrectly oriented normals produce incorrect shading and inside-out triangles, not missing mesh coverage. The holes arise specifically from sparse point distribution combined with the edge-length constraint in greedy triangulation."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q10. In the simulation you ran normal estimation on two point clouds: Cloud A had 5000 points on a 10cm \u00d7 10cm surface patch (50,000 pts/m\u00b2) with noise \u03c3=1mm. Cloud B had 500 points on the same patch (5000 pts/m\u00b2) with noise \u03c3=0mm. With k=10, Cloud A produced better normals than Cloud B despite having higher noise. Explain this apparently counterintuitive result using the eigenvalue structure of the PCA covariance matrix.",
+      "answers": {
+        "a": "This result is impossible \u2014 lower noise always produces better normals regardless of density",
+        "b": "With k=10 on Cloud B (sparse, noise-free), the neighbourhood must extend over a large physical area (~1/5000m\u00b2 \u00d7 10 = 0.002m\u00b2) to find 10 points. On a curved or imperfectly flat surface, the true surface itself has geometric variation across this large area \u2014 the points lie on a curved patch, not a flat plane, introducing genuine variance in the normal direction (non-zero \u03bb\u2080) that the algorithm cannot distinguish from noise. Cloud A with k=10 finds neighbours in a much smaller physical area (~0.0002m\u00b2) where the surface is nearly flat \u2014 the small-neighbourhood PCA captures the true local tangent plane much better. The dense-but-noisy cloud provides local geometry information at a fine enough scale that the noise's \u03bb\u2080 inflation is smaller than the curvature-induced \u03bb\u2080 Cloud B suffers from its wide sparse neighbourhood",
+        "c": "The result proves that noise always helps normal estimation by adding variance",
+        "d": "Cloud A simply has more points and more points always give better results regardless of neighbourhood geometry"
+      },
+      "explanations": {
+        "a": "Ah, incorrect. This scenario is physically real and well-documented. Point density and noise interact in normal estimation: density determines the physical scale of the neighbourhood, and the surface's geometric variation at that scale competes with noise as a source of \u03bb\u2080 inflation. Very sparse data can produce poor normals even at zero noise if the sparse neighbourhood spans curved geometry.",
+        "b": "That's correct. This result illustrates that point density and noise level interact in normal estimation through the physical scale of the k-nearest neighbourhood. For Cloud B: k=10 points drawn from 5000 pts/m\u00b2 means each neighbourhood occupies roughly 10/5000 = 0.002 m\u00b2 of surface area. Across this area (0.045m \u00d7 0.045m), even a gently curved surface has non-negligible height variation that appears as variance in the normal direction \u2014 inflating \u03bb\u2080 and degrading the normal estimate. For Cloud A: k=10 points from 50,000 pts/m\u00b2 means each neighbourhood occupies only 10/50000 = 0.0002 m\u00b2 (~0.014m \u00d7 0.014m). At this finer scale, the surface is much more locally flat, so \u03bb\u2080 due to true surface curvature is small. The 1mm noise adds some \u03bb\u2080 inflation, but this is smaller than Cloud B's curvature-induced \u03bb\u2080 across its larger neighbourhood. This demonstrates that noise and density jointly determine normal estimation quality through their interaction with the surface's geometric variation at the neighbourhood scale.",
+        "c": "Not exactly. Noise does not help normal estimation \u2014 it adds random variance that degrades the estimate. The reason Cloud A outperforms Cloud B is the smaller physical neighbourhood size, not the noise itself.",
+        "d": "Oops, that's not quite right. Simply having more total points in the cloud does not automatically improve normals \u2014 what matters is how many of those points fall within the local neighbourhood (determined by k and local density) and how much geometric variation the surface exhibits at that neighbourhood scale. Total point count is not the correct predictor of normal estimation quality."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}

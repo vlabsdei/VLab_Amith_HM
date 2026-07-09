@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is a surface normal vector at a point on a 3D surface?",
+      "answers": {
+        "a": "A vector pointing from the origin of the coordinate system to the point on the surface",
+        "b": "A unit vector perpendicular to the tangent plane of the surface at that specific point, indicating the orientation of the local surface element",
+        "c": "A vector connecting two adjacent points in the point cloud",
+        "d": "A vector that always points straight upward in the global Z direction regardless of surface orientation"
+      },
+      "explanations": {
+        "a": "Not exactly. A vector from the origin to a point on the surface is called a position vector \u2014 it simply records where the point is in space. A surface normal describes the orientation of the surface at that point, which is geometrically unrelated to the position vector.",
+        "b": "You got it! A surface normal at point P is a unit vector n that lies perpendicular to the tangent plane of the surface at P. It is fundamental to rendering, shading, and mesh generation because it encodes how the surface is oriented in space at each point. The formula ||n|| = sqrt(nx\u00b2+ny\u00b2+nz\u00b2) = 1 confirms it is a unit vector.",
+        "c": "That's a common misconception, but no. A vector connecting two adjacent points describes an edge direction along the surface, not the surface orientation. The normal is perpendicular to such edge vectors, not parallel to them.",
+        "d": "Close, but no. Surface normals are specific to each point and reflect the local geometry \u2014 they vary continuously over a curved surface and can point in any direction in 3D space depending on the surface orientation at that location. For a horizontal floor the normal does point upward, but for a wall it points horizontally, and for a ceiling it points downward."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. Why does a raw point cloud not already contain surface normal information?",
+      "answers": {
+        "a": "It does \u2014 every point cloud automatically includes a normal vector as part of its file format",
+        "b": "A point cloud is an unordered set of 3D coordinate measurements; each point records only where the surface was, not what direction the surface was facing at that location",
+        "c": "Normals cannot be computed for point clouds \u2014 they require a complete mesh to be built first",
+        "d": "A raw point cloud uses only 2D coordinates, so normal computation requires converting to 3D first"
+      },
+      "explanations": {
+        "a": "Close, but no. Some point cloud formats optionally include pre-computed normal fields, but a raw point cloud from a scanner contains only coordinate measurements (X, Y, Z) and possibly colour or intensity. Normal vectors must be estimated from the coordinate data \u2014 they are not inherently recorded by the scanning sensor.",
+        "b": "That's correct. A scanning sensor measures the position of each surface point in 3D space but has no direct measurement of the surface orientation at that point. The orientation must be inferred from the geometric relationship between neighbouring points \u2014 which is exactly what normal estimation algorithms do.",
+        "c": "Close, but no. This is the opposite of the correct workflow. Normal estimation is typically performed on point clouds before mesh generation, not after. The mesh generation step often depends on having estimated normals as input.",
+        "d": "Close, but no. A 3D point cloud already contains three-dimensional coordinates. Normal estimation operates on these 3D coordinates without requiring any dimensional conversion."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. In the PCA-based normal estimation method, why is the k-nearest neighbourhood collected around each point before computing anything?",
+      "answers": {
+        "a": "The neighbourhood is needed to calculate the point's colour for rendering",
+        "b": "The neighbourhood provides the local set of points from which PCA fits a best-fit local plane \u2014 the normal to that plane is the estimated surface normal at the central point",
+        "c": "The neighbourhood is used only to check if the point is near the edge of the scanned object",
+        "d": "Collecting neighbours is just a visualisation step and has no mathematical role in normal computation"
+      },
+      "explanations": {
+        "a": "Close, but no. Colour is a separate attribute of points that has nothing to do with the geometric normal estimation process. The neighbourhood in PCA-based normal estimation is a purely spatial geometric concept.",
+        "b": "Exactly right. The k nearest neighbours form a local sample of the surface in the vicinity of each point. PCA decomposes the spatial variance of this neighbourhood, identifying the directions of greatest and least spread. Points on a smooth surface cluster near a plane locally, and the direction of least spread (minimum eigenvalue eigenvector) is perpendicular to that plane \u2014 giving the surface normal.",
+        "c": "Close, but no. While edge detection can use neighbourhood information as a side effect, the core purpose of k-nearest neighbourhood collection in PCA-based normal estimation is to build a local geometric sample sufficient to estimate the orientation of the local tangent plane.",
+        "d": "Oops, that's not quite right. The neighbourhood collection is the foundational computational step \u2014 without it, there is no data from which to compute the covariance matrix C = (1/k) \u03a3(P\u1d62\u2212P\u0304)(P\u1d62\u2212P\u0304)\u1d40 that drives the entire PCA approach."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. In PCA-based normal estimation, which eigenvector of the local covariance matrix gives the surface normal?",
+      "answers": {
+        "a": "The eigenvector corresponding to the largest eigenvalue",
+        "b": "The eigenvector corresponding to the smallest eigenvalue",
+        "c": "The eigenvector corresponding to the middle eigenvalue",
+        "d": "All three eigenvectors together form the normal"
+      },
+      "explanations": {
+        "a": "Close, but no. The eigenvector with the largest eigenvalue points in the direction of greatest spatial spread in the neighbourhood. For points on a surface this is a direction along the surface \u2014 a tangent direction \u2014 not the normal.",
+        "b": "Exactly right. Eigenvalues measure variance \u2014 how spread out the neighbourhood points are in each direction. On a smooth surface, points in the local neighbourhood scatter mostly within the tangent plane and very little in the normal direction (perpendicular to the surface). The smallest eigenvalue \u03bb\u2080 captures the minimum variance direction, which is perpendicular to the best-fit local plane \u2014 the surface normal direction.",
+        "c": "Oops, that's not quite right. The middle eigenvalue eigenvector corresponds to the second tangent direction of the local surface. For a planar neighbourhood, the two larger eigenvalues correspond to the two principal curvature directions along the surface, and the smallest eigenvalue is the normal.",
+        "d": "Close, but no. The three eigenvectors form an orthogonal coordinate frame aligned with the local surface geometry: two tangent directions and one normal direction. Only the single eigenvector of the smallest eigenvalue is the normal estimate."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. What does the surface curvature estimate \u03ba = \u03bb\u2080 / (\u03bb\u2080 + \u03bb\u2081 + \u03bb\u2082) describe about a point?",
+      "answers": {
+        "a": "The distance from the point to the scanner that captured it",
+        "b": "How sharply the surface bends at that point \u2014 near zero means locally flat, larger values indicate high curvature or noisy data",
+        "c": "The number of nearest neighbours used in the PCA computation",
+        "d": "The colour saturation of that point when rendered"
+      },
+      "explanations": {
+        "a": "Not exactly. Scanner distance is encoded in the depth coordinate of the measurement, not in the PCA eigenvalue ratio. Curvature \u03ba is a purely geometric property of how the local surface is shaped, independent of how far away the scanner was.",
+        "b": "You got it! The curvature estimate \u03ba = \u03bb\u2080/(\u03bb\u2080+\u03bb\u2081+\u03bb\u2082) measures the fraction of total neighbourhood variance that lies along the normal direction (minimum eigenvalue). On a flat surface \u03bb\u2080 \u2248 0, so \u03ba \u2248 0. On a highly curved surface or at a sharp edge, variance in the normal direction grows relative to tangential variance, raising \u03ba. High-\u03ba points are geometrically important and require smaller neighbourhoods for accurate normal estimation.",
+        "c": "Close, but no. The number of nearest neighbours k is a user-chosen parameter set before the PCA computation begins. It does not appear in the formula for \u03ba at all \u2014 \u03ba is computed from the eigenvalues that PCA produces for a given k.",
+        "d": "That's a common misconception, but no. Colour is a radiometric property of the point cloud, unrelated to the geometric PCA eigenvalue analysis that produces \u03ba. The curvature estimate \u03ba depends only on the spatial arrangement of the k neighbourhood points, not on any colour or intensity attributes."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What is the normal orientation ambiguity problem in PCA-based normal estimation, and why does it matter?",
+      "answers": {
+        "a": "PCA sometimes computes a normal that is not a unit vector, requiring normalisation",
+        "b": "PCA produces a normal direction but not a sign \u2014 both n and \u2212n are valid eigenvectors. Without resolving this ambiguity, some normals point inward and some outward, causing incorrect shading and inside-out rendering of the mesh",
+        "c": "PCA can only estimate normals on flat surfaces and fails completely on curved regions",
+        "d": "The orientation ambiguity only affects the X-component of the normal, not Y or Z"
+      },
+      "explanations": {
+        "a": "Ah, incorrect. The eigenvector magnitude issue (unit normalisation) is a trivially corrected numerical step. The genuine ambiguity is about the sign \u2014 which of the two opposite directions n or \u2212n to assign as the outward normal \u2014 not about vector length.",
+        "b": "That's correct. The covariance matrix eigenvalue problem produces an eigenvector v\u2080 with no preferred sign \u2014 both v\u2080 and \u2212v\u2080 are equally valid mathematical solutions. For rendering to look correct, all normals on a closed surface must consistently point outward. If some normals are flipped inward (pointing toward the surface interior), those surface elements will appear lit from the wrong direction in rendering, causing dark patches or inside-out appearance. Resolving the sign ambiguity using viewpoint direction or propagation from a consistently oriented seed point is essential for producing a usable mesh.",
+        "c": "Oops, that's not quite right. PCA-based normal estimation works on both flat and curved surfaces \u2014 in fact, it is specifically designed to handle general curved geometry. On curved surfaces the local neighbourhood approximates a tangent plane, and the PCA correctly estimates the normal to that tangent plane.",
+        "d": "Close, but no. The sign ambiguity affects all three components of the normal vector equally \u2014 flipping the sign of a normal reverses all three components (nx, ny, nz) simultaneously, not just one component."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. What happens to the quality of estimated normals when the neighbourhood size k is set very large on a curved surface?",
+      "answers": {
+        "a": "Normal quality improves indefinitely \u2014 larger k always gives more accurate normals",
+        "b": "Normal quality degrades \u2014 the large neighbourhood includes points from multiple different surface orientations, pulling the estimated normal toward an incorrect average that does not represent the true local orientation at the central point",
+        "c": "Normal quality stays exactly the same regardless of k value",
+        "d": "Very large k causes the normal to always point in the global Z direction"
+      },
+      "explanations": {
+        "a": "Oops, that's not quite right. Larger k does improve robustness to noise (by averaging over more points) but introduces a systematic geometric error on curved surfaces: the neighbourhood spans regions with genuinely different surface orientations, and the PCA best-fit plane is pulled toward a spatially averaged orientation that does not match the true local tangent plane at the central point.",
+        "b": "You got it! On a curved surface, points in a large neighbourhood are not all in the same local tangent plane \u2014 they span an arc of the curve, mixing points from different orientations. The PCA finds the best-fit plane through all of them, which represents a kind of average orientation across the neighbourhood patch. The resulting normal at the central point is systematically biased toward this average, underestimating the true local curvature and smoothing out sharp geometric features. This is the same fundamental trade-off that appears throughout signal processing: more averaging means more noise suppression but also more spatial blurring of genuine features.",
+        "c": "Oops, that's not quite right. The value of k is the most critical parameter in normal estimation precisely because it does significantly affect the results. Very small k produces noise-sensitive but geometrically faithful normals; very large k produces noise-robust but geometrically blurred normals.",
+        "d": "That's a common misconception, but no. There is no mechanism in PCA-based normal estimation that would cause the normal to converge to any specific global direction regardless of the local surface geometry. The PCA always produces a normal perpendicular to the best-fit local plane, whatever direction that happens to be."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. In the greedy triangulation step, why are neighbourhood points projected onto the local tangent plane before triangulation?",
+      "answers": {
+        "a": "To make the points easier to display on a 2D screen",
+        "b": "Because Delaunay triangulation is a 2D algorithm \u2014 projecting the 3D neighbourhood onto the tangent plane converts the local surface connectivity problem into a 2D triangulation problem that can be solved efficiently and reliably",
+        "c": "Projection is done only to calculate the colour of each triangle",
+        "d": "The projection step removes all noisy points from the neighbourhood before triangulation"
+      },
+      "explanations": {
+        "a": "Ah, incorrect. While the tangent plane projection does produce 2D coordinates, the purpose is not screen display \u2014 the projected coordinates are used internally for triangulation computation and then the triangles are defined back in 3D space using the original 3D point positions.",
+        "b": "Exactly right. 3D Delaunay triangulation in arbitrary unorganised point clouds is significantly more complex and less well-behaved than 2D Delaunay triangulation. By projecting the local neighbourhood onto the tangent plane, the algorithm reduces the local connectivity problem to finding the Delaunay triangulation of a 2D point set, which is well-understood, computationally efficient, and reliably produces well-formed triangles that maximise the minimum angle. The normal vector at each point defines the orientation of the projection plane.",
+        "c": "Oops, that's not quite right. Triangle colour in rendering depends on material properties and lighting, not on the internal triangulation algorithm geometry. The tangent plane projection is entirely about establishing which 3D points should be connected by triangle edges.",
+        "d": "Ah, incorrect. The projection step is a coordinate transformation of all neighbourhood points onto a 2D plane \u2014 it does not filter or remove any points. Noise filtering, if required, is a separate preprocessing step handled by algorithms like Statistical Outlier Removal (Experiment 8)."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. What does the 'minimum triangle angle' quality metric measure in a generated mesh?",
+      "answers": {
+        "a": "The total number of triangles in the mesh",
+        "b": "The smallest interior angle found across all triangles \u2014 well-formed triangles have angles near 60\u00b0; very small minimum angles indicate thin, needle-like triangles that cause numerical problems",
+        "c": "The angle between the camera and the scanned object during capture",
+        "d": "The angle between the object's surface and the horizontal ground plane"
+      },
+      "explanations": {
+        "a": "Not exactly. Total triangle count is a separate mesh statistic related to resolution and file size, not to the geometric quality of individual triangles. Minimum triangle angle is about the shape quality of each individual triangle in the mesh.",
+        "b": "Spot on! In a triangulated mesh, each triangle has three interior angles that sum to 180\u00b0. For rendering and simulation stability, all angles should be reasonably large. An equilateral triangle has all angles equal to 60\u00b0 \u2014 this is the ideal. When triangulation produces very elongated, sliver triangles with one angle near 0\u00b0 and two angles near 90\u00b0, numerical operations on the mesh become ill-conditioned. This metric therefore directly indicates reconstruction quality and the reliability of the mesh for downstream processing.",
+        "c": "Oops, that's not quite right. The angle between the camera and the scanned object is a scan configuration parameter captured during the measurement session, not a property of the reconstructed mesh. Triangle quality is a purely geometric property of the output mesh, independent of how the scan was acquired.",
+        "d": "Oops, that's not quite right. The object's orientation relative to the ground plane is a global registration or placement parameter. The minimum triangle angle metric is local to individual triangles within the mesh and measures their geometric shape, not the object's spatial orientation."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. Why is surface normal estimation considered the essential bridge between a raw point cloud and real-world 3D applications?",
+      "answers": {
+        "a": "Because normals allow point clouds to be compressed into smaller file sizes",
+        "b": "Because normals are required for mesh generation, rendering, and simulation \u2014 virtually every downstream application from 3D printing to finite element analysis depends on a triangulated mesh, which cannot be generated without surface orientation information",
+        "c": "Because normals convert a 3D point cloud into a 2D image that can be displayed on any screen",
+        "d": "Because normals allow the point cloud to be registered with another point cloud using ICP"
+      },
+      "explanations": {
+        "a": "Not exactly. Point cloud compression is a separate engineering concern handled by algorithms like octree coding or range encoding. Surface normals have no inherent role in compression \u2014 they are geometric orientation vectors that may even increase file size if stored alongside coordinates.",
+        "b": "Exactly right. Every downstream 3D application ultimately requires a surface representation, not just scattered points. Mesh generation algorithms need normals to determine local surface orientation for triangulation. Rendering engines need normals to compute lighting (the angle between the surface and a light source). Finite element analysis needs consistently oriented surfaces to apply boundary conditions. 3D printing needs a watertight mesh, which requires normals for orientation consistency checks. Without surface normals, a point cloud remains a collection of coordinates with no usable surface geometry.",
+        "c": "Ah, incorrect. Normals do not convert a 3D point cloud to a 2D image \u2014 that would be a separate projection or depth image rendering operation. Normals are 3D vectors that encode orientation information, maintaining the full 3D geometric nature of the data.",
+        "d": "Oops, that's not quite right. ICP registration (Experiment 4) operates directly on point coordinates using nearest-neighbour search and does not fundamentally require pre-computed surface normals (though normal-assisted ICP variants exist). Surface normals are needed for mesh generation and rendering, not as a prerequisite for basic ICP-based registration."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}
