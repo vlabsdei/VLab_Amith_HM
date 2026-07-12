@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. In a simulation, you run SOR with <i>k=8</i> and <i>&alpha;=3.0</i> on a cloud that has 15% sparse outliers. Precision is 0.94 and recall is 0.51. You then reduce <i>&alpha;</i> to 1.2. Precision drops to 0.71, but recall jumps to 0.89! Explain why this trade-off happened. Also, which <i>&alpha;</i> value should you pick if your main goal is taking precise dimensional measurements of the object?",
+      "answers": {
+        "a": "You should pick <i>&alpha;=1.2</i>. Higher recall is always the ultimate goal for any task.",
+        "b": "At <i>&alpha;=3.0</i>, the threshold <i>&mu;&plus;3&sigma;</i> is very loose, catching only extreme outliers (yielding high precision but low recall). At <i>&alpha;=1.2</i>, the threshold tightens to <i>&mu;&plus;1.2&sigma;</i>, catching more outliers (high recall) but accidentally deleting real surface points (low precision). For precise measurements, you MUST preserve the true surface, so the conservative <i>&alpha;=3.0</i> is better.",
+        "c": "Both <i>&alpha;</i> values will give identical dimensional measurements anyway.",
+        "d": "You should pick <i>&alpha;=1.2</i> because a cleaner looking cloud is always more accurate."
+      },
+      "explanations": {
+        "a": "Not true! High recall just means you deleted a lot of points. If you're deleting real surface data, your dimensional measurements will be ruined.",
+        "b": "Exactly! The parameter <i>&alpha;</i> acts as your leniency setting. Dropping it to 1.2 tightens the net, catching more noise but throwing out good data along with it (lowering precision). If dimensional accuracy is your priority, losing genuine surface points is far more damaging than leaving a bit of noise behind. So, <i>&alpha;=3.0</i> is the safer bet.",
+        "c": "The massive difference in precision (0.94 vs 0.71) proves that the physical shape of the remaining cloud will be quite different.",
+        "d": "A cloud might look visually 'cleaner' because it has fewer points, but if those deleted points were part of the real object, your measurements will be biased."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q2. Imagine a scan where the points are very dense in the middle but get naturally sparse toward the edges. You run ROR (<i>r=15mm, n<sub>min</sub>=6</i>), and it accidentally deletes 85% of the genuine points at the edges! You switch to SOR (<i>k=10, &alpha;=2.0</i>), and the false-deletion rate drops to just 12%. Why did SOR handle this so much better?",
+      "answers": {
+        "a": "SOR is simply a newer and universally better algorithm than ROR.",
+        "b": "ROR uses a rigid, fixed physical radius. In sparse areas, valid points naturally don't have enough neighbours within 15mm, so they get deleted. SOR adapts to local density because it looks at the nearest <i>k</i> neighbours (wherever they are) and compares them to a statistical baseline.",
+        "c": "It's just random variance. If you run the simulation again, ROR might win.",
+        "d": "ROR failed because 15mm is technically an invalid input for radius."
+      },
+      "explanations": {
+        "a": "SOR isn't universally better. In fact, it's pretty bad at handling uniform Gaussian noise. But it happens to shine in this specific variable-density scenario.",
+        "b": "Correct! ROR is inflexible—it demands 6 points within exactly 15mm. If the scan naturally spaces out, valid edge points fail this rigid test. SOR, however, is adaptive. It just finds the 10 closest points (even if they are spread out) and checks if their distance is a statistical outlier compared to the rest of the cloud. This flexibility saves the sparse edges.",
+        "c": "This isn't random chance; it's a direct, predictable consequence of how the two algorithms calculate their neighbourhoods.",
+        "d": "15mm is a perfectly valid radius. The problem is that no single fixed radius works for both dense and sparse regions simultaneously."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q3. You use MLS smoothing (bandwidth <i>h=3mm</i>) on a scan of a box, and the sharp 90-degree corners look great. You then crank <i>h</i> up to 25mm, and suddenly the corners are completely rounded off like a melted ice cube! Mathematically, what caused this?",
+      "answers": {
+        "a": "It's just a rendering glitch in the 3D viewer.",
+        "b": "With a large bandwidth (<i>h=25mm</i>), MLS pulls in points from a very wide area. The algorithm tries to fit a smooth polynomial curve through points belonging to two completely different faces of the corner. A single smooth polynomial can't represent a sharp discontinuity, so it 'averages' them into a rounded corner.",
+        "c": "Increasing the bandwidth automatically switches the algorithm from MLS to SOR.",
+        "d": "The rounding effect only triggers when the point cloud has over 1,000 points."
+      },
+      "explanations": {
+        "a": "This isn't a visual glitch. The actual (X,Y,Z) coordinates of the points are being permanently altered by the algorithm.",
+        "b": "Spot on. MLS fits a smooth polynomial surface. By definition, polynomials are smooth and continuous. If your bandwidth is massive, it forces the algorithm to fit one single smooth curve over a sharp geometric corner. The result is a mathematically smoothed, rounded edge that ruins the true sharpness of the object.",
+        "c": "MLS doesn't switch algorithms. This is purely a consequence of the MLS weighting function extending too far.",
+        "d": "This effect depends entirely on the size of the bandwidth relative to the physical scale of the corner, not the total number of points."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q4. You test SOR on a scan that has zero isolated outliers, but it suffers from a thick, uniform fuzzy noise across the entire surface (Gaussian jitter, <i>&sigma;=4mm</i>). You try SOR with <i>&alpha;</i> set to 1.0, 2.0, and 3.0. The filter removes almost nothing, and the F1 score is near zero. Why is SOR utterly failing here?",
+      "answers": {
+        "a": "SOR always fails completely, no matter what kind of noise you have.",
+        "b": "Uniform fuzziness inflates everyone's neighbour distances equally. Since every point is roughly equally far from its neighbours, there is no distinct group of 'outliers' that exceed the <i>&mu;&plus;&alpha;&times;&sigma;</i> threshold.",
+        "c": "There must be a bug in the code for Gaussian noise generation.",
+        "d": "SOR only works if the noise level is exactly <i>&sigma;=5mm</i>."
+      },
+      "explanations": {
+        "a": "Not true. We saw in other experiments that SOR is fantastic at removing isolated 'flying pixels'.",
+        "b": "Exactly! SOR works by finding the weird, lonely points that stand out from the crowd. If uniform noise makes the ENTIRE crowd spread out equally, nobody looks weird anymore! The whole statistical baseline shifts, and the <i>&mu;&plus;&alpha;&times;&sigma;</i> threshold fails to catch anything.",
+        "c": "It's not a bug, it's a fundamental theoretical limitation of the algorithm.",
+        "d": "SOR has no strict requirement for the exact magnitude of the noise."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q5. You have a scan with both flying pixels (outliers) and surface fuzziness. You try two sequences. Sequence A: Run ROR, then MLS. Sequence B: Run MLS, then ROR. Sequence A produces a beautiful, smooth surface. Sequence B produces weird, bumpy lumps right where the outliers used to be! Why does the order matter so much?",
+      "answers": {
+        "a": "The order doesn't actually matter; both should yield the exact same math.",
+        "b": "In Sequence B, MLS tries to smooth the surface while the outliers are still there! The extreme outliers pull the smooth polynomial curve up toward them, permanently warping the surface. ROR later deletes the outlier, but the surface remains warped.",
+        "c": "Sequence B only failed because you probably entered the wrong parameters for ROR.",
+        "d": "MLS is just a worse algorithm than ROR, so you shouldn't use it first."
+      },
+      "explanations": {
+        "a": "Filtering algorithms are not commutative! Order fundamentally changes the outcome.",
+        "b": "Correct! This is why professional pipelines almost always run outlier removal BEFORE smoothing. If you smooth first (MLS), the outliers act like gravity, pulling the local surface fit toward themselves. You end up projecting perfectly good surface points onto this distorted, lumpy surface. Deleting the outlier afterward doesn't fix the lump you just created!",
+        "c": "Assuming parameters were identical, the order of operations alone guarantees this failure.",
+        "d": "MLS isn't 'worse', it just serves a completely different purpose (smoothing vs deletion). Using them in the wrong order breaks the logic."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q6. You run identical SOR settings on three different shapes, all injected with 15% sparse outliers: a flat plane, a gentle curve, and a highly complex ridged surface. Interestingly, the Recall drops significantly on the complex ridged surface. Why does SOR struggle to identify outliers on complex geometry?",
+      "answers": {
+        "a": "Complex geometry confuses the colour-processing part of the SOR algorithm.",
+        "b": "On complex ridged surfaces, even genuine surface points have slightly larger and highly variable neighbour distances simply because they sit on sharp folds. This raises the overall statistical 'noise floor' (<i>&mu;</i> and <i>&sigma;</i>), meaning real outliers don't stand out as much against the threshold.",
+        "c": "This result breaks the laws of math and indicates a massive bug in the simulation.",
+        "d": "The flat plane probably had fewer total points, making the math easier."
+      },
+      "explanations": {
+        "a": "SOR doesn't process colour at all. It's a purely spatial (X,Y,Z) algorithm.",
+        "b": "Spot on. When you fold a surface into ridges, the points along the crest of the ridge are naturally spread out across different angles. This causes their neighbour distances to jump up, inflating the global standard deviation (<i>&sigma;</i>). Because the baseline <i>&sigma;</i> is now higher, the rejection threshold becomes looser, and some real outliers manage to slip through (lowering the Recall).",
+        "c": "It's not a bug. It's a well-documented geometric consequence of how statistics interact with physical shapes.",
+        "d": "The total point count doesn't cause this; the physical arrangement of the points does."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q7. You have a terribly messy scan: 20% flying outliers AND 2mm of uniform fuzzy jitter everywhere. SOR cleans the outliers but leaves the fuzz. MLS smooths the fuzz but just pushes the outliers closer to the surface without deleting them. What is the most logical way to fix this scan?",
+      "answers": {
+        "a": "Run MLS twice in a row. It will eventually delete the outliers.",
+        "b": "Run SOR first to aggressively delete the flying outliers, producing a clean but fuzzy cloud. Then, run MLS on the cleaned cloud to iron out the uniform jitter.",
+        "c": "Run SOR twice. It will eventually figure out how to smooth the uniform jitter.",
+        "d": "Just use MLS. Since it smoothed the surface, the outliers aren't a problem anymore."
+      },
+      "explanations": {
+        "a": "MLS is a smoothing algorithm. It repositions points, but it literally cannot delete them. Running it 100 times won't delete a single outlier.",
+        "b": "Exactly! This is the ultimate lesson of the experiment. You have two distinct types of noise, so you need two distinct algorithms. SOR is the perfect weapon to delete the flying pixels. Once they are gone, MLS is the perfect iron to press out the uniform fuzziness. Doing it in this specific sequence guarantees the best possible result.",
+        "c": "SOR cannot smooth jitter, because uniform jitter doesn't create statistically distinct outliers.",
+        "d": "If MLS just pushes outliers closer without deleting them, they are still corrupting the final shape and ruining your dimensional accuracy!"
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q8. You're testing SOR. You change <i>k</i> from 6 to 30. The F1 score improves, which is great! But suddenly, genuine points along a tight, curved rim of the object start getting wrongly deleted. Why did increasing <i>k</i> cause this new problem?",
+      "answers": {
+        "a": "Increasing <i>k</i> is always 100% beneficial, so this must be totally unrelated.",
+        "b": "A larger <i>k</i> provides better, more stable statistics (improving F1). However, on a tight curve, finding 30 neighbours forces the algorithm to cast a very wide physical net. These points are spread far apart along the curve, inflating their average distance. SOR gets confused and thinks these naturally spaced curved points are outliers.",
+        "c": "Increasing <i>k</i> just slows the computer down, causing rounding errors in the math.",
+        "d": "<i>k=30</i> is an invalid setting that breaks the algorithm."
+      },
+      "explanations": {
+        "a": "In 3D processing, almost every parameter change comes with a trade-off. Increasing <i>k</i> is not purely beneficial.",
+        "b": "Correct! This is very similar to the PCA normal estimation trade-offs in Experiment 7. A larger <i>k</i> gives you more data to average out noise (better F1). But, on a tight curve, finding 30 friends means looking really far away. The mean distance shoots up, and SOR accidentally deletes the edge of your object thinking it's an outlier.",
+        "c": "This is a geometric consequence, not a computational floating-point error.",
+        "d": "<i>k=30</i> is completely valid, you just have to be aware of the geometric consequences!"
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q9. You are using ROR on a scan of a coin that has tiny 3mm engraved letters. At a radius of 10mm, the letters look fine. But when you bump the radius up to 40mm, the letters vanish completely! ROR only deletes points, it doesn't smooth them. So how did it 'erase' the letters?",
+      "answers": {
+        "a": "It's impossible. ROR can't erase features, so this must be a glitch.",
+        "b": "At a huge 40mm radius, the algorithm looks at the few points sitting on top of the 3mm letter, and compares them to the massive flat area surrounding it. Because the points on the raised letter are a tiny minority within that huge 40mm sphere, they fail the density check and get deleted. The letters aren't smoothed; they are literally amputated.",
+        "c": "ROR automatically activates an MLS smoothing protocol if the radius gets too large.",
+        "d": "Engraved letters always disappear if your scan has more than 500 points."
+      },
+      "explanations": {
+        "a": "It's very possible! A point-deletion algorithm can absolutely make features disappear if it deletes the specific points that define that feature.",
+        "b": "Exactly. This is a crucial danger of using oversized radii. A tiny raised detail (like a letter) consists of a few points sitting slightly above the surface. If you use a massive 40mm radius, the algorithm demands a high density of neighbours. The points on the letter are relatively isolated compared to the dense flat base, so ROR ruthlessly deletes them. The feature isn't smoothed—it's chopped off.",
+        "c": "ROR never switches algorithms. It's just aggressively deleting points.",
+        "d": "The total point count doesn't matter; it's the ratio of the radius size to the physical feature size that causes the problem."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q10. You test 6 different filtering pipelines on a messy, highly detailed mechanical part. Pipeline 4 (SOR then MLS) scores the absolute highest. Pipeline 6 (MLS then SOR) scores the absolute lowest—worse than just running a single filter! Why?",
+      "answers": {
+        "a": "The ranking is just random noise.",
+        "b": "Single filters (like just SOR) only solve half the problem. Pipeline 4 wins because SOR perfectly deletes the outliers first, leaving a clean canvas for MLS to iron out the fuzz. Pipeline 6 is a disaster because MLS runs first, grabbing the extreme outliers and using them to mathematically warp the surface. Running SOR afterward deletes the outlier, but the surface remains permanently warped.",
+        "c": "Since both pipelines use the exact same two algorithms, they should have scored identically.",
+        "d": "Pipeline 6 failed because MLS takes longer to run, causing the system to time out."
+      },
+      "explanations": {
+        "a": "This outcome is 100% predictable based on the math behind the algorithms.",
+        "b": "Perfect synthesis! This combines everything we've learned. You must use the right tool for the right job, in the right order. Pipeline 4 uses the deletion tool (SOR) to clear the big debris, then the smoothing tool (MLS) to polish the surface. Pipeline 6 uses the polish tool while the debris is still there, grinding the debris into the surface and ruining it permanently.",
+        "c": "Filtering algorithms are highly order-dependent!",
+        "d": "This is a geometric failure, not a computational timeout."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}

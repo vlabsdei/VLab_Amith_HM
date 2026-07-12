@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Scan Noise Filtering Algorithm Comparator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<!-- ================= SETUP VIEW ================= -->
+<div id="setup-view" class="active" style="flex-direction: column; flex: 1; min-height: 0;">
+  <main id="app-main">
+    
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside id="wizard-panel">
+      <div id="wizard-info">
+        <div class="step-badge" id="step-badge">STEP 1 OF 4</div>
+        <h2 id="wizard-title">Mount Components</h2>
+        <p id="wizard-text">This experiment processes an existing noisy scan on a virtual bench. Mount each module to build the pipeline. Watch the 3D scene to see the module boxes and algorithm spheres appear as they are mounted.</p>
+        <div id="wizard-task" class="task-box">
+          Select component and click <strong>Mount Component</strong> sequentially.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Component Specifications -->
+      <h3 class="panel-heading">
+        <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Component Specs
+      </h3>
+      <div id="spec-content" class="spec-content">
+        <p class="specs-placeholder" id="spec-placeholder">Select a component to view specifications.</p>
+        <table class="spec-table" id="spec-table" style="display:none">
+          <tbody id="spec-tbody"></tbody>
+        </table>
+        <p class="spec-desc" id="spec-desc" style="display:none; font-size:10.5px; color:var(--slate-500); margin-top:8px; line-height:1.4;"></p>
+      </div>
+
+      <!-- 3D View Controls -->
+      <div id="view-controls">
+        <div class="legend-title">3D View Controls</div>
+        <div class="control-hints desktop-controls">
+          <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+          <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+          <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+        </div>
+        <div class="control-hints mobile-controls">
+          <div class="hint-row"><span class="hint-key">👆 1 Finger</span><span class="hint-val">Orbit</span></div>
+          <div class="hint-row"><span class="hint-key">✌️ 2 Fingers</span><span class="hint-val">Pan</span></div>
+          <div class="hint-row"><span class="hint-key">🤏 Pinch</span><span class="hint-val">Zoom</span></div>
+        </div>
+        <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+        <div class="preset-btns">
+          <button class="btn-preset active" data-view="iso">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+            Isometric
+          </button>
+          <button class="btn-preset" data-view="top">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+            Top
+          </button>
+          <button class="btn-preset" data-view="front">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+            Front
+          </button>
+          <button class="btn-preset" data-view="side">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+            Side
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ CENTER PANEL — 3D CANVAS ═══ -->
+    <section id="canvas-area">
+      <div class="canvas-card" id="card-3d">
+        <div class="card-header">
+          <span class="card-title">
+            <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            3D Setup &amp; Preview
+          </span>
+          <span class="card-sub" id="canvas-status">Interactive Virtual Workbench</span>
+        </div>
+        <div id="setup-canvas-container" class="viewport-wrap" style="flex:1; border-radius: var(--rsm); position: relative; border: 1px solid var(--slate-200); background: #e8edf5;">
+          <canvas id="three-canvas" style="width:100%; height:100%; display:block;"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <aside id="controls-panel">
+      <!-- STEP 1: Component Mounting -->
+      <div id="step-1" class="step-content active">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Apparatus
+        </h3>
+        <div class="apparatus-list">
+          <div class="apparatus-card selected" data-comp="cloud">
+            <svg viewBox="0 0 24 24" fill="#f59e0b" class="apparatus-thumb cloud-icon" style="padding:6px;"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="12" cy="18" r="2"/><circle cx="5" cy="16" r="2" fill="#ef4444"/><circle cx="16" cy="14" r="2" fill="#ef4444"/></svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Noisy Scan Dataset</span>
+              <span class="apparatus-status" id="state-cloud">Unmounted</span>
+            </div>
+          </div>
+
+          <div class="apparatus-card" data-comp="sor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" class="apparatus-thumb sor-icon" stroke-width="2" style="padding:6px;"><path d="M4 14 Q12 18 20 14"/><line x1="20" y1="4" x2="20" y2="20" stroke="#ef4444"/></svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">SOR Module</span>
+              <span class="apparatus-status" id="state-sor">Unmounted</span>
+            </div>
+          </div>
+
+          <div class="apparatus-card" data-comp="ror">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" class="apparatus-thumb ror-icon" stroke-width="2" style="padding:6px;"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2" fill="#2563eb"/></svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">ROR Module</span>
+              <span class="apparatus-status" id="state-ror">Unmounted</span>
+            </div>
+          </div>
+
+          <div class="apparatus-card" data-comp="mls">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" class="apparatus-thumb mls-icon" stroke-width="2" style="padding:6px;"><path d="M4 12 Q12 4 20 12"/><path d="M4 12 Q12 4 20 12" stroke-dasharray="2 2" transform="translate(0, -4)"/></svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">MLS Module</span>
+              <span class="apparatus-status" id="state-mls">Unmounted</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-mount" class="btn-primary btn-mount-anim" style="display:flex; justify-content:center; align-items:center;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+          Mount Component
+        </button>
+        <div class="divider"></div>
+        <button class="btn-reset-sm btn-reset-setup" id="btn-reset">Reset Setup</button>
+      </div>
+
+      <!-- STEP 2: Load Cloud Info -->
+      <div id="step-2" class="step-content">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Observation
+        </h3>
+        <p class="panel-p">The noisy scan is loaded. Orange dots are surface points; red dots are injected outliers.</p>
+        <div class="obs-box" style="background:var(--blue-lt); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:var(--rsm); padding:10px; margin-bottom:16px;">
+          <div class="obs-label" style="font-size:10px; font-weight:700; color:var(--blue-d); margin-bottom:4px;">Observation</div>
+          <p style="font-size:11px; color:var(--slate-700);">Genuine points cluster tightly along the surface. Red points mimic flying pixels scattered away from the surface.</p>
+        </div>
+        <div class="step-nav" style="display:flex; gap:6px; margin-top:8px; margin-bottom:12px;">
+          <button class="btn-ghost" id="btn-prev-2" style="flex:1;">Back</button>
+          <button class="btn-primary" id="btn-next-2" style="flex:1;">Next</button>
+        </div>
+        <div class="divider"></div>
+        <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+      </div>
+
+      <!-- STEP 3: Configure Filter -->
+      <div id="step-3" class="step-content">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          Filter Parameters
+        </h3>
+        <p class="panel-p">Choose a filter and adjust its primary threshold to preview its local neighborhood in the 3D scene.</p>
+        
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Filter type</span><span class="ctrl-val" id="sv-filtertype">SOR</span></div>
+          <div class="slider-track" style="margin-bottom:4px;"><input type="range" class="setup-range" id="sr-filtertype" min="0" max="2" value="0" step="1"/></div>
+          <div class="ctrl-range-row"><span>SOR</span><span>ROR</span><span>MLS</span></div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-top"><span class="ctrl-name">Primary param</span><span class="ctrl-val" id="sv-primary">&alpha; = 2.0</span></div>
+          <div class="slider-track" style="margin-bottom:4px;"><input type="range" class="setup-range" id="sr-primary" min="0.5" max="4" value="2" step="0.1"/></div>
+          <div class="ctrl-range-row"><span>Aggressive</span><span>Conservative</span></div>
+        </div>
+
+        <div class="step-nav" style="display:flex; gap:6px; margin-top:16px; margin-bottom:12px;">
+          <button class="btn-ghost" id="btn-prev-3" style="flex:1;">Back</button>
+          <button class="btn-primary" id="btn-next-3" style="flex:1;">Next</button>
+        </div>
+        <div class="divider"></div>
+        <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+      </div>
+
+      <!-- STEP 4: Run Pass & Review -->
+      <div id="step-4" class="step-content">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Filter Pass Results
+        </h3>
+        <div class="scan-counter" style="text-align:center; padding:12px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); margin-bottom:12px;">
+          <div class="pc-num" id="processed-count" style="font-size:32px; font-weight:700; color:var(--blue);">0</div>
+          <div class="pc-label" style="font-size:10px; color:var(--slate-500);">points processed</div>
+          <div class="pc-bar" style="height:4px; background:var(--slate-200); border-radius:10px; margin-top:8px; overflow:hidden;">
+            <div id="processed-fill" style="height:100%; width:0%; background:var(--blue); transition:width 0.1s linear; border-radius:10px;"></div>
+          </div>
+        </div>
+        <button class="btn-secondary" id="btn-run-filter" style="width:100%; margin-bottom:12px;">Run Filter Pass</button>
+
+        <div class="result-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          <div class="rcard" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="rcard-label" style="font-size:9.5px; color:var(--slate-500);">Precision</div><div class="rcard-val" id="r-precision" style="font-size:16px; font-weight:700; color:var(--blue);">—</div></div>
+          <div class="rcard" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="rcard-label" style="font-size:9.5px; color:var(--slate-500);">Recall</div><div class="rcard-val" id="r-recall" style="font-size:16px; font-weight:700; color:var(--blue);">—</div></div>
+          <div class="rcard full-span" style="grid-column:1/-1; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;">
+            <div class="rcard-label" style="font-size:9.5px; color:var(--slate-500);">F1 Score</div>
+            <div class="rcard-val large" id="r-f1" style="font-size:24px; font-weight:700; color:var(--blue);">—</div>
+          </div>
+        </div>
+
+        <div class="step-nav" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+          <button class="btn-ghost" id="btn-prev-4" style="flex:1;">Back</button>
+        </div>
+        <div class="divider"></div>
+        <button id="btn-launch-sim" class="btn-primary btn-sim" style="display:flex; justify-content:center; align-items:center; width:100%; background:linear-gradient(135deg, #22c55e, #16a34a); margin-bottom:12px; margin-top:8px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Go To Simulation
+        </button>
+        <button class="btn-reset-sm btn-reset-setup">Reset Setup</button>
+      </div>
+      
+    </aside>
+  </main>
+</div>
+
+
+<!-- ================= SIMULATION VIEW ================= -->
+<div id="simulation-view" style="flex-direction: column; flex: 1; min-height: 0;">
+  <main id="app-main" style="grid-template-columns: 230px 1fr 230px;">
+    
+    <!-- LEFT: WIZARD -->
+    <aside id="wizard-panel" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:12px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--shadow-sm); overflow-y:auto; min-height:0;">
+      <div class="wiz-box" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:10px;">
+        <div class="wiz-step-dots" id="wiz-dots" style="display:flex; gap:6px; margin-bottom:8px;">
+          <span class="wdot active" data-ws="0" style="width:16px; height:8px; border-radius:4px; background:var(--blue);"></span>
+          <span class="wdot" data-ws="1" style="width:8px; height:8px; border-radius:50%; background:var(--slate-300);"></span>
+          <span class="wdot" data-ws="2" style="width:8px; height:8px; border-radius:50%; background:var(--slate-300);"></span>
+          <span class="wdot" data-ws="3" style="width:8px; height:8px; border-radius:50%; background:var(--slate-300);"></span>
+        </div>
+        <div class="wiz-title" id="wiz-title" style="font-size:13px; font-weight:700; color:var(--blue-d); margin-bottom:5px;">Tune SOR's Threshold</div>
+        <div class="wiz-text" id="wiz-text" style="font-size:11px; color:var(--slate-500); line-height:1.5; margin-bottom:6px;"></div>
+        <div class="wiz-task" id="wiz-task" style="background:var(--blue-lt); border-left:3px solid var(--blue); padding:6px 8px; font-size:10.5px; color:var(--blue-d); border-radius:0 var(--rsm) var(--rsm) 0; margin-bottom:8px;"></div>
+        <div class="wiz-btns" style="display:flex; flex-direction:column; gap:5px;">
+          <button class="btn-primary" id="wiz-next">Next Step</button>
+          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
+          <button class="btn-back" id="btn-back-setup">Back to Setup</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Live Readouts (Moved from right to left as requested) -->
+      <h3 class="panel-heading" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; margin-bottom:8px;">Live Readouts</h3>
+      <div class="ro-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:8px;">
+        <div class="ro-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="ro-label" style="font-size:9.5px; color:var(--slate-500);">Precision</div><div class="ro-val" id="ro-precision" style="font-family:var(--mono); font-size:16px; font-weight:700; color:var(--slate-900);">—</div></div>
+        <div class="ro-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="ro-label" style="font-size:9.5px; color:var(--slate-500);">Recall</div><div class="ro-val" id="ro-recall" style="font-family:var(--mono); font-size:16px; font-weight:700; color:var(--slate-900);">—</div></div>
+        <div class="ro-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="ro-label" style="font-size:9.5px; color:var(--slate-500);">F1 Score</div><div class="ro-val" id="ro-f1" style="font-family:var(--mono); font-size:16px; font-weight:700; color:var(--slate-900);">—</div></div>
+        <div class="ro-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="ro-label" style="font-size:9.5px; color:var(--slate-500);">Removed</div><div class="ro-val" id="ro-removed" style="font-family:var(--mono); font-size:16px; font-weight:700; color:var(--slate-900);">—</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="panel-heading" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; margin-bottom:8px;">Confusion Breakdown</h3>
+      <div class="dist-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:10px;">
+        <div class="dist-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="dc-label" style="font-size:9.5px; color:var(--slate-500);">TP</div><div class="dc-val" id="cm-tp" style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--slate-800);">—</div></div>
+        <div class="dist-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="dc-label" style="font-size:9.5px; color:var(--slate-500);">FP</div><div class="dc-val" id="cm-fp" style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--slate-800);">—</div></div>
+        <div class="dist-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="dc-label" style="font-size:9.5px; color:var(--slate-500);">FN</div><div class="dc-val" id="cm-fn" style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--slate-800);">—</div></div>
+        <div class="dist-card" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:6px;"><div class="dc-label" style="font-size:9.5px; color:var(--slate-500);">TN</div><div class="dc-val" id="cm-tn" style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--slate-800);">—</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="panel-heading" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; margin-bottom:8px;">Algorithm Comparison</h3>
+      <div class="bbox-grid" style="display:flex; flex-direction:column; gap:4px;">
+        <div class="bbox-row" style="display:flex; justify-content:space-between; font-size:11px; padding:4px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm);"><span style="color:var(--slate-500);">SOR F1</span><span id="bb-sorf1" style="font-family:var(--mono); font-weight:600; color:var(--slate-800);">—</span></div>
+        <div class="bbox-row" style="display:flex; justify-content:space-between; font-size:11px; padding:4px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm);"><span style="color:var(--slate-500);">ROR F1</span><span id="bb-rorf1" style="font-family:var(--mono); font-weight:600; color:var(--slate-800);">—</span></div>
+        <div class="bbox-row" style="display:flex; justify-content:space-between; font-size:11px; padding:4px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm);"><span style="color:var(--slate-500);">MLS RMSE</span><span id="bb-mlsrmse" style="font-family:var(--mono); font-weight:600; color:var(--slate-800);">—</span></div>
+      </div>
+
+    </aside>
+
+    <!-- CENTER: CANVAS AREA -->
+    <section id="canvas-area" style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
+      <div class="sim-row" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; min-height:0;">
+        <div class="sim-card" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:8px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); overflow:hidden;">
+          <div class="sc-head" style="margin-bottom:4px;"><span class="sc-title" style="font-size:11.5px; font-weight:700; color:var(--slate-700); display:block;">Before / After Cloud</span><span class="sc-sub" style="font-size:10px; color:var(--slate-500);">Left: raw input. Right: filtered. Drag to rotate.</span></div>
+          <canvas id="cvs-beforeafter" style="flex:1; width:100%; height:0; min-height:0; display:block; border:1px solid var(--slate-200); border-radius:var(--rsm); background:var(--slate-50);"></canvas>
+        </div>
+        <div class="sim-card" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:8px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); overflow:hidden;">
+          <div class="sc-head" style="margin-bottom:4px;"><span class="sc-title" style="font-size:11.5px; font-weight:700; color:var(--slate-700); display:block;">Classification Map</span><span class="sc-sub" style="font-size:10px; color:var(--slate-500);">Green=TP, Red=FP, Amber=FN</span></div>
+          <canvas id="cvs-classify" style="flex:1; width:100%; height:0; min-height:0; display:block; border:1px solid var(--slate-200); border-radius:var(--rsm); background:var(--slate-50);"></canvas>
+        </div>
+      </div>
+      <div class="sim-row" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; min-height:0;">
+        <div class="sim-card" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:8px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); overflow:hidden;">
+          <div class="sc-head" style="margin-bottom:4px;"><span class="sc-title" style="font-size:11.5px; font-weight:700; color:var(--slate-700); display:block;">Neighbour Distance Histogram</span><span class="sc-sub" style="font-size:10px; color:var(--slate-500);">Distribution for SOR threshold</span></div>
+          <canvas id="cvs-histogram" style="flex:1; width:100%; height:0; min-height:0; display:block; border:1px solid var(--slate-200); border-radius:var(--rsm); background:var(--slate-50);"></canvas>
+        </div>
+        <div class="sim-card" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:8px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); overflow:hidden;">
+          <div class="sc-head" style="margin-bottom:4px;"><span class="sc-title" style="font-size:11.5px; font-weight:700; color:var(--slate-700); display:block;">Precision-Recall Trade-off Curve</span><span class="sc-sub" style="font-size:10px; color:var(--slate-500);">Sweeping primary parameter</span></div>
+          <canvas id="cvs-prcurve" style="flex:1; width:100%; height:0; min-height:0; display:block; border:1px solid var(--slate-200); border-radius:var(--rsm); background:var(--slate-50);"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: CONTROLS -->
+    <aside id="controls-panel" style="background:var(--white); border:1px solid var(--slate-200); border-radius:var(--r); padding:12px; display:flex; flex-direction:column; gap:0; box-shadow:var(--shadow-sm); overflow-y:auto; min-height:0;">
+      
+      <div class="params-title" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Filter Selection</div>
+      
+      <div class="ctrl-group" id="pg-algo" style="margin-bottom:12px; background:var(--white); padding:8px; border-radius:var(--rsm); border:1px solid transparent;">
+        <div class="ctrl-top" style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;"><span class="ctrl-name" style="font-size:11.5px; font-weight:600; color:var(--slate-700);">Algorithm</span><span class="ctrl-val" id="pv-algo" style="font-family:var(--mono); font-size:12px; font-weight:600; color:var(--blue-d); background:var(--blue-lt); padding:1px 7px; border-radius:3px;">SOR</span></div>
+        <div class="slider-track" id="track-algo">
+          <input type="range" class="sim-range" id="r-algo" min="0" max="2" step="1" value="0"/>
+        </div>
+        <div class="ctrl-range-row" style="display:flex; justify-content:space-between; font-size:9px; color:var(--slate-400); font-family:var(--mono); margin-top:2px;"><span>SOR</span><span>ROR</span><span>MLS</span></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="params-title" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Parameters</div>
+
+      <div class="ctrl-group" id="pg-k">
+        <div class="ctrl-top"><span class="ctrl-name">Neighbourhood <em>k</em></span><span class="ctrl-val" id="pv-k">10</span></div>
+        <div class="slider-track" id="track-k"><input type="range" class="sim-range" id="r-k" min="3" max="40" step="1" value="10"/></div>
+        <div class="ctrl-range-row"><span>3</span><span>40</span></div>
+        <p class="ctrl-hint">Used by SOR and as fallback k.</p>
+      </div>
+
+      <div class="ctrl-group" id="pg-alpha">
+        <div class="ctrl-top"><span class="ctrl-name">SOR &alpha;</span><span class="ctrl-val" id="pv-alpha">2.0</span></div>
+        <div class="slider-track" id="track-alpha"><input type="range" class="sim-range" id="r-alpha" min="0.5" max="4" step="0.1" value="2"/></div>
+        <div class="ctrl-range-row"><span>0.5</span><span>4.0</span></div>
+        <p class="ctrl-hint">reject if d&#772;(p) &gt; &mu; + &alpha;&sigma;</p>
+      </div>
+
+      <div class="ctrl-group" id="pg-radius">
+        <div class="ctrl-top"><span class="ctrl-name">ROR Radius <em>r</em></span><span class="ctrl-val" id="pv-radius">15 mm</span></div>
+        <div class="slider-track" id="track-radius"><input type="range" class="sim-range" id="r-radius" min="5" max="60" step="1" value="15"/></div>
+        <div class="ctrl-range-row"><span>5 mm</span><span>60 mm</span></div>
+      </div>
+
+      <div class="ctrl-group" id="pg-nmin">
+        <div class="ctrl-top"><span class="ctrl-name">ROR n_min</span><span class="ctrl-val" id="pv-nmin">6</span></div>
+        <div class="slider-track" id="track-nmin"><input type="range" class="sim-range" id="r-nmin" min="2" max="20" step="1" value="6"/></div>
+        <div class="ctrl-range-row"><span>2</span><span>20</span></div>
+      </div>
+
+      <div class="ctrl-group" id="pg-bandwidth">
+        <div class="ctrl-top"><span class="ctrl-name">MLS Bandwidth <em>h</em></span><span class="ctrl-val" id="pv-bandwidth">6 mm</span></div>
+        <div class="slider-track" id="track-bandwidth"><input type="range" class="sim-range" id="r-bandwidth" min="1" max="30" step="1" value="6"/></div>
+        <div class="ctrl-range-row"><span>1 mm</span><span>30 mm</span></div>
+        <p class="ctrl-hint">w(d) = exp(&minus;d&sup2;/h&sup2;)</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="kp-title" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; margin-bottom:8px;">F1 Quality Gauge</div>
+      <div class="quality-wrap" style="display:flex; flex-direction:column; align-items:center; margin-bottom:10px;">
+        <div class="quality-arc"><canvas id="gauge-canvas" style="width:100%; height:80px;"></canvas></div>
+        <div class="quality-label" id="quality-label" style="font-size:14px; font-weight:700; color:var(--slate-900); margin-top:-4px;">—</div>
+        <div class="quality-sub" id="quality-sub" style="font-size:10px; color:var(--slate-500);">Adjust parameters</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="kp-title" style="font-size:11px; font-weight:700; color:var(--slate-600); text-transform:uppercase; margin-bottom:8px;">Point Cloud Stats</div>
+      <canvas id="cvs-stats-mini" style="width:100%; height:80px; border:1px solid var(--slate-200); border-radius:var(--rsm); background:var(--slate-50);"></canvas>
+      <p class="div-hint" style="font-size:9.5px; color:var(--slate-500); text-align:center; margin-top:4px;">Points remaining vs original.</p>
+
+      <div class="divider"></div>
+
+      <div class="formula-card-sm" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--rsm); padding:8px; margin-bottom:8px;">
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center; padding:2px 0; border-bottom:1px dashed var(--slate-200);"><span class="fcs-eq" style="font-family:var(--mono); font-size:9.5px; color:var(--slate-600);">P = TP/(TP+FP)</span><span class="fcs-desc" style="font-size:9.5px; color:var(--slate-400);">precision</span></div>
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center; padding:2px 0; border-bottom:1px dashed var(--slate-200);"><span class="fcs-eq" style="font-family:var(--mono); font-size:9.5px; color:var(--slate-600);">R = TP/(TP+FN)</span><span class="fcs-desc" style="font-size:9.5px; color:var(--slate-400);">recall</span></div>
+        <div class="fcs-row" style="display:flex; justify-content:space-between; align-items:center; padding:2px 0;"><span class="fcs-eq" style="font-family:var(--mono); font-size:9.5px; color:var(--slate-600);">F1 = 2PR/(P+R)</span><span class="fcs-desc" style="font-size:9.5px; color:var(--slate-400);">combined</span></div>
+      </div>
+      <button class="btn-reset-sm" id="btn-sim-reset2">Reset Defaults</button>
+
+    </aside>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

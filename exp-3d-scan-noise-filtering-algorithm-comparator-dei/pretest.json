@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. Why is noise filtering so important before we use a point cloud to build a 3D mesh or align it with another scan?",
+      "answers": {
+        "a": "It's not really needed—most meshing software just ignores the noisy points automatically.",
+        "b": "Raw scans are messy! They have flying pixels and random fuzziness. If we don't clean it up, later steps get confused, leading to spiky, broken 3D models.",
+        "c": "We only filter to make the file size smaller so it loads faster.",
+        "d": "Filtering is only necessary if you are using a LiDAR scanner; other scanners produce perfect data."
+      },
+      "explanations": {
+        "a": "Not quite! Meshing algorithms (like the ones in Experiment 7) don't have a 'smart filter' built in. They'll try to build triangles out of every single point you give them, noise included.",
+        "b": "Exactly! If you feed noisy data into a pipeline, you get messy results out. Noise ruins correspondence matching in registration (Experiment 4) and causes greedy meshing algorithms to create completely unrealistic spikes and holes (Experiment 7).",
+        "c": "While removing outliers might technically delete a few points, compression and downsampling are totally separate topics. Filtering is all about improving geometric quality.",
+        "d": "If only that were true! Every single 3D scanning tech (LiDAR, structured light, stereo vision) produces some amount of noise. Filtering is a universal requirement."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. What is the fundamental balancing act (or trade-off) that every filtering algorithm has to manage?",
+      "answers": {
+        "a": "Balancing the file size against the loading speed.",
+        "b": "Being aggressive enough to scrub away the noise, while being careful enough not to erase sharp, genuine surface details.",
+        "c": "Balancing the vibrant colours of the scan against its 3D structural accuracy.",
+        "d": "There is no trade-off—a good algorithm easily deletes 100% of the noise while keeping 100% of the details."
+      },
+      "explanations": {
+        "a": "Incorrect. File size is an engineering problem, not a geometric filtering challenge.",
+        "b": "Spot on. This is the central tension of the experiment. If you crank up the filter settings, you might get a perfectly smooth surface, but you'll accidentally round off all the sharp corners. If you set it too weak, you keep the details but leave a lot of fuzzy noise behind.",
+        "c": "These filtering algorithms only look at 3D geometry (X, Y, Z coordinates). They don't care about colour at all!",
+        "d": "Unfortunately, physics and math get in the way. Because noise often looks geometrically similar to fine surface details, there is no magic 'perfect' setting. You always have to make a compromise."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. What is the core idea behind Statistical Outlier Removal (SOR)?",
+      "answers": {
+        "a": "It deletes points that are a different colour from their neighbours.",
+        "b": "It checks how far away a point is from its neighbours. If it's statistically much farther away than average, it gets booted out.",
+        "c": "It deletes exactly 10% of the points from every scan, no matter what.",
+        "d": "It counts how many times a point is duplicated in the file."
+      },
+      "explanations": {
+        "a": "SOR doesn't look at colour at all—it only cares about spatial geometry.",
+        "b": "Yes! SOR calculates the mean distance from every point to its neighbours. It then finds the overall average (μ) across the whole cloud. If a point is sitting way too far from its friends (beyond the threshold μ + α×σ), SOR flags it as an outlier and deletes it.",
+        "c": "SOR dynamically adapts to the data. If the scan is perfectly clean, it might remove 0 points. If it's incredibly noisy, it might remove thousands.",
+        "d": "Point clouds generally don't have duplicated points, and SOR certainly doesn't work by counting them."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. In the SOR formula: <br><div style=\"text-align: center; margin: 10px 0;\">Reject <i>p</i> if <i>d&#772;(p)</i> &gt; <i>&mu;</i> &plus; <i>&alpha;</i> &times; <i>&sigma;</i></div><br>What happens if you lower the multiplier <i>&alpha;</i> from 3.0 down to 1.0?",
+      "answers": {
+        "a": "Lowering it makes the filter more relaxed, meaning fewer points get deleted.",
+        "b": "Lowering it makes the filter much more aggressive, causing it to delete far more points (even some real surface points).",
+        "c": "Changing that number doesn't actually affect how many points are removed.",
+        "d": "It just changes the colour of the deleted points in the viewer."
+      },
+      "explanations": {
+        "a": "Actually, it's the exact opposite! A lower number means the 'barrier' is lower, so more points will fail the test and get deleted.",
+        "b": "Correct! Think of α as your leniency factor. If α is 3.0, you are giving points a lot of leeway, so only the craziest outliers get deleted. If you drop it to 1.0, you tighten the rules, and the filter becomes aggressive, deleting a lot more points.",
+        "c": "α is literally the primary parameter controlling the SOR algorithm! It absolutely dictates how many points get removed.",
+        "d": "No, α controls the mathematics of the algorithm, not just a visual setting."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. How does Radius Outlier Removal (ROR) decide which points to delete?",
+      "answers": {
+        "a": "It deletes points that are too far away from the physical scanner's camera.",
+        "b": "It draws a little sphere of radius r around a point. If there aren't enough neighbours inside that sphere, the point gets deleted.",
+        "c": "It deletes points that don't match the average colour of the scan.",
+        "d": "It just deletes the first 100 points that were captured."
+      },
+      "explanations": {
+        "a": "ROR doesn't know where the scanner was physically located. It only cares about the local density of the points relative to each other.",
+        "b": "Exactly! It's a very simple density check. You set a radius (r) and a minimum count (n_min). If a point is too lonely inside its radius, it's considered an outlier and removed.",
+        "c": "ROR only looks at spatial density (X, Y, Z), not colour.",
+        "d": "ROR has no concept of capture order. It analyses the spatial structure of the cloud."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. Why does Radius Outlier Removal (ROR) sometimes struggle with point clouds that get sparser further away from the camera?",
+      "answers": {
+        "a": "Because ROR simply can't process files with too many points.",
+        "b": "Because the fixed radius might have plenty of neighbours up close, but naturally fails to find enough neighbours in the sparse areas—accidentally deleting perfectly good surface points.",
+        "c": "Because ROR only works on LiDAR data.",
+        "d": "It actually causes the algorithm to freeze and crash."
+      },
+      "explanations": {
+        "a": "ROR can handle massive point clouds just fine. The problem is geometric, not computational.",
+        "b": "Correct! ROR applies the exact same radius and threshold to every point. If your scan naturally spreads out as objects get further away (like we saw in Exp 3), those distant points will fail the density check and get deleted, even if they are genuine surface points.",
+        "c": "ROR is a general-purpose algorithm that doesn't care where the data came from.",
+        "d": "The algorithm will finish running, but the output won't look very good!"
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. What makes Moving Least Squares (MLS) fundamentally different from SOR and ROR?",
+      "answers": {
+        "a": "MLS deletes points just like the others, it just uses a fancier math equation.",
+        "b": "MLS doesn't delete points! Instead, it shifts their positions to slide them onto a smooth, mathematically fitted surface.",
+        "c": "MLS only smooths out the colours of the points, it never moves them.",
+        "d": "MLS is used to stitch multiple 3D scans together."
+      },
+      "explanations": {
+        "a": "Actually, MLS is not an 'outlier removal' algorithm at all. It's a smoothing algorithm.",
+        "b": "Spot on. While SOR and ROR are essentially 'point deleters', MLS is a 'point mover'. It looks at a local patch of points, fits a smooth curved surface through them, and gently pushes the point onto that surface.",
+        "c": "MLS absolutely changes the physical (X, Y, Z) positions of the points to smooth the geometry.",
+        "d": "Stitching scans together is called 'Registration' (which uses algorithms like ICP, covered in Exp 4)."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. In MLS, what happens if you set the smoothing bandwidth parameter (<i>h</i>) way too high?",
+      "answers": {
+        "a": "Nothing to the geometry—it just slows down your computer.",
+        "b": "It smooths everything too aggressively! It will average out a wide area, completely flattening sharp edges and rounding off crisp corners.",
+        "c": "It will cause MLS to start aggressively deleting points.",
+        "d": "It only blurs the point colours."
+      },
+      "explanations": {
+        "a": "The bandwidth parameter fundamentally alters the geometric output, not just the speed.",
+        "b": "Correct! The bandwidth parameter controls how wide of a 'net' MLS casts when fitting its smooth surface. If you make it too wide, it pulls in points from totally different sides of a sharp edge, blending them all into a soft, rounded blob.",
+        "c": "MLS is a smoothing algorithm; it repositions points, it doesn't delete them.",
+        "d": "MLS operates on spatial positions, not colours."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. When evaluating a filter, what exactly is a 'False Positive' (FP)?",
+      "answers": {
+        "a": "A piece of floating noise that the filter correctly deleted.",
+        "b": "A real, genuine piece of the scanned object that the filter accidentally deleted (Over-filtering!).",
+        "c": "A piece of noise that the filter missed, leaving it in the scan.",
+        "d": "A point that the algorithm accidentally duplicated."
+      },
+      "explanations": {
+        "a": "That would be a True Positive (TP)—a successful removal of bad data.",
+        "b": "Exactly! The 'Positive' action here is deleting a point. A False Positive means the filter thought it found noise, but it was actually real surface data. This is over-filtering.",
+        "c": "That's a False Negative (FN). The filter 'negatively' decided not to delete it, but it was wrong.",
+        "d": "None of these filtering algorithms duplicate points."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. We use the F1 Score to judge our filters: <br><div style=\"text-align: center; margin: 10px 0;\"><i>F1</i> = 2 &times; (<i>Precision</i> &times; <i>Recall</i>) / (<i>Precision</i> &plus; <i>Recall</i>)</div><br>What does a really high F1 score tell you?",
+      "answers": {
+        "a": "It means the filter successfully deleted almost every point in the cloud.",
+        "b": "It means the filter found the 'Goldilocks zone'—both Precision and Recall are high, meaning it deleted the noise without ruining the real surface.",
+        "c": "It just means the algorithm ran really fast.",
+        "d": "It means the filter had 100% Precision, even if its Recall was terrible."
+      },
+      "explanations": {
+        "a": "Deleting everything is awful! That would give you a terrible Precision score, dragging down your F1 score.",
+        "b": "Correct! Because of how the math works (it's a harmonic mean), the F1 score heavily penalises you if either Precision or Recall drops too low. A high F1 score guarantees you've struck a great balance.",
+        "c": "F1 score evaluates accuracy, not processing speed.",
+        "d": "Actually, the harmonic mean prevents exactly this! If Recall is terrible (near zero), the entire F1 score will plummet to near zero, even if Precision is 100%."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}

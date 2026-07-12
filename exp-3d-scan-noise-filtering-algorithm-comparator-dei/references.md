@@ -1,0 +1,12 @@
+## References
+ 
+| # | Reference | Year | Section Used |
+|---|---|---|---|
+| 1 | Rusu, R. B., Marton, Z. C., Blodow, N., Dolha, M., & Beetz, M. — Towards 3D point cloud based object maps for household environments. *Robotics and Autonomous Systems*, 56(11), 927–941. DOI: 10.1016/j.robot.2008.08.005 | 2008 | Statistical Outlier Removal algorithm formulation, mean neighbour distance thresholding |
+| 2 | Rusu, R. B. & Cousins, S. — 3D is here: Point Cloud Library (PCL). *IEEE International Conference on Robotics and Automation (ICRA)*, pp. 1–4. DOI: 10.1109/ICRA.2011.5980567 | 2011 | Radius Outlier Removal implementation, practical filtering pipeline design |
+| 3 | Alexa, M., Behr, J., Cohen-Or, D., Fleishman, S., Levin, D., & Silva, C. T. — Computing and rendering point set surfaces. *IEEE Transactions on Visualization and Computer Graphics*, 9(1), 3–15. DOI: 10.1109/TVCG.2003.1175093 | 2003 | Moving Least Squares surface fitting, weighted local polynomial reconstruction |
+| 4 | Levin, D. — Mesh-independent surface interpolation. *Geometric Modeling for Scientific Visualization*, Springer, pp. 37–49. DOI: 10.1007/978-3-662-07443-5_3 | 2004 | Theoretical foundation of MLS projection, weighting function w(d) = exp(-d²/h²) |
+| 5 | Han, X. F., Jin, J. S., Wang, M. J., Jiang, W., Gao, L., & Xiao, L. — A review of algorithms for filtering the 3D point cloud. *Signal Processing: Image Communication*, 57, 103–112. DOI: 10.1016/j.image.2017.05.009 | 2017 | Comparative survey of point cloud filtering algorithms, precision/recall evaluation methodology |
+| 6 | Fleishman, S., Cohen-Or, D., & Silva, C. T. — Robust moving least-squares fitting with sharp features. *ACM Transactions on Graphics*, 24(3), 544–552. DOI: 10.1145/1073204.1073227 | 2005 | MLS limitations at sharp features, bandwidth parameter effects on edge preservation |
+| 7 | Weyrich, T., Pauly, M., Keiser, R., Heinzle, S., Scandella, S., & Gross, M. — Post-processing of scanned 3D surface data. *Eurographics Symposium on Point-Based Graphics*, 85–94. DOI: 10.2312/SPBG/SPBG04/085-094 | 2004 | Sequential filtering pipeline design, outlier removal before smoothing rationale |
+| 8 | Powers, D. M. W. — Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation. *Journal of Machine Learning Technologies*, 2(1), 37–63 | 2011 | Precision, recall, and F1 score definitions and evaluation framework |
