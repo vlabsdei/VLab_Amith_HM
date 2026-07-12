@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What is the central planning question this experiment addresses before a scanning session even begins?",
+      "answers": {
+        "a": "Which colour scheme to use when displaying the point cloud on screen",
+        "b": "How finely to sample the surface based on feature size, distance, and time constraints",
+        "c": "Which file format to save the final point cloud in",
+        "d": "Whether to use a tripod or handheld scanning method"
+      },
+      "explanations": {
+        "a": "Not quite! Colour display is just a visualisation choice. We're focusing on the physical geometry of capturing the data.",
+        "b": "Spot on! Before you even start scanning, you have to decide how finely to sample. Go too coarse, you miss details; go too fine, you waste time and storage.",
+        "c": "Not quite! File formats are a data storage concern addressed after the scan is done.",
+        "d": "Not quite! Tripods vs. handhelds are logistical choices, separate from the math of resolution."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. According to the point spacing formula \u0394s = Z / fx, what happens to point spacing if the scanning distance Z is doubled while the focal length fx stays constant?",
+      "answers": {
+        "a": "Point spacing is halved, making the scan denser",
+        "b": "Point spacing doubles, making the scan sparser",
+        "c": "Point spacing stays exactly the same regardless of distance",
+        "d": "Point spacing becomes zero"
+      },
+      "explanations": {
+        "a": "Not quite! Since Z is in the numerator, increasing it increases point spacing.",
+        "b": "Spot on! Doubling the distance (Z) directly doubles the point spacing, making the scan sparser. The further away you are, the more spread out the points get.",
+        "c": "Not quite! Point spacing explicitly depends on distance\u2014that's why Z is in the formula!",
+        "d": "Not quite! Doubling a positive number while dividing by another positive constant won't ever give you zero."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. What is the practical rule of thumb for reliably detecting a feature in a point cloud?",
+      "answers": {
+        "a": "The feature size should be exactly equal to the point spacing",
+        "b": "The feature size should be at least 2 to 3 times larger than the point spacing",
+        "c": "The feature size is irrelevant; any feature can be detected",
+        "d": "The feature size should be smaller than the point spacing"
+      },
+      "explanations": {
+        "a": "Not quite! If they're equal, the feature might fall right between two points and vanish entirely.",
+        "b": "Spot on! Just like the Nyquist theorem, you need enough points landing on a feature to actually see it. Making sure the feature is 2 to 3 times larger than your spacing gives you a solid safety net.",
+        "c": "Not quite! If a feature is too small for the spacing, it slips through the gaps in the grid.",
+        "d": "You've got it backward! If a feature is smaller than the point spacing, it's almost guaranteed to be missed."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. If a task requires detecting a minimum feature size of 4mm, and you use a safety margin of m=4, what is the maximum permissible point spacing (\u0394s_max)?",
+      "answers": {
+        "a": "16 mm",
+        "b": "4 mm",
+        "c": "1 mm",
+        "d": "0.25 mm"
+      },
+      "explanations": {
+        "a": "Not quite! Looks like you multiplied 4 by 4 instead of dividing.",
+        "b": "Not quite! That's just the feature size itself, which gives you zero safety margin.",
+        "c": "Spot on! 4mm divided by 4 gives a maximum spacing of 1mm. This guarantees your points are tight enough to capture the feature safely.",
+        "d": "Not quite! You divided by 16 (4 squared) instead of simply dividing by 4."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. Using \u0394s_max of 1mm from Q4 and a sensor with focal length fx = 700 px, what is the maximum usable scanning distance Z_max?",
+      "answers": {
+        "a": "0.7 mm",
+        "b": "700 mm",
+        "c": "70 mm",
+        "d": "7000 mm"
+      },
+      "explanations": {
+        "a": "Not quite! Looks like you divided instead of multiplying.",
+        "b": "Spot on! 1mm \u00d7 700 gives you 700mm. If you move further back than this, your point spacing will be too wide to reliably catch the 4mm feature.",
+        "c": "Not quite! 1 multiplied by 700 is 700, not 70.",
+        "d": "Not quite! You added an extra zero there!"
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What happens to the number of pulses required per rotation (N) for a LiDAR sensor if the angular resolution is made twice as fine?",
+      "answers": {
+        "a": "N is halved, requiring fewer pulses",
+        "b": "N doubles, requiring twice as many pulses",
+        "c": "N stays exactly the same",
+        "d": "N becomes negative"
+      },
+      "explanations": {
+        "a": "You've got it backward! Making the resolution finer means the angle gets smaller, which requires more pulses.",
+        "b": "Spot on! If you cut the angular step in half, you need twice as many pulses to complete a 360-degree sweep. This directly doubles your scan time or requires the laser to fire twice as fast.",
+        "c": "Not quite! N is directly linked to angular resolution; change one, and the other must change.",
+        "d": "Not quite! A pulse count can't be negative in the real world."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. For an image-based sensor, what happens to processing time and storage size if you double the resolution in both width and height?",
+      "answers": {
+        "a": "They stay exactly the same",
+        "b": "They roughly double",
+        "c": "They roughly quadruple",
+        "d": "They are cut in half"
+      },
+      "explanations": {
+        "a": "Not quite! More pixels directly equal more data to store and process.",
+        "b": "That's an underestimation! You're doubling two dimensions at once.",
+        "c": "Spot on! Doubling both the width and height means 2 \u00d7 2 = 4 times the pixels. That translates to four times the data and processing time. Quality comes at a cost!",
+        "d": "Not quite! More resolution means more pixels, not fewer."
+      },
+      "correctAnswer": "c",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. Why can't a single scan configuration simultaneously maximise high resolution, short scan time, AND full object coverage?",
+      "answers": {
+        "a": "Hardware manufacturers deliberately limit their sensors",
+        "b": "These are competing physical constraints\u2014more detail over a large area takes more time or wildly expensive hardware",
+        "c": "Actually, modern scanners can achieve all three easily",
+        "d": "This limit only applies to LiDAR, not stereo cameras"
+      },
+      "explanations": {
+        "a": "That's a myth! It's a fundamental physics limit, not a manufacturer conspiracy.",
+        "b": "Spot on! This is the classic resolution-time-detail triangle. Capturing more spatial detail over a wider area inherently takes more measurements. You have to sacrifice one to get the other two.",
+        "c": "Actually, that goes against physics. Better tech shifts the boundaries, but the fundamental trade-off always remains.",
+        "d": "Not quite! The physics of sampling applies universally across all 3D scanning technologies."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. What is voxel grid downsampling, and why would you use it?",
+      "answers": {
+        "a": "A technique to artificially increase resolution beyond what was scanned",
+        "b": "A method to reduce an over-sampled point cloud by keeping one point per grid cell",
+        "c": "A method for adding colour to a point cloud",
+        "d": "A way to merge two separate point clouds"
+      },
+      "explanations": {
+        "a": "Not quite! Downsampling reduces resolution; you can't magically create data the sensor didn't capture.",
+        "b": "Spot on! It's the inverse of planning a scan: if you captured way too much detail, voxel downsampling groups points into cubes and keeps one per cube, shedding unnecessary weight for faster processing later.",
+        "c": "Not quite! This is purely about geometry and point density, not colour.",
+        "d": "Not quite! Merging scans is called registration (like ICP). Downsampling is for thinning out a single scan."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. Why do scanning a bridge for structural shifts and scanning a machined part for sub-millimetre flaws require completely different resolution planning?",
+      "answers": {
+        "a": "They don't; standard settings work for both",
+        "b": "The minimum feature sizes differ enormously, requiring different point spacing and distances",
+        "c": "The difference is only due to the colour of the materials",
+        "d": "Bridge scanning always requires higher resolution"
+      },
+      "explanations": {
+        "a": "Actually, that goes against the entire point of the experiment! One-size-fits-all settings waste time or miss crucial data.",
+        "b": "Spot on! A bridge involves massive, centimetre-scale features, allowing for coarse spacing and long-distance scanning. The machined part requires capturing tiny flaws, demanding ultra-fine spacing up close. The math is the same, but the goals dictate vastly different setups.",
+        "c": "Not quite! Geometric resolution is completely unrelated to object colour.",
+        "d": "Not quite! It's actually the reverse. Finding a tiny flaw in a machined part requires much higher point density than looking for a slight bend in a massive bridge."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scan Resolution vs Feature Detail Trade-off</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<!-- ================= SETUP VIEW ================= -->
+<div id="setup-view" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <main id="app-main">
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside id="wizard-panel">
+      <!-- Step Info -->
+      <div id="wizard-info">
+        <div class="step-badge" id="step-badge">STEP 1 OF 4</div>
+        <h2 id="wizard-title">Equipment Tray</h2>
+        <p id="wizard-text">Mount each component to build a resolution-planning test bench, using a graduated feature target to reveal exactly which detail sizes your chosen resolution can and cannot capture.</p>
+        <div id="wizard-task" class="task-box">
+          Select <strong>Component</strong> from the apparatus list → Click <strong>Mount Component</strong>.
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- Component Specifications -->
+      <h3 class="panel-heading">
+        <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Component Specs
+      </h3>
+      <div id="spec-content" class="spec-content">
+        <div class="info-card">
+          <div class="info-row"><span class="info-label">Depth Sensor fx</span><span class="info-val">700 px (default)</span></div>
+          <div class="info-row"><span class="info-label">Rail travel range</span><span class="info-val">0.2 m – 3.0 m</span></div>
+          <div class="info-row"><span class="info-label">Target Features</span><span class="info-val">0.5 to 8 mm</span></div>
+        </div>
+      </div>
+
+      <!-- 3D View Controls -->
+      <div id="view-controls" style="margin-top:auto;">
+        <div class="legend-title">3D View Controls</div>
+        <div class="control-hints desktop-controls">
+          <div class="hint-row"><span class="hint-key">🖱 Left Drag</span><span class="hint-val">Orbit</span></div>
+          <div class="hint-row"><span class="hint-key">🖱 Right Click</span><span class="hint-val">Pan</span></div>
+          <div class="hint-row"><span class="hint-key">⚙ Scroll</span><span class="hint-val">Zoom</span></div>
+        </div>
+        <div class="legend-title" style="margin-top:10px">Camera Presets</div>
+        <div class="preset-btns">
+          <button class="btn-preset active view-btn" data-view="iso">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14l7-4 7 4M3 10l7-4 7 4M3 6l7-4 7 4"/></svg>
+            Isometric
+          </button>
+          <button class="btn-preset view-btn" data-view="top">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2"/></svg>
+            Top
+          </button>
+          <button class="btn-preset view-btn" data-view="front">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/></svg>
+            Front
+          </button>
+          <button class="btn-preset view-btn" data-view="side">
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="10" height="14" rx="2"/></svg>
+            Side
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ CENTER PANEL — 3D CANVAS ═══ -->
+    <section id="canvas-area">
+      <div class="canvas-card" id="card-3d" style="flex: 1;">
+        <div class="card-header">
+          <span class="card-title">
+            <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            3D Rig Setup — Interactive View
+          </span>
+          <span class="card-sub" id="canvas-status">Mount components sequentially to build the rig</span>
+        </div>
+        <div id="setup-canvas-container" style="flex: 1; position: relative; border-radius: 5px; overflow: hidden; min-height: 0;">
+          <canvas id="three-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <aside id="controls-panel">
+      <!-- STEP 1: MOUNTING -->
+      <div class="step-content active" id="sc-0">
+        <h3 class="panel-heading">
+          <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Apparatus
+        </h3>
+        <div class="apparatus-list">
+          <div class="apparatus-card selected" data-comp="rail" style="cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="#64748b" class="apparatus-thumb" style="padding: 6px;">
+              <rect x="10" y="2" width="4" height="20" rx="1.5" />
+              <rect x="2" y="10" width="20" height="4" rx="1.5" />
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Linear Distance Rail</span>
+              <span class="apparatus-status" id="state-rail">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="sensor" style="cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="#3b82f6" class="apparatus-thumb" style="padding: 6px;">
+              <path d="M4 8h16v10H4z"/><circle cx="12" cy="13" r="3" fill="#fff"/>
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Depth Sensor</span>
+              <span class="apparatus-status" id="state-sensor">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="target" style="cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="#f59e0b" class="apparatus-thumb" style="padding: 6px;">
+              <path d="M2 14c4-4 8 4 12 0s8-4 8-4v10H2V14z"/>
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Feature Target</span>
+              <span class="apparatus-status" id="state-target">Unmounted</span>
+            </div>
+          </div>
+          <div class="apparatus-card" data-comp="gauge" style="cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="#0891b2" class="apparatus-thumb" style="padding: 6px;">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+              <line x1="12" y1="12" x2="16" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="apparatus-info">
+              <span class="apparatus-name">Spacing Gauge</span>
+              <span class="apparatus-status" id="state-gauge">Unmounted</span>
+            </div>
+          </div>
+        </div>
+        <!-- Mount Button -->
+        <button id="btn-mount" class="btn-primary" style="display:flex; justify-content:center; align-items:center;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><path d="M12 5v14M5 12h14"/></svg>
+          Mount Component
+        </button>
+        <div class="divider"></div>
+        <button id="btn-reset-setup" class="btn-reset" style="display:flex; justify-content:center; align-items:center;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset Setup
+        </button>
+        <button class="btn-primary" id="btn-next-step1" disabled style="margin-top:8px;">Next Step →</button>
+      </div>
+
+      <!-- STEP 2: POSITION TARGET -->
+      <div class="step-content" id="sc-1" style="display:none;">
+        <h3 class="panel-heading">Position the Target</h3>
+        <p class="panel-p" style="font-size: 11px; margin-bottom: 12px; color: var(--slate-500);">Set the initial scanning distance. Watch the point grid overlay on the target update live.</p>
+        <div class="ctrl-group" id="grp-Z-setup">
+          <div class="ctrl-top">
+            <span class="ctrl-name">Scanning distance <em>Z</em></span>
+            <span class="ctrl-val" id="sv-z">1.0 m</span>
+          </div>
+          <div class="slider-track" id="track-Z-setup">
+            <input type="range" id="sr-z" min="0.2" max="3.0" value="1.0" step="0.05" />
+          </div>
+          <div class="ctrl-range-row">
+            <span>0.2 m</span><span>3.0 m</span>
+          </div>
+        </div>
+        <div class="step-nav" style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn-primary full-w" id="btn-next-step2">Next Step →</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-ghost full-w" data-prev="0">Back</button>
+            <button class="btn-ghost full-w btn-reset-local">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: SWEEP -->
+      <div class="step-content" id="sc-2" style="display:none;">
+        <h3 class="panel-heading">Sweep and Capture</h3>
+        <p class="panel-p" style="font-size: 11px; margin-bottom: 12px; color: var(--slate-500);">Run an automated sweep across a range of distances, capturing which features remain detectable at each step.</p>
+        <div class="scan-counter">
+          <div class="pc-num" id="sweep-count">0</div>
+          <div class="pc-label">distance steps captured</div>
+          <div class="pc-bar"><div class="pc-fill" id="sweep-fill" style="width:0%"></div></div>
+          <div class="pc-sub">Target: 12 steps across 0.2–3.0 m</div>
+        </div>
+        <div class="step-nav" style="display: flex; flex-direction: column; gap: 8px; margin-top:12px;">
+          <button class="btn-secondary" id="btn-sweep">Run Distance Sweep</button>
+          <button class="btn-primary" id="btn-next-obs" disabled data-next="3">View Observations →</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-ghost full-w" data-prev="1">Back</button>
+            <button class="btn-ghost full-w btn-reset-local">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: OBSERVATIONS -->
+      <div class="step-content" id="sc-3" style="display:none;">
+        <h3 class="panel-heading">Live Observations</h3>
+        <div class="result-grid">
+          <div class="rcard"><div class="rcard-label">Focal Length fx</div><div class="rcard-val" id="r4-fx">700</div><div class="rcard-unit">px</div></div>
+          <div class="rcard"><div class="rcard-label">Distance</div><div class="rcard-val" id="r4-z">—</div><div class="rcard-unit">m</div></div>
+          <div class="rcard"><div class="rcard-label">Spacing &Delta;s</div><div class="rcard-val" id="r4-spacing">—</div><div class="rcard-unit">mm</div></div>
+          <div class="rcard"><div class="rcard-label">Smallest Detected</div><div class="rcard-val" id="r4-smallest">—</div><div class="rcard-unit">mm</div></div>
+          <div class="rcard full-span" style="grid-column: 1/-1;">
+            <div class="rcard-label">Max distance for 1mm (m=3)</div>
+            <div class="rcard-val large" id="r4-zmax">—</div>
+            <div class="rcard-unit">metres</div>
+          </div>
+        </div>
+        <div class="formula-card" style="margin-top:10px;">
+          <div class="formula-line"><span class="f-eq">\( \Delta s = \frac{Z}{f_x} \)</span><span class="f-live">spacing</span></div>
+          <div class="formula-line"><span class="f-eq">\( Z_{max} = \left( \frac{f_{min}}{m} \right) \times f_x \)</span><span class="f-live">max range</span></div>
+        </div>
+        <div class="step-nav" style="display: flex; flex-direction: column; gap: 8px; margin-top:12px;">
+          <button class="btn-primary btn-sim" id="btn-launch-sim" style="display:flex; justify-content:center; align-items:center; text-decoration:none;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Launch Simulation
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-ghost full-w" data-prev="2">Re-sweep</button>
+            <button class="btn-ghost full-w btn-reset-local">Reset</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- ================= SIMULATION VIEW ================= -->
+<div id="simulation-view" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+  <main id="app-main">
+    <!-- ═══ LEFT PANEL: WIZARD & READOUTS ═══ -->
+    <aside id="wizard-panel">
+      <!-- Wizard -->
+      <div class="wiz-box" style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:var(--r); padding:12px;">
+        <div class="wiz-step-dots" id="wiz-dots" style="display:flex; gap:6px; margin-bottom:8px;">
+          <span class="wdot active" data-ws="0"></span>
+          <span class="wdot" data-ws="1"></span>
+          <span class="wdot" data-ws="2"></span>
+          <span class="wdot" data-ws="3"></span>
+        </div>
+        <div class="wiz-title" id="wiz-title" style="font-size:13px; font-weight:700; color:var(--blue); margin-bottom:5px;">Find the Detection Boundary</div>
+        <div class="wiz-text" id="wiz-text" style="font-size:11px; color:var(--slate-500); line-height:1.6; margin-bottom:6px;"></div>
+        <div class="wiz-task task-box" id="wiz-task" style="margin-bottom:8px;"></div>
+        <div class="wiz-btns" style="display:flex; flex-direction:column; gap:5px;">
+          <button class="btn-primary" id="wiz-next">Next Step</button>
+          <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
+          <button class="btn-secondary" id="btn-back-setup" style="margin-top: 4px;">← Back to Setup</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Live Readouts -->
+      <h3 class="panel-heading">
+        <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        Live Readouts
+      </h3>
+      <div class="readout-grid">
+        <div class="readout-card"><span class="rc-label">Spacing &Delta;s</span><span class="rc-value" id="ro-spacing">—</span><span class="rc-unit">mm</span></div>
+        <div class="readout-card"><span class="rc-label">Detect Ratio</span><span class="rc-value" id="ro-ratio">—</span><span class="rc-unit">&times;&Delta;s</span></div>
+        <div class="readout-card"><span class="rc-label">Z_max (target)</span><span class="rc-value" id="ro-zmax">—</span><span class="rc-unit">m</span></div>
+        <div class="readout-card"><span class="rc-label">Status</span><span class="rc-value" id="ro-status" style="font-size:12px;">—</span><span class="rc-unit"></span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Feature Ladder Status -->
+      <h3 class="panel-heading">Feature Ladder Status</h3>
+      <div class="dist-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <div class="dist-card readout-card" style="text-align:center;"><span class="dc-label rc-label">0.5mm</span><span class="dc-val rc-value" style="font-size:14px;" id="fl-0">—</span></div>
+        <div class="dist-card readout-card" style="text-align:center;"><span class="dc-label rc-label">1mm</span><span class="dc-val rc-value" style="font-size:14px;" id="fl-1">—</span></div>
+        <div class="dist-card readout-card" style="text-align:center;"><span class="dc-label rc-label">2mm</span><span class="dc-val rc-value" style="font-size:14px;" id="fl-2">—</span></div>
+        <div class="dist-card readout-card" style="text-align:center;"><span class="dc-label rc-label">4mm</span><span class="dc-val rc-value" style="font-size:14px;" id="fl-3">—</span></div>
+        <div class="dist-card readout-card" style="text-align:center; grid-column:1/-1;"><span class="dc-label rc-label">8mm</span><span class="dc-val rc-value" style="font-size:14px;" id="fl-4">—</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Scan Cost Estimate -->
+      <h3 class="panel-heading">Scan Cost Estimate</h3>
+      <div class="bbox-grid" style="display:flex; flex-direction:column; gap:4px;">
+        <div class="bbox-row readout-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+          <span class="rc-label">Points/rotation-equiv.</span><span class="rc-value" style="font-size:12px;" id="bb-points">—</span>
+        </div>
+        <div class="bbox-row readout-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+          <span class="rc-label">Relative scan time</span><span class="rc-value" style="font-size:12px;" id="bb-time">—</span>
+        </div>
+        <div class="bbox-row readout-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+          <span class="rc-label">Coverage vs detail</span><span class="rc-value" style="font-size:12px;" id="bb-tradeoff">—</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ CENTER PANEL: CANVASES ═══ -->
+    <section id="canvas-area">
+      <div class="canvas-row">
+        <div class="canvas-card">
+          <div class="card-header">
+            <span class="card-title">3D Target with Sample Grid</span>
+            <span class="card-sub">Live point grid overlay — drag to rotate</span>
+          </div>
+          <canvas id="cvs-target3d"></canvas>
+        </div>
+        <div class="canvas-card">
+          <div class="card-header">
+            <span class="card-title">Feature Detection Ladder</span>
+            <span class="card-sub">Green=detected, amber=risky, red=missed</span>
+          </div>
+          <canvas id="cvs-ladder"></canvas>
+        </div>
+      </div>
+      <div class="canvas-row">
+        <div class="canvas-card">
+          <div class="card-header">
+            <span class="card-title">Point Spacing vs Distance</span>
+            <span class="card-sub">&Delta;s = Z/fx curve with current position marked</span>
+          </div>
+          <canvas id="cvs-spacingcurve"></canvas>
+        </div>
+        <div class="canvas-card">
+          <div class="card-header">
+            <span class="card-title">Detection Probability Zone</span>
+            <span class="card-sub">Ratio of feature size to &Delta;s vs detection likelihood</span>
+          </div>
+          <canvas id="cvs-probzone"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RIGHT PANEL: CONTROLS ═══ -->
+    <aside id="controls-panel">
+      <h3 class="panel-heading">
+        <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Parameters
+      </h3>
+      
+      <!-- Distance Z -->
+      <div class="ctrl-group" id="pg-z">
+        <div class="ctrl-top"><span class="ctrl-name">Scanning Distance <em>Z</em></span><span class="ctrl-val" id="pv-z">1.00 m</span></div>
+        <div class="slider-track" id="track-Z">
+          <input type="range" class="sim-range" id="r-z" min="0.2" max="3.0" step="0.02" value="1.0" />
+        </div>
+        <div class="ctrl-range-row"><span>0.2 m</span><span>3.0 m</span></div>
+        <p class="ctrl-hint">Point spacing grows linearly with Z.</p>
+      </div>
+
+      <!-- Focal Length fx -->
+      <div class="ctrl-group" id="pg-fx">
+        <div class="ctrl-top"><span class="ctrl-name">Focal Length <em>fx</em></span><span class="ctrl-val" id="pv-fx">700 px</span></div>
+        <div class="slider-track" id="track-fx">
+          <input type="range" class="sim-range" id="r-fx" min="300" max="1400" step="10" value="700" />
+        </div>
+        <div class="ctrl-range-row"><span>300 px</span><span>1400 px</span></div>
+        <p class="ctrl-hint">Higher fx = finer resolution at the same distance.</p>
+      </div>
+
+      <!-- Safety Margin m -->
+      <div class="ctrl-group" id="pg-margin">
+        <div class="ctrl-top"><span class="ctrl-name">Safety Margin <em>m</em></span><span class="ctrl-val" id="pv-margin">3.0&times;</span></div>
+        <div class="slider-track" id="track-margin">
+          <input type="range" class="sim-range" id="r-margin" min="1.5" max="6" step="0.5" value="3" />
+        </div>
+        <div class="ctrl-range-row"><span>1.5&times;</span><span>6&times;</span></div>
+        <p class="ctrl-hint">Multiplier applied in feature_size &ge; m &times; &Delta;s.</p>
+      </div>
+
+      <!-- Target Feature -->
+      <div class="ctrl-group" id="pg-target">
+        <div class="ctrl-top"><span class="ctrl-name">Target Feature</span><span class="ctrl-val" id="pv-target">2 mm</span></div>
+        <div class="slider-track" id="track-target">
+          <input type="range" class="sim-range" id="r-target" min="0" max="4" step="1" value="2" />
+        </div>
+        <div class="ctrl-range-row"><span>0.5mm</span><span>1mm</span><span>2mm</span><span>4mm</span><span>8mm</span></div>
+        <p class="ctrl-hint">Which of the five ridges to focus the analysis on.</p>
+      </div>
+
+      <!-- Alignment Jitter -->
+      <div class="ctrl-group" id="pg-noise">
+        <div class="ctrl-top"><span class="ctrl-name">Alignment Jitter</span><span class="ctrl-val" id="pv-noise">Low</span></div>
+        <div class="slider-track" id="track-noise">
+          <input type="range" class="sim-range" id="r-noise" min="0" max="1" step="1" value="0" />
+        </div>
+        <div class="ctrl-range-row"><span>Low</span><span>High</span></div>
+        <p class="ctrl-hint">High jitter reveals the boundary's probabilistic nature.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="panel-heading">Detection Confidence Gauge</h3>
+      <div class="quality-wrap" style="display:flex; flex-direction:column; align-items:center; margin-bottom:10px;">
+        <div class="quality-arc" style="width:160px;"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
+        <div class="quality-label" id="quality-label" style="font-size:14px; font-weight:700; color:var(--slate-900); margin-top:-4px;">—</div>
+        <div class="quality-sub" id="quality-sub" style="font-size:10px; color:var(--slate-500); text-align:center; line-height:1.4;">Adjust distance and target</div>
+      </div>
+
+      <div class="divider"></div>
+      
+      <div class="formula-card">
+        <div class="formula-line"><span class="f-eq">\( \Delta s = \frac{Z}{f_x} \)</span><span class="f-live">spacing</span></div>
+        <div class="formula-line"><span class="f-eq">\( \text{feature} \ge m \times \Delta s \)</span><span class="f-live">detect rule</span></div>
+        <div class="formula-line"><span class="f-eq">\( Z_{max} = \left( \frac{f_{min}}{m} \right) \times f_x \)</span><span class="f-live">max range</span></div>
+      </div>
+
+      <button id="btn-sim-reset2" class="btn-reset">Reset Defaults</button>
+    </aside>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. You scan a reference plate at Z=0.5m with fx=700px. Grooves \u22652mm are clearly detected, while grooves <1.5mm are missed. Calculate the point spacing \u0394s and explain the result.",
+      "answers": {
+        "a": "\u0394s = 350mm, which is far too coarse",
+        "b": "\u0394s \u2248 0.71mm. Using the 2-3\u00d7 rule, the boundary is 1.4-2.1mm, matching the observation perfectly",
+        "c": "\u0394s can't be calculated without knowing the noise level",
+        "d": "The result contradicts the formula and indicates a bug"
+      },
+      "explanations": {
+        "a": "Not quite! You multiplied instead of dividing. The formula is Z / fx.",
+        "b": "Spot on! \u0394s = 0.5 / 700 \u2248 0.71mm. According to our 2-3\u00d7 safety rule, features between 1.4mm and 2.1mm will sit right on the risky edge of detection, exactly as observed in the simulation.",
+        "c": "Not quite! Noise affects precision, but point spacing is pure geometry dictated by distance and focal length.",
+        "d": "Not quite! The simulation results beautifully confirm the theoretical formula."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q2. With a required \u0394s_max of 0.75mm, you test Sensor A (fx=400px) and Sensor B (fx=1200px). What is the maximum distance (Z_max) for each?",
+      "answers": {
+        "a": "Both sensors give the same Z_max",
+        "b": "Sensor A gives 300mm. Sensor B gives 900mm. Higher focal length allows scanning from further away",
+        "c": "Sensor A permits a longer scanning distance than Sensor B",
+        "d": "It cannot be calculated without material reflectivity"
+      },
+      "explanations": {
+        "a": "Not quite! Z_max heavily depends on the focal length.",
+        "b": "Spot on! Sensor A maxes out at 300mm, while Sensor B's higher resolution pushes Z_max to 900mm. This means you can stand 3 times further back with Sensor B and still catch the exact same details\u2014crucial when you physically can't get close to the target.",
+        "c": "You've got it backward! Higher focal length allows for greater distance.",
+        "d": "Not quite! Reflectivity is about signal strength, not the geometry of point spacing."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q3. Run A scans at fine resolution (\u0394s=0.5mm) and Run B scans at coarse (\u0394s=4mm). If Run B has 1/8th the linear resolution of Run A in both width and height, how much longer does Run A take?",
+      "answers": {
+        "a": "They take the same amount of time",
+        "b": "Run A takes roughly 64 times longer, illustrating the steep cost of high resolution",
+        "c": "Run A takes exactly 8 times longer",
+        "d": "The ratio cannot be determined"
+      },
+      "explanations": {
+        "a": "Not quite! Processing more points inherently takes more time.",
+        "b": "Spot on! Because you're scaling in 2D (width \u00d7 height), the pixel count explodes quadratically. (8)\u00b2 = 64 times the points, meaning 64 times the processing and storage cost! That's the heavy price tag of fine detail.",
+        "c": "Not quite! You're only accounting for one dimension. It's a 2D grid, so the multiplier squares.",
+        "d": "Not quite! You can calculate it directly using N = W \u00d7 H."
+      },
+      "correctAnswer": "b",
+      "difficulty": "medium"
+    },
+    {
+      "question": "Q4. You scan a block with features ranging from 0.5mm to 8mm at Z=1m using fx=800px. Which features will be detected?",
+      "answers": {
+        "a": "All features will be detected equally well",
+        "b": "With \u0394s=1.25mm, the boundary is 2.5-3.75mm. 4mm and 8mm are safe, 2mm is risky, and anything smaller will be missed",
+        "c": "Only the 8mm feature is detected",
+        "d": "All features are detected since it's within range"
+      },
+      "explanations": {
+        "a": "Not quite! Feature size relative to point spacing is everything.",
+        "b": "Spot on! Your spacing is 1.25mm. Using the 2-3\u00d7 rule, the risky zone is 2.5mm to 3.75mm. 4mm and 8mm are easily caught, 2mm is a coin flip, and the tiny 0.5mm/1mm features will slip right through the grid.",
+        "c": "Not quite! The 4mm feature is also safely above the detection boundary.",
+        "d": "Not quite! Maximum range just means the laser bounces back; it doesn't mean the grid is tight enough to hit tiny details."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q5. You want to downsample a dense cloud to resolve 15mm features. A colleague suggests a 15mm voxel size. Is this a good idea?",
+      "answers": {
+        "a": "Yes, voxel size should perfectly match the feature resolution",
+        "b": "No, a 15mm voxel places the feature on the risky boundary. You need a 5-7.5mm voxel to safely resolve 15mm details",
+        "c": "Voxel size has no relationship to feature resolution",
+        "d": "Yes, because larger voxels process faster"
+      },
+      "explanations": {
+        "a": "Not quite! A 1:1 match invites the exact same undersampling problems we try to avoid when scanning.",
+        "b": "Spot on! The same 2-3\u00d7 Nyquist-like rule applies to downsampling. If you want to keep 15mm features intact, your voxel cubes need to be roughly 5mm to 7.5mm. Using 15mm cubes puts those features right on the chopping block.",
+        "c": "Not quite! Voxel size absolutely dictates what geometric detail survives the thinning process.",
+        "d": "Not quite! They do process faster, but you'd completely butcher the 15mm features you're trying to save."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q6. You need to detect 0.8mm hairline cracks across a massive 3m \u00d7 2m panel with an fx=900px sensor. Using an m=3 safety margin, calculate Z_max and its implications.",
+      "answers": {
+        "a": "Z_max is 2.4mm, making it basically impossible",
+        "b": "Z_max \u2248 240mm (24cm). You'll have to take many small overlapping scans to cover the whole panel",
+        "c": "Z_max is 240m, so you can scan from very far away",
+        "d": "Since the panel is huge, you can just scan from far away"
+      },
+      "explanations": {
+        "a": "Not quite! You skipped incorporating the focal length (fx) into your calculation.",
+        "b": "Spot on! \u0394s_max is 0.267mm, giving a max distance of about 24cm. Because you have to be so incredibly close to spot a 0.8mm crack, you can't just take one picture of the whole huge panel. You'll have to stitch together dozens of tiny, overlapping scans. That's the harsh reality of high-precision inspection!",
+        "c": "Not quite! You mixed up meters and millimeters. 240mm is very close!",
+        "d": "Not quite! A tiny crack requires a tiny point spacing, no matter how big the object it's sitting on is."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q7. Configuration X uses a 0.3\u00b0 angular resolution at 600 RPM requiring 4320 Hz pulse frequency. If Configuration Y uses a finer 0.1\u00b0 resolution at the same RPM, what pulse frequency is required?",
+      "answers": {
+        "a": "The same 4320 Hz",
+        "b": "Three times as much: 12,960 Hz",
+        "c": "Less pulse frequency because finer resolution means fewer pulses",
+        "d": "It cannot be calculated"
+      },
+      "explanations": {
+        "a": "Not quite! Achieving finer resolution at the same rotation speed absolutely demands a faster firing laser.",
+        "b": "Spot on! Cutting the angular step in thirds (from 0.3\u00b0 to 0.1\u00b0) means you need 3 times as many pulses to complete the circle. To pump out 3 times the pulses in the exact same amount of time, your laser has to fire 3 times as fast (3 \u00d7 4320 = 12,960 Hz).",
+        "c": "You've got it backward! Finer angular resolution means tighter steps, which means MORE pulses.",
+        "d": "Not quite! You can calculate it directly since pulse frequency scales proportionally with the number of pulses."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q8. You scan a feature exactly 2\u00d7 the point spacing 20 times. It's detected 11 times and missed 9 times. Why?",
+      "answers": {
+        "a": "The simulation is glitching",
+        "b": "At the 2\u00d7 boundary, detection relies on random alignment between the grid and the feature, yielding a 50/50 chance",
+        "c": "It proves point spacing has no effect on detection",
+        "d": "It should have been detected 100% of the time"
+      },
+      "explanations": {
+        "a": "Not quite! This variability is a feature, not a bug.",
+        "b": "Spot on! Right at that 2\u00d7 threshold, it's a coin toss. If the sampling grid happens to land squarely on the feature, you detect it. If it unluckily straddles the feature, it's missed. That's why the theory calls it a 'probabilistic boundary' rather than a hard cutoff. A 55% success rate perfectly demonstrates this flip-flop reality.",
+        "c": "Not quite! It actually completely proves the theoretical framework right at the edge of failure.",
+        "d": "That's a slight misreading of the theory. 2\u00d7 is the bare minimum for a 'reasonable chance,' not a guarantee."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q9. Plan A scans a car door up close in 45 mins. Plan B scans it all at once in 3 mins but misses 0.3mm defects. What is a better approach?",
+      "answers": {
+        "a": "Plan B, because speed is always better",
+        "b": "Run a fast 3-minute scan to locate problem areas, then use targeted high-res scans only where needed",
+        "c": "Plan A, because high resolution is always better",
+        "d": "The task is impossible"
+      },
+      "explanations": {
+        "a": "This misses the core task requirements! Fast data is useless if you don't detect the defects you're looking for.",
+        "b": "Spot on! This is the ultimate practical compromise. Do a lightning-fast coarse scan to find areas of interest, then surgically hit those flagged spots with the 45-minute high-res setup. You get full coverage and pinpoint precision without wasting time over-scanning clean metal.",
+        "c": "Not quite! Scanning a perfectly smooth surface at maximum resolution wastes massive amounts of time and storage.",
+        "d": "Not quite! Plan A proved it was possible to detect the defects, just terribly inefficient."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    },
+    {
+      "question": "Q10. Reflecting on Experiments 1, 3, 5, and 9, what common physical principle connects depth uncertainty, point density, and feature detection?",
+      "answers": {
+        "a": "It's purely a coincidence",
+        "b": "They all rely on the same geometric fact: a fixed sensor resolution spreads its samples over a wider physical area as distance increases",
+        "c": "It only applies to stereo vision",
+        "d": "There is no practical value to knowing this"
+      },
+      "explanations": {
+        "a": "This is no coincidence! It's the underlying physics of 3D scanning.",
+        "b": "Spot on! You nailed the overarching principle. Whether it's triangulation uncertainty, LiDAR angular steps, or picking up tiny features, it all boils down to distance diluting your sensor's fixed sampling grid. Recognising this single 'DNA' of 3D scanning lets you intuitively troubleshoot any sensor tech without needing to memorize a hundred different formulas.",
+        "c": "Not quite! We just proved it applies to point clouds, LiDAR, and feature detection too.",
+        "d": "Not quite! Understanding first principles is what separates an amateur from an expert practitioner."
+      },
+      "correctAnswer": "b",
+      "difficulty": "hard"
+    }
+  ]
+}
