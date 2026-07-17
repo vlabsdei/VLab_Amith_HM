@@ -1,4 +1,6 @@
 ## Theory
+
+<p align="center"> <img src="images/camera_calibration.png" alt="Zhang's Camera Calibration Setup" width="500"></p>
  
 ### 1. Why Calibration Is Needed
  

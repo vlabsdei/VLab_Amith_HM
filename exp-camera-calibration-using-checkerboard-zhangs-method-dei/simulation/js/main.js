@@ -35,6 +35,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE, MathJax */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
@@ -97,11 +98,7 @@ const SIM_WIZARD = [
    UTILITY HELPERS
 ────────────────────────────────────────────────────────────── */
 
-/** Map value from [inA,inB] → [outA,outB] clamped */
-function mapRange(v, inA, inB, outA, outB) {
-  const t = Math.max(0, Math.min(1, (v - inA) / (inB - inA)));
-  return outA + t * (outB - outA);
-}
+
 
 /** Gaussian noise N(0,1) via Box-Muller */
 function gauss() {
@@ -502,7 +499,6 @@ function buildBoardMesh() {
 
   /* Checker squares */
   const darkMat  = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  const lightMat = new THREE.MeshLambertMaterial({ color: 0xfafafa });
 
   for (let r = 0; r < totalRows; r++) {
     for (let c = 0; c < totalCols; c++) {
@@ -638,44 +634,6 @@ function buildFOVHelper() {
 }
 
 /* Update board position/rotation when sliders change */
-
-function drawSetupDistortion(k) {
-  const canvas = document.getElementById('setup-dist-overlay');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.clientWidth || 640;
-  const H = canvas.clientHeight || 480;
-  if (canvas.width !== W || canvas.height !== H) {
-    canvas.width = W; canvas.height = H;
-  }
-  ctx.clearRect(0, 0, W, H);
-  if (Math.abs(k) < 0.1) return; // don't draw if ~0
-  
-  const cx = W/2, cy = H/2;
-  ctx.strokeStyle = k < 0 ? '#ef4444' : '#3b82f6';
-  ctx.lineWidth = 2;
-  
-  const cols = 10, rows = 8;
-  const drawLine = (x0, y0, x1, y1) => {
-    ctx.beginPath();
-    const steps = 20;
-    for (let i=0; i<=steps; i++) {
-      const t = i/steps;
-      const px = x0 + t*(x1-x0);
-      const py = y0 + t*(y1-y0);
-      const nx = (px - cx)/cx, ny = (py - cy)/cy;
-      const r2 = nx*nx + ny*ny;
-      const radial = 1 + k * r2;
-      const fpx = cx + nx*cx*radial;
-      const fpy = cy + ny*cy*radial;
-      if (i===0) ctx.moveTo(fpx, fpy); else ctx.lineTo(fpx, fpy);
-    }
-    ctx.stroke();
-  }
-  
-  for (let r=0; r<=rows; r++) drawLine(0, r/rows*H, W, r/rows*H);
-  for (let c=0; c<=cols; c++) drawLine(c/cols*W, 0, c/cols*W, H);
-}
 
 function updateBoardTransform() {
   if (!boardMesh) return;
@@ -976,7 +934,6 @@ function renderDistorted(canvas) {
   
   const imgData = ctx.createImageData(W, H);
   const data = imgData.data;
-  const maxR2 = 1.0;
   
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
@@ -1017,7 +974,6 @@ function renderDistorted(canvas) {
     if (tiltFactor === 0) return [px, py];
     let x = px - cxC;
     let y = py - cyC;
-    let z = 0;
     
     // yaw
     let x1 = x * Math.cos(yaw);
@@ -1456,7 +1412,7 @@ function renderRPEGraph(canvas) {
 
   ctx.beginPath();
   ctx.moveTo(padL, padT + gH);
-  points.forEach((pt, i) => {
+  points.forEach((pt) => {
     const x = padL + ((pt.n - 1) / 29) * gW;
     const y = padT + gH - (pt.rpe / maxY) * gH;
     ctx.lineTo(x, y);
@@ -2141,24 +2097,7 @@ function init() {
 }
 
 function initDynamicSliders() {
-  const updateFill = (el) => {
-    const min = parseFloat(el.min) || 0;
-    const max = parseFloat(el.max) || 100;
-    const val = parseFloat(el.value) || 0;
-    const pct = ((val - min) / (max - min)) * 100;
-    
-    if (el.classList.contains('setup-range')) {
-      el.style.background = `linear-gradient(to right, var(--blue) ${pct}%, var(--slate-200) ${pct}%)`;
-    } else if (el.classList.contains('sim-range')) {
-      // Hollow outline effect: Transparent up to pct (revealing underlying zones), solid white afterwards (hiding zones)
-      el.style.background = `linear-gradient(to right, transparent ${pct}%, var(--white) ${pct}%)`;
-    }
-  };
 
-  document.querySelectorAll('input[type="range"]').forEach(slider => {
-    slider.addEventListener('input', () => updateFill(slider));
-    updateFill(slider);
-  });
 }
 
 function initTooltips() {
@@ -2166,7 +2105,7 @@ function initTooltips() {
   if (!tooltip) return;
 
   document.querySelectorAll('.info-icon').forEach(icon => {
-    icon.addEventListener('mouseenter', (e) => {
+    icon.addEventListener('mouseenter', () => {
       const text = icon.getAttribute('data-tooltip');
       if (!text) return;
       
