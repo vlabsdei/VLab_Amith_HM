@@ -1,1 +1,3 @@
-# Amith H M
+## Contributors
+ 
+- **Amith H M**

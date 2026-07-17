@@ -16,7 +16,7 @@
         "d": "Incorrect. The total amount of light stays the same whether you project 10 thick stripes or 100 thin stripes."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q2. You scanned a stepped block twice: once with 3 phase steps (RMSE = 0.18 mm) and once with 8 phase steps (RMSE = 0.06 mm). Why did the error drop so much, and would taking 32 images make the scan perfectly noise-free?",
@@ -33,7 +33,7 @@
         "d": "Incorrect. This is a highly predictable and mathematically proven effect of oversampling."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q3. You tried scanning a shiny, mirror-like metal surface, but the simulation output pure garbage noise. The Modulation ratio (M) was sitting near zero! Why do shiny surfaces break structured light?",
@@ -50,7 +50,7 @@
         "d": "Incorrect. The issue is about the *geometry* of the reflection, not the wavelength absorption."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q4. You scanned an 8mm tall block with a wide camera angle (&alpha; = 30&deg;) and got a perfect 8mm scan. But when you narrowed the angle to 10&deg;, the height profile was horribly noisy and only measured about 2.4mm! Using the height formula, why did a narrower angle ruin the scan?",
@@ -67,7 +67,7 @@
         "d": "Incorrect. The math works at any angle, but the signal-to-noise ratio becomes physically disastrous at small angles."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q5. You accidentally left the room lights on, pushing the ambient light from 5% up to 60%. The scan quality plummeted, and the RMSE skyrocketed from 0.04mm to 0.71mm. Which simulated metric warned you this was happening?",
@@ -84,7 +84,7 @@
         "d": "Incorrect. The physical hardware didn't move."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q6. You are designing a scanner for a bumpy object with 15mm of height variation. Your projector angle &alpha; is 25&deg;. To avoid the dreaded phase wrapping, what is the absolute minimum fringe period (p) you can use? (Hint: h_max = p / (2 &times; tan(&alpha;)))",
@@ -101,7 +101,7 @@
         "d": "While 30mm would definitely work and be safe, 14mm is the *absolute minimum* mathematical threshold before it breaks."
       },
       "correctAnswer": "c",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q7. You scanned a perfectly flat wall using 4 phase steps in a perfectly dark room. Strangely, the 3D model wasn't perfectly flat—it had faint, microscopic ripples all over it. The ripples occurred exactly 4 times for every 1 projected stripe. What caused this 'ghost' ripple?",
@@ -118,7 +118,7 @@
         "d": "Incorrect. The formula is correct, but it relies on perfect sine waves, which real-world hardware struggles to produce."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q8. You scanned a coin that had a 3mm deep engraving and a microscopic 0.1mm scratch. Scan A used thick stripes (8mm). Scan B used super thin stripes (2mm). What happened?",
@@ -135,7 +135,7 @@
         "d": "Incorrect. They both worked, just for different aspects of the coin."
       },
       "correctAnswer": "c",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q9. You scanned a flat surface with zero camera noise (σ = 0) in the simulation. However, the room lights were on, and they cast a slight shadow on one side of the wall. The resulting 3D scan was slightly tilted and warped. Why did a flat wall warp if there was no camera noise?",
@@ -152,7 +152,7 @@
         "d": "Incorrect. Lens distortion is a separate calibration issue, not related to ambient light."
       },
       "correctAnswer": "a",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q10. You took two 3D scans from different angles and stitched them together using ICP (from Experiment 4). A classmate complains that 'the stitched point cloud looks way noisier than the individual scans, so the ICP algorithm must be breaking the data.' Why are they wrong?",
@@ -169,7 +169,7 @@
         "d": "Incorrect. ICP works via nearest-neighbor approximation; it doesn't delete points."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     }
   ]
 }

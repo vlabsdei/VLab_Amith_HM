@@ -16,7 +16,7 @@
         "d": "Backwards! Lower resolution means fewer pixels, which directly translates to fewer 3D points."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q2. You added a chunky σ = 30 mm noise to a flat wall at Z = 2 m, making it look all wavy. Then you dialed it down to σ = 2 mm. What changed visually, and why?",
@@ -33,7 +33,7 @@
         "d": "Incorrect. Our noise model is centered at zero, meaning it randomly scatters points forward AND backward. It doesn't systematically pull the whole wall forward."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q3. You scanned a cube using a focal length of 700 px, but the real calibrated value was 770 px. How did this 10% error mess with your point cloud's shape?",
@@ -50,7 +50,7 @@
         "d": "Backwards! Because fx is in the denominator, using a smaller number makes your final coordinates larger, not smaller."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q4. You scanned an object at 2 meters, then backed it up to 4 meters. The bounding box volume quadrupled, but the point density plummeted. What's the takeaway here?",
@@ -67,7 +67,7 @@
         "d": "Nope. They are two sides of the same coin, directly linked by how the camera's field of view expands with distance."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q5. You noticed some annoying 'flying pixels' floating between a foreground box and the background wall. What's the best way to get rid of them at the source?",
@@ -84,7 +84,7 @@
         "d": "That's just sweeping the dirt under the rug! The bad geometry is still there, even if you paint it black."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q6. You ran two tests at 3 meters. Run A used a focal length of 350 px, and Run B used 1400 px. How did the field of view and point cloud spread differ between them?",
@@ -101,7 +101,7 @@
         "d": "Nope. Both runs had the same resolution, so they produced the exact same number of points. Run B's points were just squeezed into a smaller physical area."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q7. You scanned a flat plane with 4 mm noise, getting an RMSE of about 4 mm. If you crank the noise up to 8 mm, what happens to the RMSE, and what does this prove?",
@@ -118,7 +118,7 @@
         "d": "Incorrect. More noise means a rougher surface and a higher error. It doesn't magically fix itself."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q8. You scanned a scene with a close object (0.5 m) and a far wall (8 m) using a fixed 5 mm noise. How did the visual quality compare between the two, and why?",
@@ -135,7 +135,7 @@
         "d": "Incorrect. Real scenes (and our simulation) have depth variations everywhere."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q9. You ran a perfect simulation with zero noise. Then you intentionally added a +5 px error to the principal point (cx). What happened, and how is this different from random sensor noise?",
@@ -152,7 +152,7 @@
         "d": "Incorrect. We let you break it on purpose so you can see why calibration is so crucial!"
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q10. You noticed flying pixels around the edge of a cube at 640×480 resolution. If you bump the resolution up to 1280×960, what happens to those edge artifacts?",
@@ -169,7 +169,7 @@
         "d": "Nope. It's a universal problem for depth cameras, regardless of their resolution setting."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     }
   ]
 }

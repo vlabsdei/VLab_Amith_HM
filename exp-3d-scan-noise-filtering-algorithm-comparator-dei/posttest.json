@@ -16,7 +16,7 @@
         "d": "A cloud might look visually 'cleaner' because it has fewer points, but if those deleted points were part of the real object, your measurements will be biased."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q2. Imagine a scan where the points are very dense in the middle but get naturally sparse toward the edges. You run ROR (<i>r=15mm, n<sub>min</sub>=6</i>), and it accidentally deletes 85% of the genuine points at the edges! You switch to SOR (<i>k=10, &alpha;=2.0</i>), and the false-deletion rate drops to just 12%. Why did SOR handle this so much better?",
@@ -33,7 +33,7 @@
         "d": "15mm is a perfectly valid radius. The problem is that no single fixed radius works for both dense and sparse regions simultaneously."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q3. You use MLS smoothing (bandwidth <i>h=3mm</i>) on a scan of a box, and the sharp 90-degree corners look great. You then crank <i>h</i> up to 25mm, and suddenly the corners are completely rounded off like a melted ice cube! Mathematically, what caused this?",
@@ -50,7 +50,7 @@
         "d": "This effect depends entirely on the size of the bandwidth relative to the physical scale of the corner, not the total number of points."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q4. You test SOR on a scan that has zero isolated outliers, but it suffers from a thick, uniform fuzzy noise across the entire surface (Gaussian jitter, <i>&sigma;=4mm</i>). You try SOR with <i>&alpha;</i> set to 1.0, 2.0, and 3.0. The filter removes almost nothing, and the F1 score is near zero. Why is SOR utterly failing here?",
@@ -67,7 +67,7 @@
         "d": "SOR has no strict requirement for the exact magnitude of the noise."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q5. You have a scan with both flying pixels (outliers) and surface fuzziness. You try two sequences. Sequence A: Run ROR, then MLS. Sequence B: Run MLS, then ROR. Sequence A produces a beautiful, smooth surface. Sequence B produces weird, bumpy lumps right where the outliers used to be! Why does the order matter so much?",
@@ -84,7 +84,7 @@
         "d": "MLS isn't 'worse', it just serves a completely different purpose (smoothing vs deletion). Using them in the wrong order breaks the logic."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q6. You run identical SOR settings on three different shapes, all injected with 15% sparse outliers: a flat plane, a gentle curve, and a highly complex ridged surface. Interestingly, the Recall drops significantly on the complex ridged surface. Why does SOR struggle to identify outliers on complex geometry?",
@@ -101,7 +101,7 @@
         "d": "The total point count doesn't cause this; the physical arrangement of the points does."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q7. You have a terribly messy scan: 20% flying outliers AND 2mm of uniform fuzzy jitter everywhere. SOR cleans the outliers but leaves the fuzz. MLS smooths the fuzz but just pushes the outliers closer to the surface without deleting them. What is the most logical way to fix this scan?",
@@ -118,7 +118,7 @@
         "d": "If MLS just pushes outliers closer without deleting them, they are still corrupting the final shape and ruining your dimensional accuracy!"
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q8. You're testing SOR. You change <i>k</i> from 6 to 30. The F1 score improves, which is great! But suddenly, genuine points along a tight, curved rim of the object start getting wrongly deleted. Why did increasing <i>k</i> cause this new problem?",
@@ -135,7 +135,7 @@
         "d": "<i>k=30</i> is completely valid, you just have to be aware of the geometric consequences!"
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q9. You are using ROR on a scan of a coin that has tiny 3mm engraved letters. At a radius of 10mm, the letters look fine. But when you bump the radius up to 40mm, the letters vanish completely! ROR only deletes points, it doesn't smooth them. So how did it 'erase' the letters?",
@@ -152,7 +152,7 @@
         "d": "The total point count doesn't matter; it's the ratio of the radius size to the physical feature size that causes the problem."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q10. You test 6 different filtering pipelines on a messy, highly detailed mechanical part. Pipeline 4 (SOR then MLS) scores the absolute highest. Pipeline 6 (MLS then SOR) scores the absolute lowest—worse than just running a single filter! Why?",
@@ -169,7 +169,7 @@
         "d": "This is a geometric failure, not a computational timeout."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     }
   ]
 }

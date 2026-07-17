@@ -43,6 +43,10 @@ Think of this formula as the exact reverse of taking a photo. While taking a pho
  
 This is exactly why we had to get Experiment 2 (calibration) right before tackling this! If your focal length (<i>f</i><sub><i>x</i></sub>) or optical center (<i>c</i><sub><i>x</i></sub>) is even slightly off, every single point in your cloud will end up in the wrong spot, leaving you with a warped, funhouse-mirror version of reality.
  
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/back_projection.png" alt="Back Projection Diagram" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: Back-projecting a 2D depth pixel (u,v) into a 3D coordinate (X,Y,Z)</p>
+</div>
 ### 3. Total Point Count and Resolution
  
 Since every valid pixel gets promoted to a 3D point, the total headcount in your point cloud is simply:

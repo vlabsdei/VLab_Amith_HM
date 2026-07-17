@@ -16,7 +16,7 @@
         "d": "Oops, that's not quite right. The normals are genuinely mathematically different \u2014 the covariance matrix and its eigenvectors depend directly on which k points are included. A change in k changes the input data, changes the covariance matrix, and therefore changes the computed minimum eigenvector."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q2. You ran the simulation on a cylinder and noticed that the top circular rim produced clearly incorrect normals \u2014 they pointed in random directions rather than radially outward from the cylinder axis. The rest of the cylinder surface had correct normals. What is most likely causing this specific failure at the rim?",
@@ -33,7 +33,7 @@
         "d": "Close, but no. This behaviour is a physically accurate and expected result of PCA normal estimation at sharp geometric boundaries \u2014 it reproduces the correct real-world behaviour of the algorithm, not a software error."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q3. In the simulation, you generated a point cloud of a smooth bumpy surface and ran normal estimation with k=10. The resulting mesh looked correct from the outside but appeared completely black (incorrectly shaded) when you rotated the view to look from the back. What caused this, and how does viewpoint-based orientation correction fix it?",
@@ -50,7 +50,7 @@
         "d": "Not exactly. The sign ambiguity is inherent to PCA eigenvector computation and occurs regardless of the k value chosen. Different k values affect the direction of the estimated normal but not the fundamental sign ambiguity property of the eigenvector decomposition."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q4. You ran the simulation comparing two meshes: Mesh A generated from a clean (zero noise) point cloud with k=8, and Mesh B generated from the same geometry with \u03c3=5mm noise added and k=8. The normal consistency metric (average angle between adjacent triangle normals) was 2.1\u00b0 for Mesh A and 11.4\u00b0 for Mesh B. Explain what this difference reveals, and why normal consistency specifically reflects noise rather than just surface curvature.",
@@ -67,7 +67,7 @@
         "d": "That's a common misconception, but no. An 11.4\u00b0 average deviation is a measurable quality degradation but not a catastrophic failure. The normals are still pointing approximately in the right direction \u2014 they are just noisier. Complete failure would produce random normal directions with average deviations approaching 90\u00b0."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q5. In the simulation you applied greedy triangulation to a point cloud of an L-shaped object. The concave inner corner of the L produced a region where several triangles had minimum angles below 12\u00b0, while the rest of the mesh had minimum angles above 40\u00b0. What geometric property of the concave corner causes this deterioration in triangle quality?",
@@ -84,7 +84,7 @@
         "d": "Oops, that's not quite right. The surface geometry at the corner is the primary cause of the triangle quality degradation \u2014 the k value influences how many points from the other face are included in the neighbourhood but the fundamental geometric constraint (concave gap) is present regardless of k."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q6. You ran normal estimation on a point cloud with spatially non-uniform density \u2014 one region had 200 points/m\u00b2 and another had 800 points/m\u00b2. With k=15 fixed, the sparse region produced noticeably worse normals than the dense region. A classmate suggested fixing this by using a radius-based neighbourhood (all points within a fixed radius r) instead of k fixed nearest neighbours. Critically evaluate this suggestion and explain the specific trade-off each approach makes.",
@@ -101,7 +101,7 @@
         "d": "Ah, incorrect. Radius-based search is a standard and widely-used alternative to k-nearest neighbours in point cloud processing. Its appropriateness depends on the specific scenario \u2014 it has genuine advantages for density-robust processing but the trade-off of variable neighbourhood size described in answer b is real and must be managed."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q7. In the simulation you processed a point cloud of a thin flat sheet (2mm thick, 200mm \u00d7 200mm) with k=12. The normal estimation produced normals that were roughly correct on the large flat faces but severely incorrect on the thin 2mm edges \u2014 pointing in random directions. You tried reducing k to 4 for the edge regions. The edge normals improved but the face normals became noisier. Explain the mathematical reason why no single fixed k can simultaneously give accurate normals on both the thin edges and the large flat faces of this object.",
@@ -118,7 +118,7 @@
         "d": "Close, but no. This directly contradicts what the question demonstrates \u2014 increasing k on the thin edges makes them worse, not better, because the larger neighbourhood crosses the geometric boundary onto the perpendicular face."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q8. The simulation computed curvature \u03ba = \u03bb\u2080/(\u03bb\u2080+\u03bb\u2081+\u03bb\u2082) for every point on a scan. You observed that \u03ba values were elevated not only at genuine sharp edges of the object but also randomly scattered across smooth flat regions of the surface. Explain both phenomena and describe how you would distinguish between genuine curvature features and noise-induced curvature artefacts in the simulation output.",
@@ -135,7 +135,7 @@
         "d": "Oops, that's not quite right. Spatial coherence is a reliable distinguishing criterion: genuine edges and curvature features are spatially connected and geometrically organised, while noise artefacts are spatially random. This distinction is both visually observable in the simulation and quantifiable through spatial statistics."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q9. You processed a point cloud scan of an object with the full pipeline: noise filtering (Experiment 8 preview), normal estimation with k=10, viewpoint-based orientation, and greedy triangulation. The final mesh was visually correct but had significant holes where the object's surface was steeply angled relative to the scanner (grazing incidence). Explain why grazing incidence regions specifically cause mesh holes, connecting both the scanning and normal estimation stages.",
@@ -152,7 +152,7 @@
         "d": "That's a common misconception, but no. While normal orientation errors do occur at grazing incidence regions, they alone would not produce mesh holes \u2014 incorrectly oriented normals produce incorrect shading and inside-out triangles, not missing mesh coverage. The holes arise specifically from sparse point distribution combined with the edge-length constraint in greedy triangulation."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q10. In the simulation you ran normal estimation on two point clouds: Cloud A had 5000 points on a 10cm \u00d7 10cm surface patch (50,000 pts/m\u00b2) with noise \u03c3=1mm. Cloud B had 500 points on the same patch (5000 pts/m\u00b2) with noise \u03c3=0mm. With k=10, Cloud A produced better normals than Cloud B despite having higher noise. Explain this apparently counterintuitive result using the eigenvalue structure of the PCA covariance matrix.",
@@ -169,7 +169,7 @@
         "d": "Oops, that's not quite right. Simply having more total points in the cloud does not automatically improve normals \u2014 what matters is how many of those points fall within the local neighbourhood (determined by k and local density) and how much geometric variation the surface exhibits at that neighbourhood scale. Total point count is not the correct predictor of normal estimation quality."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     }
   ]
 }

@@ -1,4 +1,5 @@
 'use strict';
+/* global THREE */
 
 /* ================================================================
    EXPERIMENT 3 — POINT CLOUD GENERATION SIMULATION
@@ -39,11 +40,10 @@ let num_points = 0;
    THREE.JS SETUP (RIG VIEW)
 ────────────────────────────────────────────────────────────── */
 
-let setupRenderer, setupScene, setupCamera, setupAnimFrame, sensorCamera;
+let setupRenderer, setupScene, setupCamera, sensorCamera;
 let setupTarget = new THREE.Vector3(0, 1, 0);
 let setupIsDragging = false, setupLastMouse = {x:0, y:0};
 let setupPhi = Math.PI/4, setupTheta = Math.PI/3, setupRadius = 5.0;
-let currentSetupView = 'iso';
 
 // Meshes
 let backdropMesh, mountMesh, sensorMesh, objectMesh, frustumHelper;
@@ -281,7 +281,7 @@ function setupOrbitControls(canvas) {
 }
 
 function animateSetup() {
-  setupAnimFrame = requestAnimationFrame(animateSetup);
+  requestAnimationFrame(animateSetup);
   const x = setupTarget.x + setupRadius * Math.sin(setupPhi) * Math.sin(setupTheta);
   const y = setupTarget.y + setupRadius * Math.cos(setupTheta);
   const z = setupTarget.z + setupRadius * Math.cos(setupPhi) * Math.sin(setupTheta);
@@ -420,7 +420,7 @@ function drawRawDepth() {
 }
 
 /* Vis 2: Interactive Point Cloud (3D) */
-let pcScene, pcCamera, pcRenderer, pcAnimFrame, pointCloudMesh;
+let pcScene, pcCamera, pcRenderer, pointCloudMesh;
 let pcPhi = 0.5, pcTheta = 1.0, pcRadius = 5.0;
 let pcTargetX = 0, pcTargetY = 0, pcTargetZ = -2;
 let pcIsDragging = false, pcLastMouse = {x:0, y:0}, pcButton = 0;
@@ -669,7 +669,7 @@ function updatePointCloud() {
 }
 
 function animatePointCloud() {
-  pcAnimFrame = requestAnimationFrame(animatePointCloud);
+  requestAnimationFrame(animatePointCloud);
   if(!pcRenderer) return;
   const canvas = pcRenderer.domElement;
   const rect = canvas.parentElement.getBoundingClientRect();
@@ -749,7 +749,7 @@ function drawFrustum() {
 }
 
 /* Vis 4: Flying Pixel Edge (3D) */
-let edgeScene, edgeCamera, edgeRenderer, edgeAnimFrame, edgeMesh;
+let edgeScene, edgeCamera, edgeRenderer, edgeMesh;
 let edgePhi = Math.PI/4, edgeTheta = Math.PI/3, edgeRadius = 1.5;
 let edgeTargetX = 0, edgeTargetY = 0, edgeTargetZ = 0;
 let edgeIsDragging = false, edgeLastMouse = {x:0, y:0}, edgeButton = 0;
@@ -837,7 +837,7 @@ function updateFlyingPixel() {
 }
 
 function animateFlyingPixel() {
-  edgeAnimFrame = requestAnimationFrame(animateFlyingPixel);
+  requestAnimationFrame(animateFlyingPixel);
   if(!edgeRenderer) return;
   const canvas = edgeRenderer.domElement;
   const rect = canvas.parentElement.getBoundingClientRect();
@@ -984,10 +984,8 @@ function init() {
   initSetupThree();
   
   // === WIZARD STATE MANAGEMENT ===
-  let currentSetupStep = 1;
 
   function goToSetupStep(step) {
-    currentSetupStep = step;
     
     // Update Left Panel Instruction
     const badge = document.getElementById('setup-step-badge');
@@ -1090,6 +1088,7 @@ function init() {
 
   // Setup Step 2: Object Positioning & Locking
   const rngSetupDist = document.getElementById('rng-setup-dist');
+  const selSetupRes = document.getElementById('sel-setup-res');
   const lblSetupDist = document.getElementById('lbl-setup-dist');
   const rngSetupOffset = document.getElementById('rng-setup-offset');
   const lblSetupOffset = document.getElementById('lbl-setup-offset');

@@ -16,7 +16,7 @@
         "d": "5\u00b0 is a perfectly valid, if coarse, angular resolution value \u2014 many real LiDAR sensors operate at resolutions in this general range or coarser for specific applications. The simulation processes this value normally; it simply produces a much sparser map as a direct consequence of the wider angular spacing."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q2. You configured the simulation with one wall in the virtual room set to reflectivity 0.05 (very low, simulating a dark absorptive surface) while all other walls remained at reflectivity 1.0 (white wall). After running the scan, you observed gaps in the dot pattern specifically along that one low-reflectivity wall segment, while all other walls appeared as continuous solid lines. What does this demonstrate about how reflectivity is modelled in the simulation?",
@@ -33,7 +33,7 @@
         "d": "The reflectivity effect was directly observable in the original wall position and distance \u2014 moving the wall farther away was not required to reveal this behaviour. Reflectivity and distance are separate, independently-acting parameters in the simulation."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q3. You set rotation speed to 600 RPM (giving T_rotation = 0.1 seconds) and pulse frequency to 8000 Hz. You then separately tested a configuration at the same 600 RPM but with pulse frequency reduced to 2000 Hz, while keeping the target angular resolution requirement at 1\u00b0 (requiring N=360 pulses per rotation). What difference in map completeness would you expect between these two pulse frequency settings, and why?",
@@ -50,7 +50,7 @@
         "d": "There is no automatic feedback mechanism in this simulation (or in most real LiDAR systems) where rotation speed adjusts itself based on pulse frequency. These are typically independently configured parameters, and a mismatch between them is exactly what produces the angular gap problem described in the theory."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q4. In the simulation, you configured a virtual room with a glass panel inserted into one wall segment. After running the scan, the map showed that wall segment as a gap leading to apparent open space beyond it, even though a physical wall existed at that location in the underlying room layout. A classmate suggested this must be a simulation bug. How would you explain why this is actually correct, expected behaviour rather than a bug?",
@@ -67,7 +67,7 @@
         "d": "A simulation that aims to teach genuine, accurate physical principles about LiDAR behaviour should deliberately include this exact limitation, since it represents one of the most important and frequently discussed practical failure modes of real LiDAR systems. Omitting this behaviour would actually make the simulation less educationally accurate, not more correct."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q5. You ran the simulation twice on the identical room layout: Run A used noise \u03c3 = 5mm, and Run B used noise \u03c3 = 50mm. You then measured the apparent room width from each resulting map. Run A gave a width very close to the true value, while Run B's measured width differed from the true value by approximately 4%. Explain why corner measurements are typically more affected by this noise than measurements along the flat middle of a single wall.",
@@ -84,7 +84,7 @@
         "d": "The systematic relationship between increased noise (\u03c3 = 50mm vs \u03c3 = 5mm) and increased measurement discrepancy (4% vs near-zero) is a direct, explainable mathematical consequence of how noise propagates through the corner-intersection geometry, not an unrelated coincidence specific to this one test run."
       },
       "correctAnswer": "b",
-      "difficulty": "medium"
+      "difficulty": "intermediate"
     },
     {
       "question": "Q6. You configured the simulation with rotation speed set to 1200 RPM (twice the standard 600 RPM) while keeping pulse frequency fixed at 8000 Hz, and target angular resolution at 0.225\u00b0, which requires N = 1600 pulses per rotation. Calculate whether this configuration achieves adequate coverage, and explain the underlying trade-off being demonstrated.",
@@ -101,7 +101,7 @@
         "d": "Rotation speed and pulse frequency are indeed two independently configurable parameters in real LiDAR systems and in this simulation. They can be set to any combination, though as this question demonstrates, certain combinations may fail to provide adequate coverage for a desired angular resolution \u2014 this is a meaningful engineering trade-off to understand, not a forbidden or impossible configuration."
       },
       "correctAnswer": "a",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q7. In the simulation, you set up a room with one wall positioned at exactly 5 metres from the sensor and applied noise \u03c3 = 30mm to all distance measurements. You then repeated the identical scan configuration multiple times and noticed the measured distance to that wall fluctuated between approximately 4.94m and 5.06m across different scan attempts, despite the true distance always being exactly 5.0m. Explain this observation in terms of the underlying noise model, and discuss whether averaging multiple scans would be expected to improve the measurement.",
@@ -118,7 +118,7 @@
         "d": "This claim directly contradicts the well-established statistical principle that averaging independent random noise samples reduces their combined effect, rather than increasing it. Random errors with zero mean partially cancel when averaged across many samples; this would only fail to help if the noise were systematic (always biased in the same direction) rather than random, which is not the case described here."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q8. You configured a complex scenario: a room with a mix of surface reflectivity values \u2014 most walls at reflectivity 0.9, but one wall section painted matte black at reflectivity 0.08. You also set angular resolution to a fine 0.3\u00b0 and rotation speed to a relatively low 300 RPM with abundant pulse frequency (well above coverage requirements). Despite the fine angular resolution and adequate pulse coverage, the matte black wall section still showed significant gaps in the resulting map. What does this demonstrate about the relationship between angular resolution, pulse coverage, and reflectivity as independent limiting factors?",
@@ -135,7 +135,7 @@
         "d": "There is no separate or different angular resolution formula required for low-reflectivity surfaces. The angular resolution and coverage formulas (N = 360\u00b0/resolution and P = pulse_frequency \u00d7 T_rotation) apply uniformly regardless of what surface reflectivity happens to be present at any given angle \u2014 reflectivity affects a separate, independent aspect of the detection process (signal return strength), not the angular sampling calculation itself."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q9. You ran an experiment comparing two LiDAR configurations scanning the same room containing a thin 4cm-diameter support pole at a distance of 3 metres from the sensor. Configuration X used angular resolution 2\u00b0 (coarse). Configuration Y used angular resolution 0.225\u00b0 (fine, matching a real commercial sensor specification). Using the relationship between angular resolution, distance, and the resulting linear spacing between consecutive measurement points at that range, explain which configuration is more likely to detect the pole, and why.",
@@ -152,7 +152,7 @@
         "d": "This is an overly absolute claim. As the calculation shows, Configuration Y's fine 0.225\u00b0 resolution produces spacing well under 4cm at this particular distance, making detection of even this relatively thin pole quite plausible. Whether an object of a given size is detectable depends on the specific combination of distance and angular resolution being used, not on some fixed universal size threshold that applies regardless of sensor configuration."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     },
     {
       "question": "Q10. You configured the simulation to scan an outdoor-like environment with the maximum detection range set to 25 metres (matching a typical commercial sensor's rated maximum), and placed one wall exactly at 25 metres while applying realistic noise levels. You observed that detection at this maximum range was noticeably less reliable than at closer ranges like 5 metres, with occasional missed readings even on a high-reflectivity surface. Explain why detection reliability tends to degrade specifically as range approaches a sensor's rated maximum, even when reflectivity is held constant and favourable.",
@@ -169,7 +169,7 @@
         "d": "Earth's curvature has a meaningful effect only over distances vastly larger than the scale relevant here (typically becoming significant over many kilometres, not tens of metres). At a scale of 25 metres, any curvature-related beam deviation would be entirely negligible and is not a remotely plausible explanation for the detection reliability changes observed in this indoor-or-near-range outdoor scenario."
       },
       "correctAnswer": "b",
-      "difficulty": "hard"
+      "difficulty": "advanced"
     }
   ]
 }
