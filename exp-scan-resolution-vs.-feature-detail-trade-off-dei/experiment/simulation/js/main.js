@@ -1,6 +1,6 @@
 /* ================================================================
-   EXPERIMENT 9 — SCAN RESOLUTION VS FEATURE DETAIL TRADE-OFF
-   main.js — Three.js setup scene + real Δs/detection math
+   EXPERIMENT 9 - SCAN RESOLUTION VS FEATURE DETAIL TRADE-OFF
+   main.js - Three.js setup scene + real Δs/detection math
    ================================================================ */
 
 'use strict';
@@ -37,12 +37,12 @@ const WIZ = [
   {
     title: 'Adjust the Safety Margin',
     text:  'The margin m controls how conservative the detection rule is. A low margin claims detection is possible closer to the true Nyquist-like limit, but with higher risk.',
-    task:  '▶ Lower margin to 1.5x and watch Z_max increase — but check the probability zone chart.',
+    task:  '▶ Lower margin to 1.5x and watch Z_max increase - but check the probability zone chart.',
     lit:   'pg-margin',
   },
   {
     title: 'Reveal the Probabilistic Boundary',
-    text:  'Switch on Alignment Jitter to see that detection right at the boundary is not a hard yes/no — it depends on exact grid alignment, exactly as the theory describes.',
+    text:  'Switch on Alignment Jitter to see that detection right at the boundary is not a hard yes/no - it depends on exact grid alignment, exactly as the theory describes.',
     task:  '▶ Set Alignment Jitter to High and watch the ladder flicker for boundary-case features.',
     lit:   'pg-noise',
   },
@@ -580,7 +580,7 @@ function renderGauge(canvas){
   document.getElementById('quality-label').style.color=colour;
   document.getElementById('quality-sub').textContent=
     confidence>=70 ? `${FEATURES_MM[SIM.targetIdx]}mm feature reliably detected` :
-    confidence>=40 ? 'Boundary zone — detection uncertain' :
+    confidence>=40 ? 'Boundary zone - detection uncertain' :
                      'Feature likely undetectable at this resolution';
 }
 

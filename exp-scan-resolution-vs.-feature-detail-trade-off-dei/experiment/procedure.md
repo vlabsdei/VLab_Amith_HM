@@ -44,4 +44,4 @@ Interact with the variables to see how they impact feature detectability.
 ### Step 6: Test Safety Margins
 Understand how over-sampling affects reliability.
 * **Action:** Change the Target Feature slider to focus on a specific feature size (e.g., 2mm), then adjust the Safety Margin (m) slider.
-* **Observation:** Higher safety margins demand a tighter point grid to guarantee detection. Notice how changing the alignment jitter demonstrates why these safety margins are necessary—without a margin, a small shift in alignment could cause the grid to completely miss the target feature.
+* **Observation:** Higher safety margins demand a tighter point grid to guarantee detection. Notice how changing the alignment jitter demonstrates why these safety margins are necessary-without a margin, a small shift in alignment could cause the grid to completely miss the target feature.
