@@ -1,6 +1,6 @@
 ## Theory
 
-### 1. The Core Idea — Painting with Light
+### 1. The Core Idea - Painting with Light
 
 Imagine trying to figure out the shape of an invisible object in a dark room. In previous experiments, we learned that LiDAR fires a single laser pulse and measures how long it takes to bounce back (one point at a time), while Stereo Vision uses two cameras to triangulate points like human eyes. 
 
@@ -13,7 +13,7 @@ Structured Light takes a much more creative approach: it **paints the scene** wi
 
 ### 2. Why Use Wavy Lines?
 
-The most common pattern used in industrial structured light isn't a simple grid—it's a set of sinusoidal fringes. Picture a series of smooth, parallel black-and-white stripes that transition beautifully from bright to dark and back again, just like a cosine wave.
+The most common pattern used in industrial structured light isn't a simple grid-it's a set of sinusoidal fringes. Picture a series of smooth, parallel black-and-white stripes that transition beautifully from bright to dark and back again, just like a cosine wave.
 
 The secret ingredient hidden in these waves is the **phase (&phi;)**. Think of phase as your exact position within one black-and-white cycle (from 0 to 2&pi;). When you project these fringes onto a flat wall, they look perfectly straight. But when you project them onto a curved object, the fringes wrap around the object. To the camera sitting off to the side, the lines appear bent. This bending is a geometric shift, which changes the phase at every pixel. This shift in phase is exactly what encodes the object's height!
 
@@ -21,7 +21,7 @@ The secret ingredient hidden in these waves is the **phase (&phi;)**. Think of p
 
 There's one catch. If you just snap a single picture of these fringes on an object, you run into a math problem. At any given pixel, a dark spot could mean two things: either it's the dark part of the projected stripe (the phase), or the object itself is just painted black (surface reflectance). One image cannot tell the difference. 
 
-To solve this, we use the **phase-shifting algorithm**. We don't project just one image—we project a sequence of *N* images, shifting the stripes slightly sideways each time by a known fraction of the pattern:
+To solve this, we use the **phase-shifting algorithm**. We don't project just one image-we project a sequence of *N* images, shifting the stripes slightly sideways each time by a known fraction of the pattern:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   <i>shift</i><sub><i>n</i></sub>&nbsp;=&nbsp;
@@ -93,7 +93,7 @@ If you widen the angle **&alpha;**, the system becomes hyper-sensitive to height
 
 ### 6. The Wrapping Problem
 
-There's a mathematical catch in the arctan function we used earlier—it can only output values between -&pi; and +&pi;. Imagine a clock that resets to zero every time it hits 12. If a surface is so steep that the true phase should be 3&pi;, the math forces it to wrap around and output &pi; instead. 
+There's a mathematical catch in the arctan function we used earlier-it can only output values between -&pi; and +&pi;. Imagine a clock that resets to zero every time it hits 12. If a surface is so steep that the true phase should be 3&pi;, the math forces it to wrap around and output &pi; instead. 
 
 This causes visual "cliffs" or sawtooth artefacts in the 3D data, known as **phase wrapping**. The process of seamlessly stitching these jumps back together is called phase unwrapping. The maximum height your system can measure before these messy wrapping jumps occur is:
 
@@ -125,4 +125,4 @@ If you want a flawless 3D scan, you have to balance the **fringe frequency**:
 - **High frequency (thin stripes):** You get incredibly detailed, high-resolution scans of smooth surfaces, but steep features will cause messy phase wrapping.
 - **Low frequency (thick stripes):** You rarely get phase wrapping errors, but you sacrifice the ability to see fine, microscopic details.
 
-In modern applications—like FaceID on your phone or industrial inspection robots—engineers use multi-frequency systems that project thick stripes first to get the general shape, and thin stripes later to fill in the ultra-fine details!
+In modern applications-like FaceID on your phone or industrial inspection robots-engineers use multi-frequency systems that project thick stripes first to get the general shape, and thin stripes later to fill in the ultra-fine details!

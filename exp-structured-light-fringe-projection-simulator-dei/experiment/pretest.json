@@ -47,7 +47,7 @@
         "a": "Incorrect. Taking multiple images actually slows down the capture process, but it's mathematically necessary!",
         "b": "Correct! If you only take one picture, you have one equation but three unknowns (ambient light, fringe contrast, and phase). By shifting the pattern and taking at least 3 pictures, we get enough equations to separate the object's actual color from the phase (the height data).",
         "c": "Incorrect. Even with a perfect, noise-free camera, you physically cannot extract phase from a single static image without making assumptions.",
-        "d": "Incorrect. A single image leaves the math 'underdetermined'—you can't solve it!"
+        "d": "Incorrect. A single image leaves the math 'underdetermined'-you can't solve it!"
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
@@ -56,13 +56,13 @@
       "question": "Q4. In the math that drives this (I = A + B &times; cos(&phi; + shift)), what does 'B' represent?",
       "answers": {
         "a": "The distance between the camera and projector.",
-        "b": "The fringe contrast—how strongly the stripes stand out against the background.",
+        "b": "The fringe contrast-how strongly the stripes stand out against the background.",
         "c": "The total number of images taken.",
         "d": "Whether the pixel is perfectly black or perfectly white."
       },
       "explanations": {
         "a": "Incorrect. The baseline distance is a completely different parameter related to triangulation.",
-        "b": "Spot on! 'B' is the modulation amplitude—basically, how punchy and visible the stripes are. If B is high, the stripes are clear and we get great 3D data. If B is low, the stripes are washed out and the math fails.",
+        "b": "Spot on! 'B' is the modulation amplitude-basically, how punchy and visible the stripes are. If B is high, the stripes are clear and we get great 3D data. If B is low, the stripes are washed out and the math fails.",
         "c": "Incorrect. The number of images is 'N', not 'B'.",
         "d": "Incorrect. These are smooth, continuous cosine waves, not harsh binary black-and-white pixels."
       },
@@ -106,7 +106,7 @@
     {
       "question": "Q7. Why is the modulation ratio (M = B / A) such a big deal for scan quality?",
       "answers": {
-        "a": "It's the magnification of the lens—higher means bigger stripes.",
+        "a": "It's the magnification of the lens-higher means bigger stripes.",
         "b": "It's the signal-to-noise ratio. If M is low, the stripes are too faint to see against the background, and the math fails.",
         "c": "It tells you how many stripes fit on the screen.",
         "d": "It measures how shiny the object is."
@@ -124,13 +124,13 @@
       "question": "Q8. How does widening the angle (&alpha;) between the projector and camera affect your scan?",
       "answers": {
         "a": "It makes the system less sensitive to height changes.",
-        "b": "It makes the system MORE sensitive to height changes—small bumps become much more obvious to the camera.",
+        "b": "It makes the system MORE sensitive to height changes-small bumps become much more obvious to the camera.",
         "c": "It doesn't affect height sensitivity at all.",
         "d": "It only changes how wide an area you can scan."
       },
       "explanations": {
         "a": "Incorrect. Actually, a wider angle increases sensitivity!",
-        "b": "Correct! Think of it like shining a flashlight across a textured wall from an angle—the shadows and distortions get much longer and more exaggerated. A wider angle &alpha; means the same tiny bump causes a much bigger phase shift, giving you better depth resolution.",
+        "b": "Correct! Think of it like shining a flashlight across a textured wall from an angle-the shadows and distortions get much longer and more exaggerated. A wider angle &alpha; means the same tiny bump causes a much bigger phase shift, giving you better depth resolution.",
         "c": "Incorrect. The angle &alpha; is a core part of the triangulation math.",
         "d": "Incorrect. While it does change the overlapping field of view, its primary mathematical effect is on depth sensitivity."
       },

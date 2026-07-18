@@ -28,7 +28,7 @@
       },
       "explanations": {
         "a": "Incorrect. The math doesn't scale perfectly to infinity. Eventually, you hit irreducible hardware noise.",
-        "b": "Correct! With just 3 images, the math has exactly the bare minimum data it needs—so any noise goes straight into your 3D model. With 8 images, the system is 'overdetermined', meaning it can use the extra data to mathematically average out the noise. But this trick hits diminishing returns fast; taking 32 images just wastes time without making the scan noticeably better.",
+        "b": "Correct! With just 3 images, the math has exactly the bare minimum data it needs-so any noise goes straight into your 3D model. With 8 images, the system is 'overdetermined', meaning it can use the extra data to mathematically average out the noise. But this trick hits diminishing returns fast; taking 32 images just wastes time without making the scan noticeably better.",
         "c": "Incorrect. Any number higher than 3 improves the noise averaging, regardless of divisibility.",
         "d": "Incorrect. This is a highly predictable and mathematically proven effect of oversampling."
       },
@@ -104,7 +104,7 @@
       "difficulty": "advanced"
     },
     {
-      "question": "Q7. You scanned a perfectly flat wall using 4 phase steps in a perfectly dark room. Strangely, the 3D model wasn't perfectly flat—it had faint, microscopic ripples all over it. The ripples occurred exactly 4 times for every 1 projected stripe. What caused this 'ghost' ripple?",
+      "question": "Q7. You scanned a perfectly flat wall using 4 phase steps in a perfectly dark room. Strangely, the 3D model wasn't perfectly flat-it had faint, microscopic ripples all over it. The ripples occurred exactly 4 times for every 1 projected stripe. What caused this 'ghost' ripple?",
       "answers": {
         "a": "The camera lens was dirty.",
         "b": "Real projectors can't draw perfect sine waves; they project slight digital jaggedness (harmonics). The 4-step math algorithm accidentally turns the 4th harmonic of the projection into a tiny physical ripple in the 3D data.",
@@ -131,7 +131,7 @@
       "explanations": {
         "a": "Incorrect. Thick stripes don't have the resolution for microscopic scratches.",
         "b": "Incorrect. Thin stripes don't have the range for deep engravings without wrapping.",
-        "c": "Correct! This is the ultimate trade-off in structured light. Thick stripes (Scan A) have a massive range (no wrapping) but terrible sensitivity, making them blind to tiny scratches. Thin stripes (Scan B) are hyper-sensitive to tiny details but wrap easily on deep features. This is exactly why modern, expensive industrial scanners project multiple frequencies—thick ones for the general shape, and thin ones for the HD details!",
+        "c": "Correct! This is the ultimate trade-off in structured light. Thick stripes (Scan A) have a massive range (no wrapping) but terrible sensitivity, making them blind to tiny scratches. Thin stripes (Scan B) are hyper-sensitive to tiny details but wrap easily on deep features. This is exactly why modern, expensive industrial scanners project multiple frequencies-thick ones for the general shape, and thin ones for the HD details!",
         "d": "Incorrect. They both worked, just for different aspects of the coin."
       },
       "correctAnswer": "c",
@@ -146,7 +146,7 @@
         "d": "Because the camera lens bent."
       },
       "explanations": {
-        "a": "Correct! The phase-shifting math assumes that ambient light ('A') is perfectly equal across all four captured images. If a shadow or light gradient exists on the wall, 'A' changes slightly across the image. The algorithm misinterprets this lighting gradient as a physical height change, physically warping your 3D mesh. This is a 'systematic' error, meaning it doesn't matter how many times you scan it—it will always be warped until you turn off the room lights!",
+        "a": "Correct! The phase-shifting math assumes that ambient light ('A') is perfectly equal across all four captured images. If a shadow or light gradient exists on the wall, 'A' changes slightly across the image. The algorithm misinterprets this lighting gradient as a physical height change, physically warping your 3D mesh. This is a 'systematic' error, meaning it doesn't matter how many times you scan it-it will always be warped until you turn off the room lights!",
         "b": "Incorrect. Zero 'random' noise doesn't magically fix 'systematic' mathematical errors caused by uneven lighting.",
         "c": "Incorrect. Hardware movement wasn't a factor.",
         "d": "Incorrect. Lens distortion is a separate calibration issue, not related to ambient light."
@@ -164,7 +164,7 @@
       },
       "explanations": {
         "a": "Incorrect. ICP just moves points around; it doesn't smooth them.",
-        "b": "Correct! This bridges your knowledge between Exp 4 and Exp 6! Structured light always generates slightly fuzzy point clouds because of sensor noise. When ICP aligns two clouds, it doesn't average them or smooth them—it just overlaps them rigidly. You now have two distinct layers of noise overlapping, plus whatever microscopic alignment error ICP failed to converge on. The data isn't broken, it's just the reality of combining multiple imperfect sensor readings!",
+        "b": "Correct! This bridges your knowledge between Exp 4 and Exp 6! Structured light always generates slightly fuzzy point clouds because of sensor noise. When ICP aligns two clouds, it doesn't average them or smooth them-it just overlaps them rigidly. You now have two distinct layers of noise overlapping, plus whatever microscopic alignment error ICP failed to converge on. The data isn't broken, it's just the reality of combining multiple imperfect sensor readings!",
         "c": "Incorrect. ICP applies a rigid transformation (rotation and translation). It physically cannot warp or deform the shape of a scan.",
         "d": "Incorrect. ICP works via nearest-neighbor approximation; it doesn't delete points."
       },

@@ -6,7 +6,7 @@ Before you begin the experiment, take a moment to understand the dual-phase arch
 
 **Phase 1: Setup Lab**
 * **Setup Instructions & 3D Controls (Left Panel):** Displays your current objective in the equipment mounting process. It provides helpful hints for navigating the 3D space (orbiting, panning, and zooming) so you can inspect the physical relationships between components.
-* **3D Scene & Observations (Center Panel):** Features a live, interactive 3D view of the physical equipment. Once your projector and camera are mounted, this panel visualizes the spatial triangulation arrangement—the core geometric principle that makes structured light scanning possible.
+* **3D Scene & Observations (Center Panel):** Features a live, interactive 3D view of the physical equipment. Once your projector and camera are mounted, this panel visualizes the spatial triangulation arrangement-the core geometric principle that makes structured light scanning possible.
 * **Apparatus Controls (Right Panel):** Use this panel to sequentially mount the system components into the virtual lab: the Projector (which acts as an active light source), the Camera (the sensor), the Target Surface (the object being scanned), and the Enclosure (used to control environmental lighting). You can also define initial physical parameters, such as Surface Reflectivity and Baseline Angle (α), before launching the simulation.
 
 **Phase 2: Fringe Projection Simulation**
@@ -35,7 +35,7 @@ The Phase-Shifting algorithm requires projecting multiple sine waves, each shift
 * **Observation & Theory:** Mathematically, a minimum of 3 steps is required to solve the three unknowns in the fringe equation (ambient intensity, modulation amplitude, and phase). However, using only 3 steps makes the system highly susceptible to sensor noise. As you increase N, you are effectively oversampling. Watch the **Height RMSE vs N graph**; you will see the Root Mean Square Error (RMSE) drop dramatically from N=3 to N=6, but then plateau. This teaches you that while more steps average out noise, taking 16 images takes more time and yields diminishing returns compared to 6 or 8 images.
 
 ### Step 3: Optimize the Fringe Period (p)
-The fringe period determines the spatial frequency—the physical width of each black-and-white sine wave cycle projected onto the object.
+The fringe period determines the spatial frequency-the physical width of each black-and-white sine wave cycle projected onto the object.
 * **Action:** Slowly move the **Fringe Period (p)** slider from 40 mm down to 2 mm.
 * **Observation & Theory:** 
   * **Low Frequency (e.g., 40 mm):** The fringes are very wide. The Phase Map is simple and easy for the computer to unwrap, but the height measurement has low sensitivity and low resolution.

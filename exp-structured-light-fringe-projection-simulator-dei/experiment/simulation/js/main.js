@@ -1,27 +1,27 @@
 /* ================================================================
-   EXPERIMENT 6 — STRUCTURED LIGHT FRINGE PROJECTION SIMULATOR
-   main.js — Three.js 3D setup scene + real phase-shifting engine
+   EXPERIMENT 6 - STRUCTURED LIGHT FRINGE PROJECTION SIMULATOR
+   main.js - Three.js 3D setup scene + real phase-shifting engine
    ================================================================
    ARCHITECTURE
    ────────────
    SETUP PAGE
-     ThreeScene    → renderer, camera, orbit controls, projector + camera
+     ThreeScene     renderer, camera, orbit controls, projector + camera
                      + surface + enclosure in a scan chamber
-     Components    → tracks mounted equipment (projector, camera, surface,
+     Components     tracks mounted equipment (projector, camera, surface,
                      enclosure)
-     SetupWizard   → step navigation (0→4)
+     SetupWizard    step navigation (04)
    SIMULATION PAGE
-     SurfaceGen    → generates a bumpy height profile h_true(x) as a sum
+     SurfaceGen     generates a bumpy height profile h_true(x) as a sum
                      of cosine harmonics
-     PhaseShifting → for each pixel, generates N fringe images
+     PhaseShifting  for each pixel, generates N fringe images
                      I_n = A + B·cos(φ + 2πn/N) with noise + ambient,
                      then extracts wrapped phase φ via the generalised
                      N-step arctan formula
-     render*()     → fringe image, wrapped phase map, height profile,
+     render*()      fringe image, wrapped phase map, height profile,
                      modulation map, phase-steps preview, quality gauge,
                      RMSE-vs-N chart
-     WizardSim     → 4-step guided walkthrough
-   CORE MATH (Experiment 6 theory) — all genuinely computed, not faked
+     WizardSim      4-step guided walkthrough
+   CORE MATH (Experiment 6 theory) - all genuinely computed, not faked
    ────────────────────────────────────────────────────────────────────
      Intensity:     I_n(u,v) = A + B·cos(φ(u,v) + 2πn/N)
      Phase extract: φ = arctan(−ΣI_n·sin(s_n) / ΣI_n·cos(s_n))
@@ -52,18 +52,18 @@ const SIM = {
 let SCAN = {
   W: 256,            /* pixel resolution of the simulation */
   H: 160,
-  hTrue: null,       /* Float64Array(W*H) – true height    */
-  hRecov: null,      /* Float64Array(W*H) – recovered height */
-  phaseW: null,      /* Float64Array(W*H) – wrapped phase  */
-  modMap: null,       /* Float64Array(W*H) – modulation ratio */
-  fringeImg: null,   /* Float64Array(W*H) – last fringe step image */
+  hTrue: null,       /* Float64Array(W*H) - true height    */
+  hRecov: null,      /* Float64Array(W*H) - recovered height */
+  phaseW: null,      /* Float64Array(W*H) - wrapped phase  */
+  modMap: null,       /* Float64Array(W*H) - modulation ratio */
+  fringeImg: null,   /* Float64Array(W*H) - last fringe step image */
 };
 /* Wizard content for simulation page */
 const SIM_WIZARD = [
   {
     title: 'Project Fringes',
     text:  'The projector casts sinusoidal fringe patterns onto the surface. With N=4, four phase-shifted images are captured. Each fringe bends where the surface has height.',
-    task:  '▶ Observe the Fringe Image — bright and dark bands bend over the bumpy surface.',
+    task:  '▶ Observe the Fringe Image - bright and dark bands bend over the bumpy surface.',
     lit:   'pg-N',
   },
   {
@@ -80,7 +80,7 @@ const SIM_WIZARD = [
   },
   {
     title: 'Flood with Ambient Light',
-    text:  'Ambient light raises the DC offset A, reducing M = B/A. When M drops too low, phase extraction fails — the modulation map turns red.',
+    text:  'Ambient light raises the DC offset A, reducing M = B/A. When M drops too low, phase extraction fails - the modulation map turns red.',
     task:  '▶ Push ambient to 60% and observe the modulation map degrade.',
     lit:   'pg-ambient',
   },
@@ -96,7 +96,7 @@ function gauss() {
 function degToRad(d) { return d * Math.PI / 180; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 /* ──────────────────────────────────────────────────────────────
-   SURFACE GENERATOR — creates a bumpy h_true(x,y) profile
+   SURFACE GENERATOR - creates a bumpy h_true(x,y) profile
 ────────────────────────────────────────────────────────────── */
 function generateSurface(W, H, amplitude) {
   const h = new Float64Array(W * H);
@@ -189,7 +189,7 @@ function runPhaseShifting() {
   SCAN.fringeImg = fringeImg;
 }
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS SCENE — SETUP PAGE
+   THREE.JS SCENE - SETUP PAGE
 ────────────────────────────────────────────────────────────── */
 let renderer, scene, camera, animFrame;
 let projectorGroup, cameraGroup, surfaceMesh, enclosureGroup;
@@ -466,7 +466,7 @@ function buildFringeBeamGroup() {
   const cone = new THREE.Mesh(coneGeo, coneMat);
   cone.position.set(0, -0.8, 0);
   fringeBeamGroup.add(cone);
-  /* fringe stripe planes — animated */
+  /* fringe stripe planes - animated */
   for (let i = 0; i < 8; i++) {
     const stripeGeo = new THREE.PlaneGeometry(1.6, 0.015);
     const stripeMat = new THREE.MeshBasicMaterial({
@@ -496,7 +496,7 @@ function updateFringeBeams() {
   }
 }
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
+   SETUP PAGE - STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
 let currentSetupStep = 0;
 function gotoSetupStep(n) {
@@ -584,7 +584,7 @@ function mountComponent(name) {
   }
 }
 /* ──────────────────────────────────────────────────────────────
-   SETUP STEP 3 — CONFIRM CONFIGURATION
+   SETUP STEP 3 - CONFIRM CONFIGURATION
 ────────────────────────────────────────────────────────────── */
 function confirmConfiguration() {
   document.getElementById('btn-next-obs').disabled = false;
@@ -715,7 +715,7 @@ function renderPhaseMap(canvas) {
   ctx.font = '9px JetBrains Mono';
   ctx.fillText('φ ∈ [−π, +π]', 6, cH - 6);
 }
-/* ── Height Profile h(x) — middle row comparison ─────────── */
+/* ── Height Profile h(x) - middle row comparison ─────────── */
 function renderHeightProfile(canvas) {
   const ctx = canvas.getContext('2d');
   const { W: cW, H: cH } = autoSizeCanvas(canvas);
@@ -884,7 +884,7 @@ function renderGauge(canvas) {
   let sumM = 0;
   for (let i = 0; i < sW * sH; i++) sumM += SCAN.modMap[i];
   const avgM = sumM / (sW * sH);
-  /* quality 0–100 based on RMSE and modulation */
+  /* quality 0-100 based on RMSE and modulation */
   const rmseScore = clamp(1 - rmse / SIM.surfAmp, 0, 1) * 60;
   const modScore = clamp(avgM / 0.8, 0, 1) * 40;
   const quality = Math.round(rmseScore + modScore);
@@ -918,8 +918,8 @@ function renderGauge(canvas) {
   document.getElementById('quality-label').style.color = colour;
   document.getElementById('quality-sub').textContent =
     quality > 70 ? 'Phase map accurately recovers surface' :
-    quality > 40 ? 'Some error — check parameters' :
-                   'Phase extraction degraded — adjust settings';
+    quality > 40 ? 'Some error - check parameters' :
+                   'Phase extraction degraded - adjust settings';
 }
 /* ── RMSE vs N chart (right panel) ────────────────────────── */
 function renderRmseVsN(canvas) {
@@ -1008,7 +1008,7 @@ function renderRmseVsN(canvas) {
   ctx.textAlign = 'left';
 }
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — READOUTS
+   SIMULATION - READOUTS
 ────────────────────────────────────────────────────────────── */
 function updateReadouts() {
   const alpha = degToRad(SIM.alpha);
@@ -1069,7 +1069,7 @@ function updateReadouts() {
   }
 }
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — RENDER ALL
+   SIMULATION - RENDER ALL
 ────────────────────────────────────────────────────────────── */
 function renderAllSimCanvases() {
   runPhaseShifting();
@@ -1083,7 +1083,7 @@ function renderAllSimCanvases() {
   updateReadouts();
 }
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — WIZARD
+   SIMULATION - WIZARD
 ────────────────────────────────────────────────────────────── */
 function updateSimWizard() {
   const step = Math.min(SIM.step, SIM_WIZARD.length - 1);
@@ -1112,7 +1112,7 @@ function updateSimWizard() {
   }
 }
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — INIT & CONTROLS
+   SIMULATION - INIT & CONTROLS
 ────────────────────────────────────────────────────────────── */
 let simInitialised = false;
 function initSimulation() {
@@ -1123,7 +1123,7 @@ function initSimulation() {
   simInitialised = true;
   updateSimWizard();
   renderAllSimCanvases();
-  /* Parameter sliders — scope to sim page to avoid ID conflicts */
+  /* Parameter sliders - scope to sim page to avoid ID conflicts */
   const simPage = document.getElementById('page-sim');
   simPage.querySelector('#r-N').value = SIM.N;
   document.getElementById('pv-N').textContent = SIM.N;
@@ -1200,7 +1200,7 @@ function resetSimulationFull() {
   renderAllSimCanvases();
 }
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — RESET
+   SETUP PAGE - RESET
 ────────────────────────────────────────────────────────────── */
 function resetSetup() {
   Object.keys(MOUNTED).forEach(k => MOUNTED[k] = false);
@@ -1231,7 +1231,7 @@ function resetSetup() {
   gotoSetupStep(0);
 }
 /* ──────────────────────────────────────────────────────────────
-   INIT — entry point
+   INIT - entry point
 ────────────────────────────────────────────────────────────── */
 function init() {
   initThree();
@@ -1261,19 +1261,19 @@ function init() {
   document.querySelectorAll('[data-prev]').forEach(btn => {
     btn.addEventListener('click', () => gotoSetupStep(parseInt(btn.dataset.prev)));
   });
-  /* Setup sliders — Step 2: baseline angle α */
+  /* Setup sliders - Step 2: baseline angle α */
   document.getElementById('sr-alpha').addEventListener('input', e => {
     SETUP.alpha = parseInt(e.target.value);
     document.getElementById('sv-alpha').textContent = SETUP.alpha + '°';
     updateCameraGroupPosition();
     updateBaselineLine();
   });
-  /* Setup sliders — Step 3: surface amplitude */
+  /* Setup sliders - Step 3: surface amplitude */
   document.getElementById('sr-amp').addEventListener('input', e => {
     SETUP.amplitude = parseFloat(e.target.value);
     document.getElementById('sv-amp').textContent = SETUP.amplitude + ' mm';
   });
-  /* Setup sliders — Step 3: surface reflectivity */
+  /* Setup sliders - Step 3: surface reflectivity */
   document.getElementById('sr-refl').addEventListener('input', e => {
     SETUP.reflectivity = parseFloat(e.target.value);
     document.getElementById('sv-refl').textContent = SETUP.reflectivity.toFixed(2);
