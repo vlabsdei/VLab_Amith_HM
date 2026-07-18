@@ -1,6 +1,6 @@
 /* ================================================================
-   EXPERIMENT 7 — SURFACE NORMAL ESTIMATION & MESH GENERATION
-   main.js — Three.js 3D setup scene + real PCA-based normal estimation
+   EXPERIMENT 7 - SURFACE NORMAL ESTIMATION & MESH GENERATION
+   main.js - Three.js 3D setup scene + real PCA-based normal estimation
    ================================================================ */
 
 'use strict';
@@ -45,14 +45,14 @@ const WIZ = [
   },
   {
     title: 'See the Sign Ambiguity',
-    text:  'PCA gives a normal direction but not a sign. Switch to Raw orientation mode and watch some normals flip inward — exactly the rendering problem viewpoint correction solves.',
+    text:  'PCA gives a normal direction but not a sign. Switch to Raw orientation mode and watch some normals flip inward - exactly the rendering problem viewpoint correction solves.',
     task:  '▶ Set Normal Orientation to Raw and look for inward-pointing spikes.',
     lit:   'pg-orient',
   },
 ];
 
 /* ──────────────────────────────────────────────────────────────
-   MATH — VECTORS / 3×3 MATRICES
+   MATH - VECTORS / 3×3 MATRICES
 ────────────────────────────────────────────────────────────── */
 function gauss() {
   const u1 = Math.max(1e-12, Math.random());
@@ -239,7 +239,7 @@ function triangleAngles(A,B,C) {
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS — SETUP SCENE
+   THREE.JS - SETUP SCENE
 ────────────────────────────────────────────────────────────── */
 let renderer, scene, camera3d, animFrame;
 let cloudPoints, knnSphere, highlightPoint, pcaArrowGroup, meshLines;
@@ -438,7 +438,7 @@ function buildSetupMeshPreview() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
+   SETUP PAGE - STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
 
 function gotoStep(n) {
@@ -1040,6 +1040,6 @@ function renderGauge(canvas) {
   document.getElementById('quality-sub').textContent =
     quality>65 ? 'Normals and mesh look reliable' :
     quality>35 ? 'Reduce noise or adjust k' :
-                 'Estimation degraded — check edges/noise';
+                 'Estimation degraded - check edges/noise';
 }
 

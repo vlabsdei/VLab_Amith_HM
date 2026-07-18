@@ -2,9 +2,9 @@
 
 ### 1. From Point Clouds to Surfaces
 
-When a 3D scanner captures an object, the raw output is simply a list of coordinates (X, Y, Z) known as a **point cloud**. While this cloud gives us a sense of the object's shape, it’s completely unstructured. If you pick a single point, the scanner doesn't tell you whether it's sitting on a smooth flat surface, a curved bump, or a sharp edge. 
+When a 3D scanner captures an object, the raw output is simply a list of coordinates (X, Y, Z) known as a **point cloud**. While this cloud gives us a sense of the object's shape, it's completely unstructured. If you pick a single point, the scanner doesn't tell you whether it's sitting on a smooth flat surface, a curved bump, or a sharp edge. 
 
-To do anything useful with this data—like creating a 3D mesh for 3D printing, rendering it in a video game, or running engineering simulations—we need to know the orientation of the surface at every single point. This is where **surface normal estimation** comes in. It acts as the critical bridge that transforms a raw, scattered point cloud into a continuous, understandable 3D surface.
+To do anything useful with this data-like creating a 3D mesh for 3D printing, rendering it in a video game, or running engineering simulations-we need to know the orientation of the surface at every single point. This is where **surface normal estimation** comes in. It acts as the critical bridge that transforms a raw, scattered point cloud into a continuous, understandable 3D surface.
 
 ### 2. What is a Surface Normal?
 
@@ -31,9 +31,9 @@ One tricky aspect of normals is that mathematically, a plane has two perpendicul
 
 The most common way to estimate the normal for a point **P** is to look at its closest neighbours using a technique called **Principal Component Analysis (PCA)**.
 
-**Step 1 — Gather Neighbours:** We find the **k** points closest to **P**. This group forms our local neighbourhood.
+**Step 1 - Gather Neighbours:** We find the **k** points closest to **P**. This group forms our local neighbourhood.
 
-**Step 2 — Find the Center:** We calculate the centroid (or average position) of these **k** points:
+**Step 2 - Find the Center:** We calculate the centroid (or average position) of these **k** points:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   <i>P&#772;</i>&nbsp;=&nbsp;
@@ -44,7 +44,7 @@ The most common way to estimate the normal for a point **P** is to look at its c
   &nbsp;&sum; <i>P<sub>i</sub></i>
 </div>
 
-**Step 3 — Build the Covariance Matrix:** We create a 3x3 matrix that describes how the points are scattered around the centroid:
+**Step 3 - Build the Covariance Matrix:** We create a 3x3 matrix that describes how the points are scattered around the centroid:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   <i>C</i>&nbsp;=&nbsp;
@@ -55,9 +55,9 @@ The most common way to estimate the normal for a point **P** is to look at its c
   &nbsp;&sum; (<i>P<sub>i</sub></i> &minus; <i>P&#772;</i>)(<i>P<sub>i</sub></i> &minus; <i>P&#772;</i>)<sup>T</sup>
 </div>
 
-**Step 4 — Find the Eigenvectors:** We compute the eigenvalues (&lambda;<sub>0</sub> &le; &lambda;<sub>1</sub> &le; &lambda;<sub>2</sub>) and their matching eigenvectors for this matrix.
+**Step 4 - Find the Eigenvectors:** We compute the eigenvalues (&lambda;<sub>0</sub> &le; &lambda;<sub>1</sub> &le; &lambda;<sub>2</sub>) and their matching eigenvectors for this matrix.
 
-**Step 5 — The Normal is the Smallest Eigenvector:** The eigenvector associated with the smallest eigenvalue (&lambda;<sub>0</sub>) tells us the direction where the points vary the *least*. Because points on a surface tend to spread out flatly rather than pushing away from the surface, this direction of least variance is our estimated surface normal!
+**Step 5 - The Normal is the Smallest Eigenvector:** The eigenvector associated with the smallest eigenvalue (&lambda;<sub>0</sub>) tells us the direction where the points vary the *least*. Because points on a surface tend to spread out flatly rather than pushing away from the surface, this direction of least variance is our estimated surface normal!
 
 ### 4. The Neighbourhood Size (k) Trade-off
 

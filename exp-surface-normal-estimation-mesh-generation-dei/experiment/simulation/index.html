@@ -53,22 +53,22 @@
         </div>
       </aside>
 
-      <!-- ═══ CENTER PANEL — 3D CANVAS ═══ -->
+      <!-- ═══ CENTER PANEL - 3D CANVAS ═══ -->
       <section id="canvas-area">
         <div class="canvas-card" style="height: 100%;">
           <div class="card-header">
             <span class="card-title">
               <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-              3D Rig Setup — Interactive View
+              3D Rig Setup - Interactive View
             </span>
           </div>
           <div id="setup-canvas-container" style="flex:1; position:relative; min-height:0; border-radius:5px; overflow:hidden;">
             <canvas id="three-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
             <div class="obs-overlay" id="obs-overlay" style="display:none; position:absolute; bottom:10px; right:10px; z-index:10; background:rgba(255,255,255,0.9); padding:10px; border-radius:5px; font-size:11px;">
-              <div class="obs-row"><span class="obs-key">Points loaded: </span><span class="obs-val" id="obs-pts">—</span></div>
-              <div class="obs-row"><span class="obs-key">k neighbours: </span><span class="obs-val" id="obs-k">—</span></div>
-              <div class="obs-row"><span class="obs-key">Avg normal dev.: </span><span class="obs-val" id="obs-dev">—</span></div>
-              <div class="obs-row"><span class="obs-key">Est. curvature κ: </span><span class="obs-val" id="obs-kappa">—</span></div>
+              <div class="obs-row"><span class="obs-key">Points loaded: </span><span class="obs-val" id="obs-pts">-</span></div>
+              <div class="obs-row"><span class="obs-key">k neighbours: </span><span class="obs-val" id="obs-k">-</span></div>
+              <div class="obs-row"><span class="obs-key">Avg normal dev.: </span><span class="obs-val" id="obs-dev">-</span></div>
+              <div class="obs-row"><span class="obs-key">Est. curvature κ: </span><span class="obs-val" id="obs-kappa">-</span></div>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@
       <!-- ═══ RIGHT PANEL ═══ -->
       <aside id="controls-panel">
         
-        <!-- STEP 0 — Mount Modules -->
+        <!-- STEP 0 - Mount Modules -->
         <div class="step-content active" id="sc-0">
           <h3 class="panel-heading">
             <svg class="panel-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
@@ -123,7 +123,7 @@
           <button class="btn-reset-sm btn-reset-setup" style="margin-top:8px;">Reset Setup</button>
         </div>
 
-        <!-- STEP 1 — Load Cloud -->
+        <!-- STEP 1 - Load Cloud -->
         <div class="step-content" id="sc-1">
           <h3 class="panel-heading">Point Cloud Stats</h3>
           <div class="info-card" style="margin-bottom: 10px;">
@@ -138,7 +138,7 @@
           </div>
         </div>
 
-        <!-- STEP 2 — Configure kNN -->
+        <!-- STEP 2 - Configure kNN -->
         <div class="step-content" id="sc-2">
           <h3 class="panel-heading">Configure Neighbourhood</h3>
           <div class="ctrl-group">
@@ -153,7 +153,7 @@
           </div>
         </div>
 
-        <!-- STEP 3 — Run PCA -->
+        <!-- STEP 3 - Run PCA -->
         <div class="step-content" id="sc-3">
           <h3 class="panel-heading">Estimate Normals</h3>
           <div class="scan-counter" style="margin-bottom:10px;">
@@ -170,13 +170,13 @@
           </div>
         </div>
 
-        <!-- STEP 4 — Observe -->
+        <!-- STEP 4 - Observe -->
         <div class="step-content" id="sc-4">
           <h3 class="panel-heading">Live Readouts</h3>
           <div class="readout-grid">
-            <div class="readout-card"><span class="rc-label">k</span><span class="rc-value" id="ro-setup-k">—</span></div>
-            <div class="readout-card"><span class="rc-label">Avg &kappa;</span><span class="rc-value" id="ro-setup-kappa">—</span></div>
-            <div class="readout-card"><span class="rc-label">Consistency</span><span class="rc-value" id="ro-setup-consist">—</span></div>
+            <div class="readout-card"><span class="rc-label">k</span><span class="rc-value" id="ro-setup-k">-</span></div>
+            <div class="readout-card"><span class="rc-label">Avg &kappa;</span><span class="rc-value" id="ro-setup-kappa">-</span></div>
+            <div class="readout-card"><span class="rc-label">Consistency</span><span class="rc-value" id="ro-setup-consist">-</span></div>
             <div class="readout-card"><span class="rc-label">Normals</span><span class="rc-value" id="ro-setup-normals">2,400</span></div>
           </div>
           <div class="step-nav" style="display:flex; flex-direction:column; gap:8px;">
@@ -208,7 +208,7 @@
           <div class="wiz-btns">
             <button class="btn-primary" id="wiz-next" style="margin-bottom:5px;">Next Step</button>
             <button class="btn-ghost" id="wiz-skip" style="margin-bottom:5px;">Skip to Free Explore</button>
-            <button class="btn-back full-w" id="btn-back-setup">← Back to Setup</button>
+            <button class="btn-back full-w" id="btn-back-setup"> Back to Setup</button>
           </div>
         </div>
 
@@ -216,20 +216,20 @@
 
         <h3 class="panel-heading">Live Readouts</h3>
         <div class="ro-grid">
-          <div class="ro-card"><div class="ro-label">Avg &kappa;</div><div class="ro-val" id="ro-kappa">—</div></div>
-          <div class="ro-card"><div class="ro-label">Consistency</div><div class="ro-val" id="ro-consist">—</div></div>
-          <div class="ro-card"><div class="ro-label">Triangles</div><div class="ro-val" id="ro-tris">—</div></div>
-          <div class="ro-card"><div class="ro-label">Min angle</div><div class="ro-val" id="ro-minangle">—</div></div>
+          <div class="ro-card"><div class="ro-label">Avg &kappa;</div><div class="ro-val" id="ro-kappa">-</div></div>
+          <div class="ro-card"><div class="ro-label">Consistency</div><div class="ro-val" id="ro-consist">-</div></div>
+          <div class="ro-card"><div class="ro-label">Triangles</div><div class="ro-val" id="ro-tris">-</div></div>
+          <div class="ro-card"><div class="ro-label">Min angle</div><div class="ro-val" id="ro-minangle">-</div></div>
         </div>
 
         <div class="sim-divider"></div>
 
         <h3 class="panel-heading">Mesh Statistics</h3>
         <div class="bbox-grid">
-          <div class="bbox-row"><span>Triangle count</span><span id="bb-tris">—</span></div>
-          <div class="bbox-row"><span>Min angle</span><span id="bb-minang">—</span></div>
-          <div class="bbox-row"><span>Mesh holes</span><span id="bb-holes">—</span></div>
-          <div class="bbox-row"><span>Normal consistency</span><span id="bb-consist">—</span></div>
+          <div class="bbox-row"><span>Triangle count</span><span id="bb-tris">-</span></div>
+          <div class="bbox-row"><span>Min angle</span><span id="bb-minang">-</span></div>
+          <div class="bbox-row"><span>Mesh holes</span><span id="bb-holes">-</span></div>
+          <div class="bbox-row"><span>Normal consistency</span><span id="bb-consist">-</span></div>
         </div>
       </aside>
 
@@ -304,7 +304,7 @@
         <h3 class="panel-heading">Mesh Quality Gauge</h3>
         <div class="quality-wrap">
           <div class="quality-arc" style="width:100%; display:flex; justify-content:center;"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
-          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-label" id="quality-label">-</div>
           <div class="quality-sub" id="quality-sub">Adjust parameters</div>
         </div>
 
