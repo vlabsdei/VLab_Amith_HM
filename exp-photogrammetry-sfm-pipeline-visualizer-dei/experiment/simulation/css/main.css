@@ -1,6 +1,6 @@
 /* ================================================================
-   EXPERIMENT 10 — PHOTOGRAMMETRY & SFM PIPELINE VISUALIZER
-   Stylesheet — aligned with Exp1 (Stereo Vision) design system
+   EXPERIMENT 10 - PHOTOGRAMMETRY & SFM PIPELINE VISUALIZER
+   Stylesheet - aligned with Exp1 (Stereo Vision) design system
    ================================================================ */
 
 /* ── CSS CUSTOM PROPERTIES ────────────────────────────────────── */
@@ -333,7 +333,7 @@ body {
 /* Wizard buttons */
 .wizard-btns { display: flex; flex-direction: column; gap: 6px; }
 
-/* ── CANVAS AREA (CENTER) — SETUP ─────────────────────────────── */
+/* ── CANVAS AREA (CENTER) - SETUP ─────────────────────────────── */
 #canvas-area {
   display: flex;
   flex-direction: column;
@@ -419,7 +419,7 @@ body {
 .obs-key { font-size: 10px; color: var(--slate-500); }
 .obs-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--blue-d); }
 
-/* ── CONTROLS PANEL (RIGHT) — SETUP ──────────────────────────── */
+/* ── CONTROLS PANEL (RIGHT) - SETUP ──────────────────────────── */
 #controls-panel {
   background: var(--white);
   border: 1px solid var(--slate-200);
@@ -568,7 +568,7 @@ body {
   line-height: 1.65;
 }
 
-/* ── CANVAS AREA (CENTER) — SIMULATION ──────────────────────────── */
+/* ── CANVAS AREA (CENTER) - SIMULATION ──────────────────────────── */
 #canvas-area-sim {
   display: flex;
   flex-direction: column;
@@ -698,7 +698,7 @@ body {
   z-index: 0;
 }
 
-/* Setup sliders — green-to-blue gradient (neutral) */
+/* Setup sliders - green-to-blue gradient (neutral) */
 #track-numcam::before { background: linear-gradient(to right, #ef4444 0%, #f59e0b 15%, #3b82f6 30%, #3b82f6 75%, #f59e0b 90%, #ef4444 100%); }
 #track-elev::before   { background: linear-gradient(to right, #ef4444 0%, #f59e0b 15%, #22c55e 25%, #3b82f6 50%, #f59e0b 85%, #ef4444 100%); }
 

@@ -22,19 +22,19 @@
 
   <main id="app-main">
 
-    <!-- ═══ LEFT PANEL — WIZARD ═══ -->
+    <!-- ═══ LEFT PANEL - WIZARD ═══ -->
     <aside id="wizard-panel">
 
-      <!-- STEP 0 — Equipment Tray -->
+      <!-- STEP 0 - Equipment Tray -->
       <div class="step-content active" id="sc-0-left">
         <div class="step-badge" id="step-badge-0">STEP 1 OF 5</div>
         <h2 id="wizard-title-0">Equipment Tray</h2>
         <p id="wizard-text-0">
-          Photogrammetry needs no specialised sensor — just an ordinary camera moved around
+          Photogrammetry needs no specialised sensor - just an ordinary camera moved around
           the subject. Mount each component to build the capture rig before proceeding.
         </p>
         <div class="task-box">
-          Select each component below → click <strong>Mount</strong> to add it to the 3D scene.
+          Select each component below  click <strong>Mount</strong> to add it to the 3D scene.
         </div>
 
         <div class="divider"></div>
@@ -49,13 +49,13 @@
         </div>
       </div>
 
-      <!-- STEP 1 — Place Object -->
+      <!-- STEP 1 - Place Object -->
       <div class="step-content" id="sc-1-left">
         <div class="step-badge">STEP 2 OF 5</div>
         <h2>Place the Subject</h2>
         <p>The scan subject sits on the turntable at the scene centre. The scale reference marker rests beside it, visible in every planned photograph.</p>
         <div class="task-box">
-          Observe the 3D view — the subject and reference marker are now centred on the turntable platform.
+          Observe the 3D view - the subject and reference marker are now centred on the turntable platform.
         </div>
         <div class="legend-box">
           <div class="legend-title">Why a Scale Reference?</div>
@@ -63,7 +63,7 @@
         </div>
       </div>
 
-      <!-- STEP 2 — Plan Camera Ring -->
+      <!-- STEP 2 - Plan Camera Ring -->
       <div class="step-content" id="sc-2-left">
         <div class="step-badge">STEP 3 OF 5</div>
         <h2>Plan the Camera Ring</h2>
@@ -74,14 +74,14 @@
         </div>
       </div>
 
-      <!-- STEP 3 — Capture -->
+      <!-- STEP 3 - Capture -->
       <div class="step-content" id="sc-3-left">
         <div class="step-badge">STEP 4 OF 5</div>
         <h2>Capture the Photographs</h2>
-        <p>Trigger the capture sequence — the camera visits each planned position in turn and records a photograph.</p>
+        <p>Trigger the capture sequence - the camera visits each planned position in turn and records a photograph.</p>
       </div>
 
-      <!-- STEP 4 — Observe -->
+      <!-- STEP 4 - Observe -->
       <div class="step-content" id="sc-4-left">
         <div class="step-badge">STEP 5 OF 5</div>
         <h2>Live Observations</h2>
@@ -122,13 +122,13 @@
 
     </aside>
 
-    <!-- ═══ CENTER PANEL — 3D CANVAS ═══ -->
+    <!-- ═══ CENTER PANEL - 3D CANVAS ═══ -->
     <section id="canvas-area">
       <div class="canvas-card" id="card-3d" style="flex:1;">
         <div class="card-header">
           <span class="card-title">
             <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-            3D Rig Setup — Interactive View
+            3D Rig Setup - Interactive View
           </span>
           <span class="card-sub" id="canvas-status">Mount all components to build the photogrammetry capture rig</span>
         </div>
@@ -139,7 +139,7 @@
       </div>
     </section>
 
-    <!-- ═══ RIGHT PANEL — APPARATUS ═══ -->
+    <!-- ═══ RIGHT PANEL - APPARATUS ═══ -->
     <aside id="controls-panel">
       <!-- STEP 0 RIGHT -->
       <div class="step-content active" id="sc-0-right">
@@ -222,7 +222,7 @@
         </div>
         <div class="wizard-btns" style="margin-top:16px">
           <button class="btn-primary" data-next="2">Next: Plan Camera Ring</button>
-          <button class="btn-ghost" data-prev="0">← Back</button>
+          <button class="btn-ghost" data-prev="0"> Back</button>
         </div>
       </div>
 
@@ -238,7 +238,7 @@
             <input type="range" id="sr-numcam" min="4" max="30" value="12" step="1" />
           </div>
           <div class="ctrl-range-row"><span>4</span><span>30</span></div>
-          <p class="ctrl-hint">More positions → better coverage but longer capture session.</p>
+          <p class="ctrl-hint">More positions  better coverage but longer capture session.</p>
         </div>
 
         <div class="ctrl-group">
@@ -254,7 +254,7 @@
         </div>
         <div class="wizard-btns" style="margin-top:16px">
           <button class="btn-primary" data-next="3">Next: Capture Images</button>
-          <button class="btn-ghost" data-prev="1">← Back</button>
+          <button class="btn-ghost" data-prev="1"> Back</button>
         </div>
       </div>
 
@@ -278,7 +278,7 @@
         </button>
         <div class="wizard-btns">
           <button class="btn-primary" id="btn-next-obs" disabled data-next="4">View Observations</button>
-          <button class="btn-ghost" data-prev="2">← Adjust Ring</button>
+          <button class="btn-ghost" data-prev="2"> Adjust Ring</button>
         </div>
       </div>
 
@@ -288,30 +288,30 @@
         <div class="readout-grid">
           <div class="readout-card">
             <span class="rc-label">Images Captured</span>
-            <span class="rc-value" id="ro-setup-imgs">—</span>
+            <span class="rc-value" id="ro-setup-imgs">-</span>
             <span class="rc-unit">photos</span>
           </div>
           <div class="readout-card">
             <span class="rc-label">Est. Overlap</span>
-            <span class="rc-value" id="ro-setup-overlap">—</span>
+            <span class="rc-value" id="ro-setup-overlap">-</span>
             <span class="rc-unit">percent</span>
           </div>
           <div class="readout-card">
             <span class="rc-label">Elevation Spread</span>
-            <span class="rc-value" id="ro-setup-elev">—</span>
+            <span class="rc-value" id="ro-setup-elev">-</span>
             <span class="rc-unit">degrees</span>
           </div>
           <div class="readout-card">
             <span class="rc-label">Est. Feature Matches</span>
-            <span class="rc-value" id="ro-setup-matches">—</span>
+            <span class="rc-value" id="ro-setup-matches">-</span>
             <span class="rc-unit">pairs</span>
           </div>
         </div>
 
-        <!-- Predicted completeness — full width -->
+        <!-- Predicted completeness - full width -->
         <div class="readout-card" style="margin-top:8px; margin-bottom:12px; text-align:center; padding:12px;">
           <span class="rc-label">Predicted Reconstruction Completeness</span>
-          <span class="rc-value" id="r-complete" style="font-size:28px; display:block; margin:4px 0;">—</span>
+          <span class="rc-value" id="r-complete" style="font-size:28px; display:block; margin:4px 0;">-</span>
           <span class="rc-unit">% of subject surface</span>
         </div>
 
@@ -334,7 +334,7 @@
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Launch Simulation
           </button>
-          <button class="btn-ghost" data-prev="3">← Re-capture</button>
+          <button class="btn-ghost" data-prev="3"> Re-capture</button>
         </div>
       </div>
 
@@ -352,7 +352,7 @@
 
   <main id="app-main-sim">
 
-    <!-- ═══ LEFT PANEL — WIZARD ═══ -->
+    <!-- ═══ LEFT PANEL - WIZARD ═══ -->
     <aside id="wizard-panel-sim">
 
       <!-- Wizard guide box -->
@@ -368,7 +368,7 @@
       <div class="wizard-btns" style="margin-bottom: 12px;">
         <button class="btn-primary" id="btn-next">Next Step</button>
         <button class="btn-ghost" id="btn-skip">Skip to Simulation</button>
-        <button class="btn-ghost" id="btn-go-setup">← Back to Setup</button>
+        <button class="btn-ghost" id="btn-go-setup"> Back to Setup</button>
       </div>
       <!-- Action buttons -->
       <button class="btn-primary btn-sim" id="btn-run-sfm" style="margin-bottom:6px; width:100%;">
@@ -388,22 +388,22 @@
       <div class="readout-grid">
         <div class="readout-card" id="rc-sparse">
           <span class="rc-label">Sparse Points</span>
-          <span class="rc-value" id="ro-sparse">—</span>
+          <span class="rc-value" id="ro-sparse">-</span>
           <span class="rc-unit">pts</span>
         </div>
         <div class="readout-card" id="rc-reproj">
           <span class="rc-label">Reproj. Error</span>
-          <span class="rc-value" id="ro-reproj">—</span>
+          <span class="rc-value" id="ro-reproj">-</span>
           <span class="rc-unit">px</span>
         </div>
         <div class="readout-card" id="rc-coverage">
           <span class="rc-label">Coverage</span>
-          <span class="rc-value" id="ro-coverage">—</span>
+          <span class="rc-value" id="ro-coverage">-</span>
           <span class="rc-unit">%</span>
         </div>
         <div class="readout-card" id="rc-iter">
           <span class="rc-label">BA Iterations</span>
-          <span class="rc-value" id="ro-iterations">—</span>
+          <span class="rc-value" id="ro-iterations">-</span>
           <span class="rc-unit"></span>
         </div>
       </div>
@@ -416,22 +416,22 @@
       </h3>
       <div class="apparatus-list" style="gap:4px; margin-bottom:4px;">
         <div class="pipeline-row" id="ps-row-1">
-          <span class="ps-num">1</span><span class="ps-name">Feature Detection</span><span class="ps-status" id="ps-1">—</span>
+          <span class="ps-num">1</span><span class="ps-name">Feature Detection</span><span class="ps-status" id="ps-1">-</span>
         </div>
         <div class="pipeline-row" id="ps-row-2">
-          <span class="ps-num">2</span><span class="ps-name">Feature Matching</span><span class="ps-status" id="ps-2">—</span>
+          <span class="ps-num">2</span><span class="ps-name">Feature Matching</span><span class="ps-status" id="ps-2">-</span>
         </div>
         <div class="pipeline-row" id="ps-row-3">
-          <span class="ps-num">3</span><span class="ps-name">Pose Estimation</span><span class="ps-status" id="ps-3">—</span>
+          <span class="ps-num">3</span><span class="ps-name">Pose Estimation</span><span class="ps-status" id="ps-3">-</span>
         </div>
         <div class="pipeline-row" id="ps-row-4">
-          <span class="ps-num">4</span><span class="ps-name">Triangulation</span><span class="ps-status" id="ps-4">—</span>
+          <span class="ps-num">4</span><span class="ps-name">Triangulation</span><span class="ps-status" id="ps-4">-</span>
         </div>
         <div class="pipeline-row" id="ps-row-5">
-          <span class="ps-num">5</span><span class="ps-name">Bundle Adjustment</span><span class="ps-status" id="ps-5">—</span>
+          <span class="ps-num">5</span><span class="ps-name">Bundle Adjustment</span><span class="ps-status" id="ps-5">-</span>
         </div>
         <div class="pipeline-row" id="ps-row-6">
-          <span class="ps-num">6</span><span class="ps-name">Dense Reconstruction</span><span class="ps-status" id="ps-6">—</span>
+          <span class="ps-num">6</span><span class="ps-name">Dense Reconstruction</span><span class="ps-status" id="ps-6">-</span>
         </div>
       </div>
       <div class="divider"></div>
@@ -444,12 +444,12 @@
       <div class="readout-grid" style="margin-bottom:16px;">
         <div class="readout-card">
           <span class="rc-label">Raw Units</span>
-          <span class="rc-value" id="bb-scaleunit">—</span>
+          <span class="rc-value" id="bb-scaleunit">-</span>
           <span class="rc-unit">units / 100mm</span>
         </div>
         <div class="readout-card">
           <span class="rc-label">Scale Factor</span>
-          <span class="rc-value" id="bb-scalefactor">—</span>
+          <span class="rc-value" id="bb-scalefactor">-</span>
           <span class="rc-unit">mm / unit</span>
         </div>
       </div>
@@ -458,7 +458,7 @@
 
     </aside>
 
-    <!-- ═══ CENTER PANEL — 4 SIMULATION CANVASES ═══ -->
+    <!-- ═══ CENTER PANEL - 4 SIMULATION CANVASES ═══ -->
     <section id="canvas-area-sim">
       <div class="canvas-row" id="row-top">
         <div class="canvas-card" id="card-network">
@@ -511,7 +511,7 @@
       </div>
     </section>
 
-    <!-- ═══ RIGHT PANEL — PIPELINE STATUS + QUALITY GAUGE + CONTROLS ═══ -->
+    <!-- ═══ RIGHT PANEL - PIPELINE STATUS + QUALITY GAUGE + CONTROLS ═══ -->
     <aside id="controls-panel-sim">
 
       <!-- Parameters -->
@@ -528,7 +528,7 @@
         <div class="slider-track" id="track-numimg">
           <input type="range" id="r-numimg" min="4" max="30" step="1" value="12" />
         </div>
-        <div class="ctrl-range-row"><span>4 sparse</span><span>10–20</span><span>30 dense</span></div>
+        <div class="ctrl-range-row"><span>4 sparse</span><span>10-20</span><span>30 dense</span></div>
         <p class="ctrl-hint">More images = better coverage but far more bundle adjustment cost.</p>
       </div>
 
@@ -540,7 +540,7 @@
         <div class="slider-track" id="track-overlap">
           <input type="range" id="r-overlap" min="20" max="95" step="5" value="70" />
         </div>
-        <div class="ctrl-range-row"><span>20%</span><span>60–80% recommended</span><span>95%</span></div>
+        <div class="ctrl-range-row"><span>20%</span><span>60-80% recommended</span><span>95%</span></div>
         <p class="ctrl-hint">Below ~40%, expect gaps in surface coverage.</p>
       </div>
 
@@ -552,7 +552,7 @@
         <div class="slider-track" id="track-elev-sim">
           <input type="range" id="r-elev" min="0" max="80" step="5" value="40" />
         </div>
-        <div class="ctrl-range-row"><span>0° flat</span><span>30–60°</span><span>80° dome</span></div>
+        <div class="ctrl-range-row"><span>0° flat</span><span>30-60°</span><span>80° dome</span></div>
         <p class="ctrl-hint">Zero spread misses the subject's top surface entirely.</p>
       </div>
 
@@ -589,7 +589,7 @@
 
       <div style="text-align:center; margin-bottom:10px;">
         <canvas id="gauge-canvas" width="160" height="90" style="display:inline-block;"></canvas>
-        <div class="rc-value" id="quality-label" style="font-size:18px; margin-top:-4px;">—</div>
+        <div class="rc-value" id="quality-label" style="font-size:18px; margin-top:-4px;">-</div>
         <div style="font-size:10px; color:var(--slate-500); line-height:1.4;" id="quality-sub">Run the SfM pipeline</div>
       </div>
 

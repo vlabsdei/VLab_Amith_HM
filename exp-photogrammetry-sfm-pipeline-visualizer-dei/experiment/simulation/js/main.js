@@ -1,7 +1,7 @@
 /* global THREE */
 /* ================================================================
-   EXPERIMENT 10 — PHOTOGRAMMETRY & SFM PIPELINE VISUALIZER
-   main.js — Three.js scene (setup) + real SfM-style math
+   EXPERIMENT 10 - PHOTOGRAMMETRY & SFM PIPELINE VISUALIZER
+   main.js - Three.js scene (setup) + real SfM-style math
    ================================================================
      Epipolar consistency check (simplified 2D projective test)
      Bundle-adjustment-style iterative reprojection error reduction
@@ -29,19 +29,19 @@ const SIM = {
 const WIZ = [
   {
     title: 'Run the Sparse Pipeline',
-    text:  'Press Run SfM Pipeline to detect features, match them, estimate poses, triangulate points, and run bundle adjustment — all six stages animate in sequence.',
+    text:  'Press Run SfM Pipeline to detect features, match them, estimate poses, triangulate points, and run bundle adjustment - all six stages animate in sequence.',
     task:  '▶ Click "Run SfM Pipeline" and watch the stage checklist complete.',
     lit:   'pg-numimg',
   },
   {
     title: 'Break the Overlap',
-    text:  'Reduce overlap below 40% and see gaps appear in dense coverage — surface regions that never achieved the minimum two-image visibility.',
+    text:  'Reduce overlap below 40% and see gaps appear in dense coverage - surface regions that never achieved the minimum two-image visibility.',
     task:  '▶ Drop overlap to 25% and re-run. Check the coverage map for red gaps.',
     lit:   'pg-overlap',
   },
   {
     title: 'Flatten the Camera Ring',
-    text:  'Set elevation spread to 0° — every camera views from the same height. Watch the top surface vanish from the dense reconstruction.',
+    text:  'Set elevation spread to 0° - every camera views from the same height. Watch the top surface vanish from the dense reconstruction.',
     task:  '▶ Set elevation spread to 0° and check coverage on the object\'s top.',
     lit:   'pg-elev',
   },
@@ -101,7 +101,7 @@ function runSfMModel(numImg, overlapPct, elevSpread, falseMatchPct, ransacOn) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS — SETUP SCENE
+   THREE.JS - SETUP SCENE
 ────────────────────────────────────────────────────────────── */
 let renderer, scene, camera3d, animFrame;
 let turntableMesh, subjectMesh, referenceMesh, cameraRingGroup;
@@ -528,12 +528,12 @@ function renderGauge(canvas) {
   ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+(r-4)*Math.cos(sweep),cy+(r-4)*Math.sin(sweep)); ctx.stroke();
   ctx.fillStyle='#334155'; ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
 
-  document.getElementById('quality-label').textContent = SFM_RESULT ? `${quality.toFixed(0)}% quality` : '—';
+  document.getElementById('quality-label').textContent = SFM_RESULT ? `${quality.toFixed(0)}% quality` : '-';
   document.getElementById('quality-label').style.color = colour;
   document.getElementById('quality-sub').textContent = !SFM_RESULT ? 'Run the SfM pipeline' :
     quality>65 ? 'Solid reconstruction' :
     quality>35 ? 'Usable but imperfect' :
-                 'Poor — adjust overlap/elevation';
+                 'Poor - adjust overlap/elevation';
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -568,10 +568,10 @@ function updateReadouts() {
   }
 
   if (!SFM_RESULT) {
-    document.getElementById('ro-sparse').textContent='—';
-    document.getElementById('ro-reproj').textContent='—';
-    document.getElementById('ro-coverage').textContent='—';
-    document.getElementById('ro-iterations').textContent='—';
+    document.getElementById('ro-sparse').textContent='-';
+    document.getElementById('ro-reproj').textContent='-';
+    document.getElementById('ro-coverage').textContent='-';
+    document.getElementById('ro-iterations').textContent='-';
   } else {
     document.getElementById('ro-sparse').textContent = SFM_RESULT.sparsePoints.toLocaleString('en-IN');
     const reEl=document.getElementById('ro-reproj');
@@ -795,7 +795,7 @@ function resetSim() {
   document.getElementById('pv-ransac').textContent='On';
   ['ps-1','ps-2','ps-3','ps-4','ps-5','ps-6'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el){el.textContent='—'; el.style.color='';}
+    if(el){el.textContent='-'; el.style.color='';}
     // Reset pipeline row classes
     const row=document.getElementById('ps-row-'+id.slice(-1));
     if(row){row.classList.remove('ps-done','ps-active');}
