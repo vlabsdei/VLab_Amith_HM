@@ -2,7 +2,7 @@
 /* global THREE */
 
 /* ================================================================
-   EXPERIMENT 3 — POINT CLOUD GENERATION SIMULATION
+   EXPERIMENT 3 - POINT CLOUD GENERATION SIMULATION
    main.js
    ================================================================ */
 

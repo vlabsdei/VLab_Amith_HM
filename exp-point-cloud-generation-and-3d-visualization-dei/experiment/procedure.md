@@ -39,7 +39,7 @@ Real depth sensors have inherent random noise that creates rough surfaces.
 ### Step 5: Introduce Calibration Errors
 Accurate back-projection relies completely on perfectly calibrated intrinsic parameters.
 * **Action:** Intentionally add a 10% error to the **Focal Length (<i>f</i><sub><i>x</i></sub>)** slider. Then, reset it and add a +5 px error to the **Principal Point (<i>c</i><sub><i>x</i></sub>)** slider.
-* **Observation:** A smaller focal length artificially inflates your X and Y coordinates, stretching the target object and making it look much larger. A wrong principal point shifts the entire point cloud sideways systematically—a rigid translation error that looks completely different from random sensor noise.
+* **Observation:** A smaller focal length artificially inflates your X and Y coordinates, stretching the target object and making it look much larger. A wrong principal point shifts the entire point cloud sideways systematically-a rigid translation error that looks completely different from random sensor noise.
 
 ### Step 6: Analyze Edge Artifacts (Flying Pixels)
 Depth sensors often get confused at sharp boundaries between objects.

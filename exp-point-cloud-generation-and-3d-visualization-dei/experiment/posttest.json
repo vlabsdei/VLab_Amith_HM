@@ -28,7 +28,7 @@
       },
       "explanations": {
         "a": "Incorrect. Noise messes directly with the Z (depth) coordinate, which physically moves the point in 3D space. It's structural, not just cosmetic.",
-        "b": "Exactly! With σ = 30 mm, your points were randomly jumping forward and backward by large amounts, creating a wavy mess. Dropping σ to 2 mm meant the random jitter was tiny, so the points snapped back into a tight, nearly perfect flat plane. It’s a perfect visual of the Z_measured = Z_true + N(0, σ²) formula in action!",
+        "b": "Exactly! With σ = 30 mm, your points were randomly jumping forward and backward by large amounts, creating a wavy mess. Dropping σ to 2 mm meant the random jitter was tiny, so the points snapped back into a tight, nearly perfect flat plane. It's a perfect visual of the Z_measured = Z_true + N(0, σ²) formula in action!",
         "c": "Nope. Noise affects where the points are placed, not how many points are created. That's determined by your resolution.",
         "d": "Incorrect. Our noise model is centered at zero, meaning it randomly scatters points forward AND backward. It doesn't systematically pull the whole wall forward."
       },
@@ -38,7 +38,7 @@
     {
       "question": "Q3. You scanned a cube using a focal length of 700 px, but the real calibrated value was 770 px. How did this 10% error mess with your point cloud's shape?",
       "answers": {
-        "a": "It didn't—focal length errors don't affect geometry",
+        "a": "It didn't-focal length errors don't affect geometry",
         "b": "The cube looked about 10% wider and taller because dividing by a smaller focal length artificially inflates the X and Y coordinates",
         "c": "The cube stayed the same size because the math naturally cancels out the error",
         "d": "The cube looked 10% smaller"
@@ -96,7 +96,7 @@
       },
       "explanations": {
         "a": "Incorrect. Focal length is the absolute key to determining how wide or narrow your camera's vision is.",
-        "b": "Perfect! A small focal length (350 px) means a massive, wide field of view—so your point cloud stretches out far and wide. A huge focal length (1400 px) is highly zoomed in, so your point cloud is just a tight, compact square capturing a tiny sliver of the room.",
+        "b": "Perfect! A small focal length (350 px) means a massive, wide field of view-so your point cloud stretches out far and wide. A huge focal length (1400 px) is highly zoomed in, so your point cloud is just a tight, compact square capturing a tiny sliver of the room.",
         "c": "Backwards! In optics, a larger focal length means a narrower, more zoomed-in field of view.",
         "d": "Nope. Both runs had the same resolution, so they produced the exact same number of points. Run B's points were just squeezed into a smaller physical area."
       },
@@ -130,7 +130,7 @@
       },
       "explanations": {
         "a": "Incorrect. While the math applies the same 5 mm of jitter, the visual impact is totally different depending on how tightly packed the points are.",
-        "b": "Spot on! Up close (0.5 m), your points are packed so incredibly tight that a tiny 5 mm wobble barely registers—the surface looks solid. But way out at 8 m, the points are already hugely spaced out. Adding a 5 mm wobble to a sparse, dotty grid turns it into a chaotic, jagged mess. Distance ruins point density, which makes noise look much worse!",
+        "b": "Spot on! Up close (0.5 m), your points are packed so incredibly tight that a tiny 5 mm wobble barely registers-the surface looks solid. But way out at 8 m, the points are already hugely spaced out. Adding a 5 mm wobble to a sparse, dotty grid turns it into a chaotic, jagged mess. Distance ruins point density, which makes noise look much worse!",
         "c": "Nope! Real sensors actually get noisier at a distance. But even with a fixed noise level, the sparse density far away makes it look worse, not better.",
         "d": "Incorrect. Real scenes (and our simulation) have depth variations everywhere."
       },
@@ -147,7 +147,7 @@
       },
       "explanations": {
         "a": "Incorrect. cx is literally the center point of our geometry math. If it's wrong, everything shifts.",
-        "b": "Nailed it! A wrong cx value shifts every single X coordinate in the exact same direction by a predictable amount. It takes your perfect point cloud and physically slides it sideways. This is called systematic error—and it's nasty because you can't fix it by just taking 100 scans and averaging them out. Random noise can be averaged; bad calibration is forever (until you recalibrate)!",
+        "b": "Nailed it! A wrong cx value shifts every single X coordinate in the exact same direction by a predictable amount. It takes your perfect point cloud and physically slides it sideways. This is called systematic error-and it's nasty because you can't fix it by just taking 100 scans and averaging them out. Random noise can be averaged; bad calibration is forever (until you recalibrate)!",
         "c": "Nope! Random noise looks like rough sandpaper. A calibration error looks perfectly smooth, just sitting in the completely wrong location.",
         "d": "Incorrect. We let you break it on purpose so you can see why calibration is so crucial!"
       },
@@ -164,7 +164,7 @@
       },
       "explanations": {
         "a": "Incorrect. Even an ultra-HD sensor will get confused when a single pixel is half-on a close box and half-on a far wall.",
-        "b": "Correct! Because you quadrupled the pixel count, you have way more pixels hanging out near the danger zone (the edge). So you might get a higher raw count of flying pixels. But they don't spread out further—they still hug the physical boundary. Resolution just gives you a higher-definition picture of the same fundamental sensor glitch. You need smart filtering software, not just more megapixels, to fix it.",
+        "b": "Correct! Because you quadrupled the pixel count, you have way more pixels hanging out near the danger zone (the edge). So you might get a higher raw count of flying pixels. But they don't spread out further-they still hug the physical boundary. Resolution just gives you a higher-definition picture of the same fundamental sensor glitch. You need smart filtering software, not just more megapixels, to fix it.",
         "c": "Incorrect. More resolution means more edge-sampling, which definitely changes how the artifacts appear numerically, even if it doesn't cure the disease.",
         "d": "Nope. It's a universal problem for depth cameras, regardless of their resolution setting."
       },

@@ -10,7 +10,7 @@
         "d": "A map with GPS coordinates of where a photo was taken"
       },
       "explanations": {
-        "a": "Not quite! A regular color photo stores brightness and color. A depth map is completely different—it only cares about distance, not colors.",
+        "a": "Not quite! A regular color photo stores brightness and color. A depth map is completely different-it only cares about distance, not colors.",
         "b": "Spot on! Think of it as a regular image, but instead of RGB colors, each pixel tells you how far away that spot is. This is the raw ingredient we use to build a 3D point cloud. <a href='https://en.wikipedia.org/wiki/Depth_map'>Learn more about depth maps</a>",
         "c": "Nope! A depth map is just raw distance data. A 3D mesh (made of connected triangles) comes much later in the pipeline (around Experiment 7) after we've built and cleaned up our point cloud.",
         "d": "Incorrect. GPS data tells you where the camera is in the world. A depth map tells you how far objects in the scene are from the camera."
@@ -79,7 +79,7 @@
       },
       "explanations": {
         "a": "Backwards! As distance (Z) goes up, the spacing (Δs) goes up too. So things get less dense, not more.",
-        "b": "Correct! Because Z is in the numerator, bigger distances mean bigger gaps between your points. This is exactly why it’s so hard to capture fine details on objects that are far away from your scanner.",
+        "b": "Correct! Because Z is in the numerator, bigger distances mean bigger gaps between your points. This is exactly why it's so hard to capture fine details on objects that are far away from your scanner.",
         "c": "Nope! If spacing didn't care about distance, Z wouldn't even be in the formula.",
         "d": "Mathematically impossible! Z and fx are always positive numbers in the real world, so their result will always be positive too."
       },
@@ -96,8 +96,8 @@
       },
       "explanations": {
         "a": "Nope. This is an additive formula, meaning we are just adding a random hiccup, not multiplying the whole distance by two.",
-        "b": "Exactly! It basically says 'what you measure = the real distance + a random guess from a bell curve'. It’s the standard way to admit that our sensors aren't perfect and have unbiased, random jitter. <a href='https://en.wikipedia.org/wiki/Gaussian_noise'>More on Gaussian noise models</a>",
-        "c": "Incorrect. This noise happens even if everything is completely frozen in place. It’s just inherent jitter in the electronics and optics.",
+        "b": "Exactly! It basically says 'what you measure = the real distance + a random guess from a bell curve'. It's the standard way to admit that our sensors aren't perfect and have unbiased, random jitter. <a href='https://en.wikipedia.org/wiki/Gaussian_noise'>More on Gaussian noise models</a>",
+        "c": "Incorrect. This noise happens even if everything is completely frozen in place. It's just inherent jitter in the electronics and optics.",
         "d": "Nope. σ (sigma) is the standard deviation of our noise. Focal length is fx or fy."
       },
       "correctAnswer": "b",
@@ -123,7 +123,7 @@
     {
       "question": "Q8. Why is it absolutely critical to get camera calibration (Experiment 2) right before making a point cloud?",
       "answers": {
-        "a": "It isn't—you can just guess a focal length and it'll be fine",
+        "a": "It isn't-you can just guess a focal length and it'll be fine",
         "b": "Because the back-projection math relies totally on those calibration numbers. Bad numbers mean a warped, funhouse-mirror point cloud.",
         "c": "Calibration just makes the colors in the 3D viewer look nicer",
         "d": "Calibration is only for stereo cameras, not regular depth sensors"
@@ -132,7 +132,7 @@
         "a": "Terrible idea! If you guess, your 3D points will be thrown all over the place.",
         "b": "Spot on. Our formulas X = (u - cx) × Z / fx depend entirely on fx, fy, cx, and cy. If these are even slightly off, every single point gets placed in the wrong spot, stretching or shrinking your 3D model. Calibration is non-negotiable!",
         "c": "Incorrect. Calibration is all about the pure geometry of the lenses, not the paint job.",
-        "d": "Nope! Every single device that extracts 3D data—whether stereo, LiDAR, or structured light—needs perfect intrinsic calibration to work."
+        "d": "Nope! Every single device that extracts 3D data-whether stereo, LiDAR, or structured light-needs perfect intrinsic calibration to work."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"
@@ -147,7 +147,7 @@
       },
       "explanations": {
         "a": "Nope! While a dense cloud means a bigger file size, this formula measures geometric density in the real world, not disk space.",
-        "b": "Exactly! It’s literally just counting how many points (N_valid) are squeezed into a specific area (A_surface). High density means a rich, highly detailed scan. Low density means a sparse, dotty mess.",
+        "b": "Exactly! It's literally just counting how many points (N_valid) are squeezed into a specific area (A_surface). High density means a rich, highly detailed scan. Low density means a sparse, dotty mess.",
         "c": "Incorrect. Density is all about spatial crowding, not visuals.",
         "d": "Nope. Distance is Z. Density is about how many points cover a specific patch of surface at that distance."
       },

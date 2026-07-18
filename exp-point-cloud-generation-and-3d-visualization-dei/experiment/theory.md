@@ -2,11 +2,11 @@
  
 ### 1. From 2D Depth Image to 3D Point Cloud
  
-Imagine a regular photograph. Each pixel in that photo stores a color or a brightness value. Now, imagine a different kind of image—a **depth image** (or depth map). Instead of colors, every pixel here holds a single, very important value: the distance, <i>Z</i>, from the camera to whatever surface it's looking at. It’s essentially a grayscale picture of distances. While super useful, it’s still just a flat, 2D grid.
+Imagine a regular photograph. Each pixel in that photo stores a color or a brightness value. Now, imagine a different kind of image-a **depth image** (or depth map). Instead of colors, every pixel here holds a single, very important value: the distance, <i>Z</i>, from the camera to whatever surface it's looking at. It's essentially a grayscale picture of distances. While super useful, it's still just a flat, 2D grid.
  
-To really bring this data to life—whether for taking measurements, creating meshes, or full 3D visualization—we need to pop every pixel out into actual 3D space with (<i>X</i>, <i>Y</i>, <i>Z</i>) coordinates. We call this magical process **back-projection**. When you back-project every valid pixel, you get a **point cloud**: a massive, unordered swarm of 3D points that perfectly traces the visible surface of whatever you just scanned.
+To really bring this data to life-whether for taking measurements, creating meshes, or full 3D visualization-we need to pop every pixel out into actual 3D space with (<i>X</i>, <i>Y</i>, <i>Z</i>) coordinates. We call this magical process **back-projection**. When you back-project every valid pixel, you get a **point cloud**: a massive, unordered swarm of 3D points that perfectly traces the visible surface of whatever you just scanned.
  
-Point clouds are basically the rockstars of 3D scanning. Whether you're using a LiDAR scanner, a structured light setup, or a stereo camera system (like we saw in Experiment 1), they all ultimately spit out a point cloud. Everything that happens next in the 3D world—like stitching scans together (Experiment 4), building solid meshes (Experiment 7), or cleaning up messy data (Experiment 8)—starts with this humble point cloud.
+Point clouds are basically the rockstars of 3D scanning. Whether you're using a LiDAR scanner, a structured light setup, or a stereo camera system (like we saw in Experiment 1), they all ultimately spit out a point cloud. Everything that happens next in the 3D world-like stitching scans together (Experiment 4), building solid meshes (Experiment 7), or cleaning up messy data (Experiment 8)-starts with this humble point cloud.
  
 ### 2. The Back-Projection Formula
  
@@ -55,11 +55,11 @@ Since every valid pixel gets promoted to a 3D point, the total headcount in your
   <i>N</i><sub>total</sub> = image_width &times; image_height
 </div>
  
-This means your camera's resolution is a huge deal. If you double your camera's resolution from 320×240 to 640×480, you aren't just doubling your point count—you're *quadrupling* it! A standard depth camera running at 640×480 can churn out over 300,000 points in a single frame (assuming every pixel gets a good read). That’s a lot of data!
+This means your camera's resolution is a huge deal. If you double your camera's resolution from 320×240 to 640×480, you aren't just doubling your point count-you're *quadrupling* it! A standard depth camera running at 640×480 can churn out over 300,000 points in a single frame (assuming every pixel gets a good read). That's a lot of data!
  
 ### 4. Point Spacing: Why Distance Matters
  
-"Point spacing" is just a fancy way of asking: *how far apart are these dots on my scanned surface?* (usually measured in millimeters). Here's the catch: it’s not constant. It changes based on how far away the object is from the camera:
+"Point spacing" is just a fancy way of asking: *how far apart are these dots on my scanned surface?* (usually measured in millimeters). Here's the catch: it's not constant. It changes based on how far away the object is from the camera:
  
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   &Delta;<i>s</i>&nbsp;=&nbsp;
@@ -69,7 +69,7 @@ This means your camera's resolution is a huge deal. If you double your camera's 
   </span>
 </div>
  
-Practically speaking, this means your camera captures a much richer, denser cluster of points for objects right in front of it compared to objects far away. For example, at 1 meter away (with a 700-pixel focal length), points are a tight 1.4 mm apart. Push that object back to 3 meters, and suddenly your points are 4.3 mm apart—three times sparser! It’s the same reason it’s harder to spot tiny details on distant objects (a concept we'll dive into in Experiment 9).
+Practically speaking, this means your camera captures a much richer, denser cluster of points for objects right in front of it compared to objects far away. For example, at 1 meter away (with a 700-pixel focal length), points are a tight 1.4 mm apart. Push that object back to 3 meters, and suddenly your points are 4.3 mm apart-three times sparser! It's the same reason it's harder to spot tiny details on distant objects (a concept we'll dive into in Experiment 9).
  
 ### 5. Dealing with Sensor Noise
  
@@ -99,7 +99,7 @@ Where <i>N</i><sub>valid</sub> is the number of successfully measured points, an
  
 ### 7. The Mystery of Flying Pixels
  
-Here’s a fun (and annoying) glitch: what happens at the very edge of an object? When your camera looks right at the boundary where a foreground object meets the background, the sensor gets confused. It might spit out a depth value that’s halfway between the two. 
+Here's a fun (and annoying) glitch: what happens at the very edge of an object? When your camera looks right at the boundary where a foreground object meets the background, the sensor gets confused. It might spit out a depth value that's halfway between the two. 
  
 When you back-project that confused pixel, it turns into a bizarre, isolated dot hovering in mid-air between the object and the background. We lovingly call these **"flying pixels"** or edge artifacts. They are prime targets for the cleanup algorithms we'll play with in Experiment 8.
  
