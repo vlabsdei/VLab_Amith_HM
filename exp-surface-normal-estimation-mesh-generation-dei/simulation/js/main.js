@@ -4,6 +4,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
@@ -22,8 +23,6 @@ const SIM = {
   maxEdge:  0.05,   /* metres */
   step:     0,
 };
-
-const SURF_NAMES = ['Bumpy', 'L-Shape', 'Sphere'];
 
 const WIZ = [
   {
@@ -441,11 +440,9 @@ function buildSetupMeshPreview() {
 /* ──────────────────────────────────────────────────────────────
    SETUP PAGE — STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
-let currentStep = 0;
 
 function gotoStep(n) {
   n = Math.max(0, Math.min(4,n));
-  currentStep = n;
   document.querySelectorAll('.step-content').forEach((el,i)=>el.classList.toggle('active', i===n));
   document.querySelectorAll('.sstep').forEach((el,i)=>{
     el.classList.remove('active','done');

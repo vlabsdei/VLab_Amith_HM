@@ -25,6 +25,11 @@ Where:
 
 We divide by 2 because the light travels the distance twice—once to the object, and once back to the sensor. Light moves so quickly that returning from 1.5 metres away takes only 10 nanoseconds. This speed makes direct observation impossible, which is why we simulate the process here.
 
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/lidar_tof.png" alt="LiDAR Time-of-Flight Principle" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: The Time-of-Flight principle measuring the delay of a returning laser pulse.</p>
+</div>
+
 ### 3. Building a 2D Map Through Rotation
 
 A single pulse gives us distance in one direction. To build a full map, the LiDAR sensor rotates, firing pulses rapidly to sweep a 360&deg; circle. Each distance reading is paired with its angle, allowing us to map points in 2D space:

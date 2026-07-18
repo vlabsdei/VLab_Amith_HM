@@ -6,6 +6,11 @@ Imagine trying to figure out the shape of an invisible object in a dark room. In
 
 Structured Light takes a much more creative approach: it **paints the scene** with a known pattern of light. When this pattern lands on a 3D object, the shape of the object distorts the pattern. By looking at how the pattern bends, stretches, and curves from the camera's perspective, we can decode the height of *every single point on the surface all at once*.
 
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/structured_light.png" alt="Structured Light Principle" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: Projecting fringe patterns onto a curved surface to encode its 3D shape.</p>
+</div>
+
 ### 2. Why Use Wavy Lines?
 
 The most common pattern used in industrial structured light isn't a simple grid—it's a set of sinusoidal fringes. Picture a series of smooth, parallel black-and-white stripes that transition beautifully from bright to dark and back again, just like a cosine wave.

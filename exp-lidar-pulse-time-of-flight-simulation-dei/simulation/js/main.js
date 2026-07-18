@@ -33,6 +33,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
@@ -152,7 +153,6 @@ function castRay(thetaRad) {
 
   /* Intersect with pole — a circle of radius poleRadius centred at (0, poleDist) */
   const pcx = 0, pcy = ROOM.poleDist;
-  const ocx = -pcx, ocy = -pcy; /* origin relative to circle centre, ray starts at 0,0 */
   /* solve |t*dir - (pcx,pcy)|^2 = r^2 */
   const bq = -2*(dx*pcx + dy*pcy);
   const cq = pcx*pcx + pcy*pcy - ROOM.poleRadius*ROOM.poleRadius;
@@ -590,8 +590,6 @@ function mountComponent(name) {
   }
   if (allMounted && currentSetupStep===0) setTimeout(()=>gotoSetupStep(1), 400);
 }
-
-function mountAll() { Object.keys(MOUNTED).forEach(mountComponent); }
 
 /* ──────────────────────────────────────────────────────────────
    SETUP STEP 3/4 — CONFIRM + RESULTS

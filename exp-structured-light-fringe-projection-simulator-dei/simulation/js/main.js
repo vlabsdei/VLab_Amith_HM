@@ -30,6 +30,7 @@
      Modulation:    M = B / A
    ================================================================ */
 'use strict';
+/* global THREE */
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
 ────────────────────────────────────────────────────────────── */
@@ -581,9 +582,6 @@ function mountComponent(name) {
   if (allMounted && currentSetupStep === 0) {
     setTimeout(() => gotoSetupStep(1), 500);
   }
-}
-function mountAll() {
-  Object.keys(MOUNTED).forEach(mountComponent);
 }
 /* ──────────────────────────────────────────────────────────────
    SETUP STEP 3 — CONFIRM CONFIGURATION

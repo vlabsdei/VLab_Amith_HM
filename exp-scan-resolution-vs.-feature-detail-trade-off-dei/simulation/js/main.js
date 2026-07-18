@@ -4,6 +4,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE */
 
 const MOUNTED = { rail:false, sensor:false, target:false, gauge:false };
 const COMP_ORDER = ['rail', 'sensor', 'target', 'gauge'];
@@ -256,12 +257,10 @@ function updateSensorAndCone(zM){
 /* ──────────────────────────────────────────────────────────────
    SETUP PAGE NAVIGATION & LOGIC
 ────────────────────────────────────────────────────────────── */
-let currentStep=0;
 let selectedComp='rail';
 
 function gotoStep(n){
   n=Math.max(0,Math.min(3,n));
-  currentStep=n;
   document.querySelectorAll('.step-content').forEach((el,i)=>{
     el.style.display = i===n ? 'block' : 'none';
     if(i===n) el.classList.add('active');
@@ -409,7 +408,7 @@ function render3DTarget(canvas){
   const ctx=canvas.getContext('2d');
   const W=canvas.offsetWidth||canvas.width, H=canvas.offsetHeight||canvas.height;
   if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;}
-  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,W,H);
 
   const ds=pointSpacingMm(SIM.z,SIM.fx)/1000;
   const scale=zoomScale;
@@ -434,14 +433,14 @@ function render3DTarget(canvas){
   });
 
   const nx = Math.max(4, Math.min(60, Math.round(0.5/ds)));
-  ctx.fillStyle='#60a5fa';
+  ctx.fillStyle='#3b82f6';
   for(let i=0;i<=nx;i++){
     const x=-0.25+(i/nx)*0.5;
     const p=project([x,0.001,0.07],W,H,scale);
     ctx.beginPath(); ctx.arc(p.x,p.y,1,0,Math.PI*2); ctx.fill();
   }
 
-  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
+  ctx.fillStyle='#64748b'; ctx.font='9px JetBrains Mono';
   ctx.fillText(`Δs=${(ds*1000).toFixed(3)}mm at Z=${SIM.z.toFixed(2)}m`, 8, H-8);
 }
 
@@ -813,7 +812,6 @@ function init(){
     let count=0; const total=12;
     const timer=setInterval(()=>{
       count++;
-      const z=0.2+(count/total)*2.8;
       if(count>=total){ 
         clearInterval(timer); 
         document.getElementById('btn-next-obs').disabled=false; 

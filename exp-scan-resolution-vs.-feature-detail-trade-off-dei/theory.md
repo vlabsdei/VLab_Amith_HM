@@ -3,6 +3,11 @@
 ### 1. The Central Question of Scan Planning
  
 Every 3D scanning session, before it even begins, requires a decision about resolution — how finely to sample the surface. This decision cannot be made in isolation. It depends on the smallest feature the task requires the scan to resolve, the distance at which scanning will occur, and the time and data budget available. Setting resolution too coarse risks missing the features that matter to the task; setting it too fine wastes scanning time, storage space, and processing effort on detail that serves no purpose. This experiment brings together concepts from Experiments 1, 3, and 5 — point spacing, angular resolution, and the geometry of feature detectability — into a single, unified planning framework.
+
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/resolution_tradeoff.png" alt="Scan Resolution Trade-off" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: The relationship between scanning distance, point spacing, and feature detectability.</p>
+</div>
  
 ### 2. Point Spacing Revisited
  

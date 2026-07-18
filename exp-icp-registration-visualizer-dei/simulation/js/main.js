@@ -30,6 +30,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE, MathJax */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
@@ -52,7 +53,6 @@ const SIM = {
   step:    0,     /* wizard step */
 };
 
-const SHAPE_NAMES = ['L-shape', 'Arc', 'Sphere-like'];
 
 /* ICP runtime state */
 let ICP = {

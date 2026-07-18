@@ -6,6 +6,11 @@ Imagine you just used a 3D scanner—like a stereo camera or a LiDAR—to captur
 
 If we don't clean this up, our downstream tasks will suffer. Registering two scans together (Experiment 4) will fail if the surfaces are too rough, and generating a 3D mesh (Experiment 7) will result in jagged, spiky models. Noise filtering is our digital broom. However, every filter faces a tough balancing act: we need to scrub away the noise without accidentally erasing genuine surface details like sharp corners or delicate textures.
 
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/noise_filtering.png" alt="Noise Filtering Principle" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: Identifying and removing flying pixels and outlier noise from a 3D scan.</p>
+</div>
+
 ### 2. Statistical Outlier Removal (SOR)
 
 Statistical Outlier Removal (SOR) relies on a simple idea: true surface points have friends nearby, while noise points are lonely. On a solid surface, every point is surrounded by neighbours at roughly similar distances. But an isolated noise point floating in space will be much farther from its closest neighbours.

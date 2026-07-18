@@ -19,6 +19,11 @@ ICP is brilliantly simple in concept. It repeats a four-step loop until the alig
 3. **Apply the Transformation:** The entire source cloud is then physically moved according to the rotation and translation we just calculated.
 4. **Measure the Error (RMSE):** Finally, we measure the Root Mean Square Error (RMSE) between the newly moved source cloud and the target cloud. If the error hasn't dropped much since the last loop, we say the algorithm has **converged**, and we stop. Otherwise, we jump back to Step 1 and repeat the process with our newly moved cloud.
  
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/icp_registration.png" alt="ICP Registration Diagram" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: Finding nearest-neighbour correspondences and applying rigid transformation (R,t)</p>
+</div>
+
 ### 3. The ICP Objective Function
  
 At its core, ICP is an optimization problem. The mathematical goal it tries to minimize at each step is:

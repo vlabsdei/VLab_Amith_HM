@@ -1,3 +1,0 @@
-## Contributors
- 
-- **Amith H M**

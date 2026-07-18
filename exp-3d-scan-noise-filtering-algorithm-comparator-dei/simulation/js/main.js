@@ -6,6 +6,7 @@
    ================================================================ */
 
 'use strict';
+/* global THREE */
 
 /* ──────────────────────────────────────────────────────────────
    GLOBAL STATE
@@ -153,7 +154,7 @@ function runROR(pts, radiusM, nMin) {
 }
 function runMLS(pts, k, hMm) {
   const h = hMm/1000;
-  const out = pts.map((p,i) => {
+  const out = pts.map((p) => {
     const idxs = [];
     const dists=[];
     for (let j=0;j<pts.length;j++){
@@ -596,13 +597,13 @@ function renderBeforeAfter(canvas) {
   const ctx=canvas.getContext('2d');
   const W=canvas.offsetWidth||canvas.width, H=canvas.offsetHeight||canvas.height;
   if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;}
-  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,W,H);
 
   const halfW=W/2;
-  ctx.strokeStyle='#334155'; ctx.lineWidth=1;
+  ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(halfW,0); ctx.lineTo(halfW,H); ctx.stroke();
 
-  ctx.fillStyle='#94a3b8'; ctx.font='bold 9px DM Sans'; ctx.textAlign='center';
+  ctx.fillStyle='#64748b'; ctx.font='bold 9px DM Sans'; ctx.textAlign='center';
   ctx.fillText('BEFORE', halfW/2, 13);
   ctx.fillText('AFTER', halfW+halfW/2, 13);
 
@@ -616,7 +617,7 @@ function renderBeforeAfter(canvas) {
   const afterPts = SIM.algo===2 ? SIM_MLS_OUT : SIM_DATA.pts.filter((_,i)=>SIM_KEEP[i]);
   afterPts.forEach(p=>{
     const proj=project(p, halfW, H, scale);
-    ctx.fillStyle = '#22d3ee';
+    ctx.fillStyle = '#0ea5e9';
     ctx.beginPath(); ctx.arc(proj.x+halfW, proj.y, 1.3, 0, Math.PI*2); ctx.fill();
   });
   ctx.textAlign='left';
@@ -626,7 +627,7 @@ function renderClassifyMap(canvas) {
   const ctx=canvas.getContext('2d');
   const W=canvas.offsetWidth||canvas.width, H=canvas.offsetHeight||canvas.height;
   if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;}
-  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,W,H);
 
   const scale = simViewScale * 2.11;
   const items = SIM_DATA.pts.map((p,i)=>{
@@ -636,7 +637,7 @@ function renderClassifyMap(canvas) {
     if (outlier && !kept) colour='#22c55e';       /* TP */
     else if (!outlier && !kept) colour='#ef4444'; /* FP */
     else if (outlier && kept) colour='#f59e0b';   /* FN */
-    else colour='#475569';                        /* TN */
+    else colour='#cbd5e1';                        /* TN */
     return {proj, colour};
   });
   items.sort((a,b)=>b.proj.depth-a.proj.depth);
@@ -645,7 +646,7 @@ function renderClassifyMap(canvas) {
     ctx.beginPath(); ctx.arc(it.proj.x, it.proj.y, 1.6, 0, Math.PI*2); ctx.fill();
   });
 
-  ctx.fillStyle='#94a3b8'; ctx.font='9px JetBrains Mono';
+  ctx.fillStyle='#64748b'; ctx.font='9px JetBrains Mono';
   ctx.fillText(`${ALGO_NAMES[SIM.algo]} classification`, 8, H-8);
 }
 
@@ -1039,7 +1040,6 @@ function init() {
           metrics = computeMetrics(keep, setupData.isOutlier);
           setupRunResult = { rejected: keep.filter(k=>!k).length, metrics };
         } else {
-          const keep = setupData.pts.map(()=>true);
           const mlsOut = runMLS(setupData.pts, k, SETUP.primary*3);
           const genuineIdx = setupData.pts.map((_,i)=>i).filter(i=>!setupData.isOutlier[i]);
           let rmseSum=0;

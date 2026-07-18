@@ -22,6 +22,11 @@ A normal vector has three components (nx, ny, nz) and must satisfy the unit leng
 
 One tricky aspect of normals is that mathematically, a plane has two perpendicular directions (pointing "outward" or "inward"). For a 3D mesh to look correct and behave predictably, we have to make sure all normals consistently point *outward*.
 
+<div style="text-align: center; margin: 30px 0;">
+  <img src="images/surface_normal.png" alt="Surface Normal Estimation" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <p style="font-size: 0.9rem; color: #64748b; margin-top: 10px;">Figure 1: Estimating the perpendicular surface normal from a local neighbourhood of points.</p>
+</div>
+
 ### 3. Using PCA to Find the Normal
 
 The most common way to estimate the normal for a point **P** is to look at its closest neighbours using a technique called **Principal Component Analysis (PCA)**.

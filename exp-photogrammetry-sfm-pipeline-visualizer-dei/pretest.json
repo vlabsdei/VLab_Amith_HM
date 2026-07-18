@@ -1,0 +1,175 @@
+{
+  "version": 2.0,
+  "questions": [
+    {
+      "question": "Q1. What fundamentally distinguishes photogrammetry and Structure from Motion (SfM) from the other scanning technologies studied in this lab?",
+      "answers": {
+        "a": "SfM requires a more expensive and specialised sensor than any other technology in this lab",
+        "b": "SfM reconstructs 3D geometry using nothing more than a set of ordinary overlapping photographs from a single uncalibrated camera, rather than requiring a specialised sensor like a calibrated stereo pair, laser rangefinder, or projector-camera system",
+        "c": "SfM is the only technology in this lab that cannot produce a point cloud as output",
+        "d": "SfM works exclusively with video footage and cannot use still photographs"
+      },
+      "explanations": {
+        "a": "Not quite. Actually, SfM is notable specifically for its accessibility \u2014 it can use any ordinary digital camera or smartphone, making it far less specialised and expensive than dedicated stereo rigs, LiDAR units, or structured light projector-camera systems.",
+        "b": "Correct! Unlike stereo vision (calibrated camera pair), LiDAR (laser rangefinder), or structured light (projector-camera system), SfM reconstructs full 3D geometry from ordinary overlapping photographs taken with a single camera that may not even be precisely calibrated in advance. Camera positions, orientations, and 3D point locations must all be jointly solved for from the image data itself, making it accessible but computationally demanding.",
+        "c": "Not quite. SfM explicitly produces a point cloud as one of its outputs \u2014 specifically a sparse point cloud after triangulation (Stage 4) and later a dense point cloud after the dense reconstruction stage (Stage 6), just like the other technologies studied in this lab.",
+        "d": "Not quite. SfM works with a set of overlapping still photographs, as explicitly described in the theory. While video frames can sometimes serve as input, the fundamental technique operates on a collection of still images, not exclusively video."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q2. What is the purpose of Stage 1 (Feature Detection) in the SfM pipeline?",
+      "answers": {
+        "a": "To calculate the final 3D coordinates of every point in the scene immediately",
+        "b": "To automatically identify distinctive local image features (corners, blobs, textured regions) in each photograph that can be reliably re-identified across other photographs of the same scene",
+        "c": "To merge all input photographs into a single combined image",
+        "d": "To determine the exact GPS location where each photograph was taken"
+      },
+      "explanations": {
+        "a": "Not quite. Feature detection is the very first stage of the pipeline and produces only 2D image locations of distinctive points within each individual photograph \u2014 it does not compute any 3D coordinates. 3D reconstruction only happens much later, in Stage 4, after camera poses have been estimated.",
+        "b": "Correct! Feature detection identifies distinctive, reliably re-identifiable points within each photograph \u2014 such as corners or highly textured regions \u2014 that are likely to be recognisable even when viewed from a different angle, distance, or under different lighting in another photograph. This is the essential first step that makes the subsequent feature matching stage possible.",
+        "c": "Not quite. Feature detection operates on each individual image separately to find distinctive points within that single image \u2014 it does not merge or combine images together in any way. Combining information across images happens in later stages like matching and pose estimation.",
+        "d": "Not quite. Feature detection is a purely image-based computer vision process analysing pixel patterns within photographs. It has no relationship to GPS location data, which is an entirely separate (and optional) metadata source sometimes used later to help resolve scale ambiguity."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q3. In the SfM pipeline, what does Stage 2 (Feature Matching) accomplish, and how is it conceptually similar to a process studied in an earlier experiment?",
+      "answers": {
+        "a": "It finds correspondences between the same physical 3D point's detected features across different overlapping images \u2014 directly analogous to the correspondence-finding step in ICP registration (Experiment 4), except matching 2D image features rather than 3D point positions",
+        "b": "It matches the colour of each photograph to a standard reference colour palette",
+        "c": "It is completely unrelated to any concept studied elsewhere in this lab",
+        "d": "It matches each photograph to the camera model that captured it"
+      },
+      "explanations": {
+        "a": "Correct! Feature matching takes the distinctive features detected independently in each image (Stage 1) and finds correspondences between overlapping images \u2014 identifying where the same physical 3D point in the scene produced a detected feature in two or more different photographs. This directly parallels ICP's correspondence-finding step from Experiment 4, which similarly identifies which points in two datasets represent the same underlying physical location, just operating on 2D image features here rather than 3D point positions.",
+        "b": "Not quite. Feature matching is a geometric correspondence-finding process concerned with identifying the same physical points across images, not a colour calibration or colour-matching process. Colour standardisation is an entirely separate photographic processing concern unrelated to SfM's geometric reconstruction pipeline.",
+        "c": "Not quite. \u2014 the theory directly draws the connection between feature matching in SfM and the correspondence-finding step in ICP from Experiment 4, showing that this is not an isolated concept but one with clear conceptual parallels elsewhere in the lab.",
+        "d": "Not quite. Identifying which specific camera model captured a photograph is a metadata lookup task unrelated to feature matching. Feature matching is entirely about finding corresponding points between the actual image content of different photographs."
+      },
+      "correctAnswer": "a",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q4. What does Stage 3 (Camera Pose Estimation) recover in the SfM pipeline?",
+      "answers": {
+        "a": "The exact colour temperature of the lighting used during each photograph",
+        "b": "The position and orientation of each camera at the moment each photograph was taken \u2014 where the camera was located and which direction it was pointing",
+        "c": "The battery level of the camera during the photography session",
+        "d": "The file size of each input photograph"
+      },
+      "explanations": {
+        "a": "Not quite. Colour temperature is a photometric lighting property unrelated to the geometric camera pose (position and orientation) that this stage specifically computes. Camera pose estimation is entirely concerned with spatial geometry, not lighting conditions.",
+        "b": "Correct! Using the matched feature correspondences established in Stage 2, camera pose estimation recovers where each camera was positioned in 3D space and which direction it was oriented when each specific photograph was captured. This creates a complete record of the camera's trajectory and viewing directions throughout the photo capture session, which is essential for the subsequent triangulation stage.",
+        "c": "Not quite. Camera battery level is a hardware operational status unrelated to the geometric pose estimation problem SfM solves. This stage is entirely about determining spatial position and orientation, not equipment status.",
+        "d": "Not quite. File size is a data storage property of the digital image file, completely unrelated to the geometric camera position and orientation that Stage 3 specifically computes from the image content and feature correspondences."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q5. How is the sparse 3D reconstruction (Stage 4) obtained once camera poses are known, and how does it relate to a concept from Experiment 1?",
+      "answers": {
+        "a": "By directly measuring distance with a laser, exactly as in Experiment 5's LiDAR technique",
+        "b": "By triangulating matched feature correspondences across multiple known camera views \u2014 conceptually similar to stereo triangulation in Experiment 1, but now potentially using many camera views rather than just two",
+        "c": "By averaging the colour values of all pixels across every input photograph",
+        "d": "Sparse reconstruction has no relationship to any concept covered elsewhere in this lab"
+      },
+      "explanations": {
+        "a": "Not quite. SfM does not use any laser or direct distance measurement device \u2014 it is a purely image-based, geometric triangulation technique operating entirely from photographs and estimated camera poses, fundamentally different from LiDAR's time-of-flight approach.",
+        "b": "Correct! Once camera poses are known from Stage 3, each matched feature correspondence (a point seen in two or more images) can be triangulated \u2014 computing its 3D position from the geometric intersection of viewing rays from each camera through the matched 2D feature position. This is directly analogous to the stereo triangulation formula and concept from Experiment 1 (Z = fB/d and related geometry), but extended to potentially many camera views rather than exactly two, since SfM often uses dozens or hundreds of overlapping photographs.",
+        "c": "Not quite. Sparse reconstruction is a geometric triangulation process computing 3D point positions from matched feature correspondences and camera geometry \u2014 it has no relationship to averaging pixel colour values, which would produce no spatial information at all.",
+        "d": "Not quite. This contradicts the connection the theory draws to Experiment 1's stereo triangulation, extending the same fundamental multi-view geometric triangulation principle to a larger number of camera viewpoints."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q6. What is bundle adjustment (Stage 5), and what quantity does it minimise?",
+      "answers": {
+        "a": "A process that compresses all input photographs into a smaller combined file for storage",
+        "b": "A large-scale joint optimisation that refines all camera poses and all triangulated 3D points together simultaneously, minimising the total reprojection error across the entire image set",
+        "c": "A step that physically bundles multiple cameras together into a single rig before capture begins",
+        "d": "A colour correction process applied uniformly across all input images"
+      },
+      "explanations": {
+        "a": "Not quite. Bundle adjustment is a mathematical optimisation process operating on estimated camera poses and 3D point positions \u2014 it is not a file compression or storage-reduction technique for the original photographs.",
+        "b": "Correct! Bundle adjustment simultaneously refines the position and orientation of every camera and the 3D position of every reconstructed point in one large joint optimisation, minimising the total reprojection error E = \u03a3\u1d62 \u03a3\u2c7c ||x\u1d62\u2c7c \u2212 \u03c0(C\u2c7c, X\u1d62)||\u00b2 across the entire dataset. This is directly analogous to the reprojection error minimisation in Experiment 2's camera calibration, but scaled up dramatically to potentially thousands of points and many cameras all being solved for jointly.",
+        "c": "Not quite. 'Bundle' in this context refers to the bundle of light rays connecting each 3D point to its projections in multiple images \u2014 the mathematical structure being jointly optimised \u2014 not a physical arrangement of camera hardware. Bundle adjustment is a purely computational post-processing step, not a physical capture configuration.",
+        "d": "Not quite. Bundle adjustment optimises geometric quantities (camera poses and 3D point positions), not photometric properties like colour. Colour correction, if performed, would be a separate image processing step unrelated to the geometric optimisation bundle adjustment performs."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q7. Why must every 3D point in an SfM reconstruction be visible in at least two images, with three or more images recommended for robust results?",
+      "answers": {
+        "a": "Triangulation, the process used to compute 3D point positions from image correspondences, fundamentally requires observing the same point from at least two different viewpoints to geometrically determine its 3D location \u2014 a single image alone provides only a 2D projection with no depth information",
+        "b": "Camera manufacturers impose a legal requirement of at least two photographs per reconstruction",
+        "c": "SfM software always crashes if any point is visible in fewer than two images",
+        "d": "This requirement only applies to outdoor photography, not indoor scenes"
+      },
+      "explanations": {
+        "a": "Correct! A single 2D image of a point provides only a viewing ray from the camera through that point \u2014 the exact distance along that ray (the depth) is fundamentally ambiguous from a single view alone, exactly as discussed regarding monocular depth ambiguity in earlier stereo vision concepts. Only by observing the same point from at least two different camera positions can the two (or more) viewing rays be intersected to geometrically triangulate a unique 3D position. Three or more views provide additional redundancy, improving robustness and reducing the impact of any single image's matching error or noise on the final triangulated position.",
+        "b": "Not quite. This is a fundamental mathematical and geometric requirement of triangulation, not any kind of legal, regulatory, or manufacturer-imposed rule. The requirement exists because of the physics and geometry of how 3D position can be recovered from 2D image projections, independent of any commercial or legal consideration.",
+        "c": "Not quite. SfM software does not necessarily crash when a point has insufficient image coverage \u2014 rather, points with fewer than the minimum required views for triangulation are simply not reconstructed, leaving a gap in the resulting point cloud at that location, rather than causing any kind of software failure.",
+        "d": "Not quite. The fundamental geometric requirement for triangulation (at least two viewing angles to determine a 3D position) is a mathematical property of how 3D position is recovered from 2D projections, applying identically to both indoor and outdoor photography, or any other capture environment."
+      },
+      "correctAnswer": "a",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q8. What is the general guideline for image overlap between consecutive photographs recommended for reliable SfM capture, and why?",
+      "answers": {
+        "a": "0 to 10 percent overlap is ideal, since minimal overlap covers the most total area with the fewest photographs",
+        "b": "60 to 80 percent overlap between consecutive photographs is generally recommended, ensuring that every surface point remains visible across several viewpoints as the camera moves around the subject",
+        "c": "Exactly 100 percent overlap (every photograph identical) is required for SfM to function at all",
+        "d": "Overlap percentage has no effect on reconstruction quality or completeness"
+      },
+      "explanations": {
+        "a": "Not quite. Very low overlap risks leaving gaps in the reconstruction where insufficient images share common features to establish correspondences and triangulate 3D points, directly reducing reconstruction completeness rather than improving overall coverage efficiency.",
+        "b": "Correct! The theory specifically recommends 60 to 80 percent overlap between consecutive images as a general guideline for reliable SfM capture. This level of overlap ensures that as the camera moves around the subject, most surface points remain visible in multiple consecutive photographs, providing the multi-view coverage needed for reliable feature matching and robust triangulation, directly analogous to the overlap requirements discussed for ICP registration in Experiment 4.",
+        "c": "Not quite. Perfectly identical photographs with 100 percent overlap would provide no new viewing angle information at all \u2014 SfM specifically requires viewpoint diversity (different camera positions viewing the same points from different angles) to enable triangulation, which cannot occur if every photograph is taken from the exact same position.",
+        "d": "Not quite. This directly contradicts the theory's explicit discussion connecting overlap to reconstruction completeness \u2014 insufficient overlap leaves gaps in the reconstruction, exactly analogous to how insufficient scan overlap causes failures in ICP registration (Experiment 4)."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q9. What is 'scale ambiguity' in the context of SfM reconstruction from photographs alone?",
+      "answers": {
+        "a": "The inability of SfM to recover the correct relative shape and proportions of the scanned object",
+        "b": "The reconstruction correctly recovers relative shape and proportions, but has no inherent way to determine absolute physical scale \u2014 a small object photographed up close and a proportionally larger object photographed from farther away could produce identical-looking reconstructions from image data alone",
+        "c": "A problem that only occurs when photographing very large outdoor scenes, never with small objects",
+        "d": "An error that always causes the reconstruction to fail completely"
+      },
+      "explanations": {
+        "a": "Not quite. This is the opposite of the actual limitation. SfM reconstructed purely from photographs correctly recovers relative shape and proportions \u2014 the geometric structure is accurate in relative terms. The ambiguity is specifically about absolute physical scale (metres, centimetres), not about the correctness of the relative geometric structure.",
+        "b": "Correct! Because image data alone (without any external reference measurement) provides only information about relative geometric relationships, the reconstruction cannot inherently distinguish between a small object photographed from close range and a proportionally larger object photographed from a correspondingly greater distance \u2014 both would produce visually and geometrically identical image sequences and therefore identical reconstructions in relative terms. Resolving this requires an external reference, such as a known physical measurement in the scene, GPS-tagged positions, or integration with an absolute-scale sensor.",
+        "c": "Not quite. Scale ambiguity is a fundamental mathematical property of reconstruction from image data alone, applying equally regardless of whether the scanned scene is small (a tabletop object) or large (an outdoor structure) \u2014 the underlying reason (no absolute reference in pure image data) is the same in both cases.",
+        "d": "Not quite. Scale ambiguity does not cause reconstruction failure \u2014 the geometric reconstruction proceeds successfully and produces a correctly-shaped, correctly-proportioned model. The limitation is specifically that the resulting model's absolute size unit (whether it represents millimetres or metres) remains undetermined without external reference information, not that the process fails."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    },
+    {
+      "question": "Q10. Why is SfM described in the theory as synthesising concepts from nearly every prior experiment in this lab?",
+      "answers": {
+        "a": "Because SfM is completely unrelated to all previous experiments and introduces entirely new, unconnected concepts",
+        "b": "Because SfM draws directly on epipolar geometry and triangulation (Experiment 1), reprojection error and calibration concepts (Experiment 2), point cloud generation (Experiment 3), correspondence-based registration ideas (Experiment 4), and outlier rejection (Experiment 8), combining them into a single unified pipeline",
+        "c": "Because SfM requires physically combining the hardware from all previous experiments into one device",
+        "d": "Because SfM is simply a renamed version of LiDAR scanning with no genuinely new content"
+      },
+      "explanations": {
+        "a": "Not quite. This contradicts the synthesis described throughout the theory, which repeatedly draws specific, detailed connections between SfM's individual stages and concepts studied in multiple earlier experiments throughout the lab.",
+        "b": "Correct! As discussed in the theory: epipolar geometry and multi-view triangulation connect to Experiment 1's stereo vision; bundle adjustment's reprojection error minimisation connects to Experiment 2's camera calibration; the sparse and dense point cloud outputs connect to Experiment 3's point cloud generation; feature matching's correspondence-finding connects to Experiment 4's ICP registration; and RANSAC-based outlier rejection connects to Experiment 8's noise filtering principles. SfM is presented as a capstone experiment that shows how these individually-studied concepts combine into one comprehensive, practically important real-world pipeline.",
+        "c": "Not quite. This is a nonsensical literal interpretation \u2014 'synthesising concepts' refers to combining theoretical and mathematical ideas within the SfM algorithm's design, not physically merging hardware devices from unrelated experiments into a single physical instrument.",
+        "d": "Not quite. SfM is a genuinely distinct technique fundamentally different from LiDAR \u2014 it uses ordinary photographs and triangulation-based reconstruction rather than laser time-of-flight distance measurement, and introduces substantial new concepts (feature matching, bundle adjustment, camera pose estimation from images) not covered in the LiDAR experiment."
+      },
+      "correctAnswer": "b",
+      "difficulty": "beginner"
+    }
+  ]
+}
