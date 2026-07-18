@@ -24,7 +24,7 @@ A stable physical setup is essential for proper calibration.
 ### Step 2: Capture Calibration Poses
 Zhang's Method relies on multiple images of the checkerboard taken from different distances and orientations.
 * **Action:** Change the **Board tilt X**, **Board tilt Y**, and **Board distance** sliders, then click "Capture Pose". Do this repeatedly to collect at least 5 varied poses (15-30 is ideal).
-* **Observation:** Your images will appear in the Captured Poses grid. Note how changing the distance and tilt alters the perspective distortion of the squares—this variation is key to solving the intrinsic matrix. Once you have 5 or more poses, click "Go to Simulation".
+* **Observation:** Your images will appear in the Captured Poses grid. Note how changing the distance and tilt alters the perspective distortion of the squares-this variation is key to solving the intrinsic matrix. Once you have 5 or more poses, click "Go to Simulation".
 
 ### Step 3: Analyze Distortion and Undistortion
 Real lenses have radial distortion, which makes straight lines look curved.

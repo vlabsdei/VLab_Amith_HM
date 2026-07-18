@@ -1,20 +1,20 @@
 /* ================================================================
-   EXPERIMENT 2 — CAMERA CALIBRATION SIMULATION
-   main.js — Three.js 3D setup scene + 2D simulation canvases
+   EXPERIMENT 2 - CAMERA CALIBRATION SIMULATION
+   main.js - Three.js 3D setup scene + 2D simulation canvases
    ================================================================
 
    ARCHITECTURE
    ────────────
    SETUP PAGE
-     ThreeScene  → manages Three.js renderer, camera, orbit controls
-     Components  → tracks which lab equipment is mounted
-     PoseCapture → stores captured pose orientations
-     SetupWizard → step navigation (0→4)
+     ThreeScene   manages Three.js renderer, camera, orbit controls
+     Components   tracks which lab equipment is mounted
+     PoseCapture  stores captured pose orientations
+     SetupWizard  step navigation (04)
 
    SIMULATION PAGE
-     SimState    → live parameter values
-     render*()   → individual canvas renderers
-     WizardSim   → 4-step guided walkthrough
+     SimState     live parameter values
+     render*()    individual canvas renderers
+     WizardSim    4-step guided walkthrough
 
    MATH
    ────
@@ -55,7 +55,7 @@ const BOARD_CONFIG = {
 
 const SIM = {
   N:     5,                /* number of poses            */
-  tilt:  1,                /* tilt diversity 1–4         */
+  tilt:  1,                /* tilt diversity 1-4         */
   sq:    25,               /* square size mm             */
   k1:    0,                /* radial distortion k1       */
   step:  0,                /* wizard step                */
@@ -76,13 +76,13 @@ const SIM_WIZARD = [
   },
   {
     title: 'Add Tilt Diversity',
-    text:  'All poses at the same angle give redundant — not new — information. The tilt diversity slider controls how spread out the pose orientations are across all three rotational axes.',
+    text:  'All poses at the same angle give redundant - not new - information. The tilt diversity slider controls how spread out the pose orientations are across all three rotational axes.',
     task:  'Set Diversity to Low, note the error. Then switch to Full. Compare.',
     lit:   'pg-tilt',
   },
   {
     title: 'Vary Square Size',
-    text:  'The square size defines the world coordinate scale. An incorrect value does not raise reprojection error — it silently scales the estimated focal length. This is a common real-world mistake.',
+    text:  'The square size defines the world coordinate scale. An incorrect value does not raise reprojection error - it silently scales the estimated focal length. This is a common real-world mistake.',
     task:  'Set square size to 28 mm (board is 25 mm). See how f changes but error stays low.',
     lit:   'pg-sq',
   },
@@ -133,7 +133,7 @@ function computeF() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS SCENE — SETUP PAGE
+   THREE.JS SCENE - SETUP PAGE
 ────────────────────────────────────────────────────────────── */
 
 let renderer, scene, camera, animFrame;
@@ -653,7 +653,7 @@ function updateBoardTransform() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
+   SETUP PAGE - STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
 
 /* ──────────────────────────────────────────────────────────────
@@ -843,7 +843,7 @@ function drawMiniCheckerboard(canvas, tx, ty, idx, dist) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP STEP 4 — RESULTS DISPLAY
+   SETUP STEP 4 - RESULTS DISPLAY
 ────────────────────────────────────────────────────────────── */
 
 function computeAndDisplayResults() {
@@ -908,7 +908,7 @@ function showSetup() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION PAGE — CANVAS RENDERERS
+   SIMULATION PAGE - CANVAS RENDERERS
 ────────────────────────────────────────────────────────────── */
 
 /* ── Distorted Image ──────────────────────────────────────────
@@ -1451,7 +1451,7 @@ function renderRPEGraph(canvas) {
 
   /* Annotation */
   ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px DM Sans'; ctx.textAlign = 'left';
-  ctx.fillText(`N=${SIM.N} → ${curRPE.toFixed(2)}px`, Math.min(curX + 10, W - 80), curY - 8);
+  ctx.fillText(`N=${SIM.N}  ${curRPE.toFixed(2)}px`, Math.min(curX + 10, W - 80), curY - 8);
 
   ctx.textAlign = 'left';
 }
@@ -1609,7 +1609,7 @@ function renderDiversityMap(canvas) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — MAIN UPDATE
+   SIMULATION - MAIN UPDATE
 ────────────────────────────────────────────────────────────── */
 
 function updateSimulation() {
@@ -1685,7 +1685,7 @@ function updateSimulation() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — WIZARD
+   SIMULATION - WIZARD
 ────────────────────────────────────────────────────────────── */
 
 function updateSimWizard() {
@@ -1723,7 +1723,7 @@ function updateSimWizard() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — INIT & CONTROLS
+   SIMULATION - INIT & CONTROLS
 ────────────────────────────────────────────────────────────── */
 
 function initSimulation() {
@@ -1849,7 +1849,7 @@ function resetSimulation() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — DRAW CHECKERBOARD ICON (CSS canvas)
+   SETUP PAGE - DRAW CHECKERBOARD ICON (CSS canvas)
 ────────────────────────────────────────────────────────────── */
 
 function drawBoardIcon() {
@@ -1882,7 +1882,7 @@ function drawBoardIcon() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — RESET EVERYTHING
+   SETUP PAGE - RESET EVERYTHING
 ────────────────────────────────────────────────────────────── */
 
 function resetPoses() {
@@ -1894,7 +1894,7 @@ function resetPoses() {
 
   const obsPose = document.getElementById('obs-pose');
   if (obsPose) {
-    obsPose.textContent = '—';
+    obsPose.textContent = '-';
     obsPose.style.color = '';
   }
 }
@@ -1913,9 +1913,9 @@ function resetSetup() {
   /* Reset poses */
   resetPoses();
   const obsCorners = document.getElementById('obs-corners');
-  if (obsCorners) obsCorners.textContent = '—';
+  if (obsCorners) obsCorners.textContent = '-';
   const obsTilt = document.getElementById('obs-tilt');
-  if (obsTilt) obsTilt.textContent = '—';
+  if (obsTilt) obsTilt.textContent = '-';
 
   /* Reset cards */
   document.querySelectorAll('.apparatus-card').forEach(c => {
@@ -1945,11 +1945,11 @@ function resetSetup() {
   boardTX = 0; boardTY = 0; boardDist = 0.6;
   
   /* Reset readout values */
-  document.getElementById('r-f').textContent = '—';
-  document.getElementById('r-cx').textContent = '—';
-  document.getElementById('r-cy').textContent = '—';
-  document.getElementById('r-k1-readout').textContent = '—';
-  document.getElementById('r-rpe').textContent = '—';
+  document.getElementById('r-f').textContent = '-';
+  document.getElementById('r-cx').textContent = '-';
+  document.getElementById('r-cy').textContent = '-';
+  document.getElementById('r-k1-readout').textContent = '-';
+  document.getElementById('r-rpe').textContent = '-';
   document.getElementById('rpe-bar').style.left = '0%';
 
   /* Reset UI panels */
@@ -1960,7 +1960,7 @@ function resetSetup() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   INIT — Wire up all events and start
+   INIT - Wire up all events and start
 ────────────────────────────────────────────────────────────── */
 
 function init() {

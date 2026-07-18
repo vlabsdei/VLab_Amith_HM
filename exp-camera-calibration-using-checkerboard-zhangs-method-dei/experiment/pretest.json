@@ -79,7 +79,7 @@
       },
       "explanations": {
         "a": "Incorrect. A camera with two lenses is a stereo camera. A homography is a mathematical concept rather than a physical device.",
-        "b": "Incorrect. The checkerboard is your physical calibration target. A homography is the mathematical relationship derived from the checkerboard image—it's an abstract 3×3 matrix, not the pattern itself.",
+        "b": "Incorrect. The checkerboard is your physical calibration target. A homography is the mathematical relationship derived from the checkerboard image-it's an abstract 3×3 matrix, not the pattern itself.",
         "c": "Correct. A homography H is a 3×3 matrix that translates the perspective transformation between a flat plane (like the checkerboard where Z = 0) and the 2D camera image. It's written as H = K[r1 r2 t]. Each pose of the board gives you one homography, and by stacking several of them, you can solve for the intrinsic matrix K. <a href='https://en.wikipedia.org/wiki/Homography_(computer_vision)'>Learn about homography</a>",
         "d": "Incorrect. The physical distance between the camera and the checkerboard is the translation t, which makes up part of the extrinsic parameters inside the homography. The homography itself is the mathematical mapping computed from the image data."
       },
@@ -106,10 +106,10 @@
     {
       "question": "Q7. What is the minimum number of calibration poses (checkerboard photographs) required for Zhang's method to work?",
       "answers": {
-        "a": "1 pose is enough — one image contains all the information needed",
-        "b": "Exactly 2 poses — one from the front and one from the side",
-        "c": "At least 3 poses — because each pose provides 2 constraint equations and K has 5 unknowns",
-        "d": "At least 50 poses — calibration requires a very large dataset to be statistically valid"
+        "a": "1 pose is enough - one image contains all the information needed",
+        "b": "Exactly 2 poses - one from the front and one from the side",
+        "c": "At least 3 poses - because each pose provides 2 constraint equations and K has 5 unknowns",
+        "d": "At least 50 poses - calibration requires a very large dataset to be statistically valid"
       },
       "explanations": {
         "a": "Incorrect. A single pose only gives you one homography with 8 degrees of freedom, while the intrinsic matrix K has 5 unknowns. One pose just leaves the system underdetermined. You need at least 3 poses for enough independent equations.",
@@ -140,10 +140,10 @@
     {
       "question": "Q9. A camera has radial distortion coefficient k1 = -0.45. What type of distortion does this describe and where is it most visible?",
       "answers": {
-        "a": "Pincushion distortion — pixels are pushed outward from the image centre, most visible at the image corners",
-        "b": "Barrel distortion — pixels are pulled inward toward the image centre, straight lines at the edges appear bowed outward",
-        "c": "Tangential distortion — the image appears tilted to one side",
-        "d": "No distortion — k1 = -0.45 means the distortion has been corrected already"
+        "a": "Pincushion distortion - pixels are pushed outward from the image centre, most visible at the image corners",
+        "b": "Barrel distortion - pixels are pulled inward toward the image centre, straight lines at the edges appear bowed outward",
+        "c": "Tangential distortion - the image appears tilted to one side",
+        "d": "No distortion - k1 = -0.45 means the distortion has been corrected already"
       },
       "explanations": {
         "a": "Incorrect. Pincushion distortion actually corresponds to a positive k1 value. A negative k1 does the opposite, creating barrel distortion.",
@@ -157,9 +157,9 @@
     {
       "question": "Q10. In Experiment 1, the depth formula was Z = (f × B) / d. Why must camera calibration (Experiment 2) be completed before using this formula for measurement?",
       "answers": {
-        "a": "Calibration is not actually required — the formula works correctly with any assumed focal length value",
+        "a": "Calibration is not actually required - the formula works correctly with any assumed focal length value",
         "b": "Calibration is needed to measure the baseline B between the two cameras",
-        "c": "Calibration recovers the true focal length f — an incorrect f causes a systematic depth error proportional to the f error that affects every pixel in the depth map",
+        "c": "Calibration recovers the true focal length f - an incorrect f causes a systematic depth error proportional to the f error that affects every pixel in the depth map",
         "d": "Calibration converts the depth map colours from red-blue to a grayscale display for measurement"
       },
       "explanations": {

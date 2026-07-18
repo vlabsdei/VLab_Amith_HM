@@ -12,7 +12,7 @@
       "explanations": {
         "a": "Incorrect. The simulation showed that just piling on more same-angle poses barely moved the needle. Dropping your reprojection error requires diverse geometric constraints, not just an arbitrary high number of redundant images.",
         "b": "Correct. When all your poses only vary left-to-right (horizontal tilt), the homography math handles fx and cx fine, but leaves fy and cy poorly constrained because the vertical perspective hasn't really changed. Tossing in one pose with a strong top-to-bottom tilt introduces a vital new geometric relationship, finally locking down fy. That single diverse pose is why the reprojection error plunged so dramatically in the simulation.",
-        "c": "Incorrect. Varied tilt angles don't make the homographies inconsistent—they make them independent, which is exactly what the math needs. Adding independent rows to the matrix actually improves the condition of the linear system. Inconsistency only happens if corner detection goes wrong.",
+        "c": "Incorrect. Varied tilt angles don't make the homographies inconsistent-they make them independent, which is exactly what the math needs. Adding independent rows to the matrix actually improves the condition of the linear system. Inconsistency only happens if corner detection goes wrong.",
         "d": "Incorrect. While moving closer helps with pixel resolution for corner detection, it's just a secondary benefit here. The massive drop in error comes directly from adding a new geometric constraint, not just getting closer to the lens."
       },
       "correctAnswer": "b",
@@ -23,7 +23,7 @@
       "answers": {
         "a": "The image corners appeared sharper in the distorted view and blurrier after undistortion",
         "b": "Straight lines near the image centre appeared curved in the distorted view but straight lines near the edges appeared correct",
-        "c": "In the distorted view, straight lines near the edges appeared curved outward. After applying the correction, those lines were restored to straight — but pixels at the corners were visibly shifted inward",
+        "c": "In the distorted view, straight lines near the edges appeared curved outward. After applying the correction, those lines were restored to straight - but pixels at the corners were visibly shifted inward",
         "d": "The distorted and undistorted images looked identical because k1 only affects depth map colours"
       },
       "explanations": {
@@ -39,8 +39,8 @@
       "question": "Q3. In the simulation you started with 3 poses (reprojection error = 3.2 px) and added poses one at a time up to 20. The error dropped steeply from pose 3 to pose 12, then nearly flat from pose 12 to pose 20. What does this pattern tell you about how many poses are practically sufficient?",
       "answers": {
         "a": "You should always use exactly 20 poses because the error was still decreasing at that point",
-        "b": "Improvement saturates around 12 to 15 poses — adding more beyond that provides diminishing returns and is not worth the extra capture time",
-        "c": "The flat region from pose 12 to 20 means calibration failed — error should keep dropping indefinitely",
+        "b": "Improvement saturates around 12 to 15 poses - adding more beyond that provides diminishing returns and is not worth the extra capture time",
+        "c": "The flat region from pose 12 to 20 means calibration failed - error should keep dropping indefinitely",
         "d": "The pattern means the checkerboard square size was wrong and needs to be remeasured"
       },
       "explanations": {
@@ -70,10 +70,10 @@
       "difficulty": "intermediate"
     },
     {
-      "question": "Q5. In the simulation you captured a pose with the checkerboard partially outside the image frame — about one-third of the board was cropped. The simulation showed a warning and skipped that pose. Why is a partially visible board invalid for calibration?",
+      "question": "Q5. In the simulation you captured a pose with the checkerboard partially outside the image frame - about one-third of the board was cropped. The simulation showed a warning and skipped that pose. Why is a partially visible board invalid for calibration?",
       "answers": {
-        "a": "The simulation skips partial boards only for display reasons — the partial data is still used in the calibration calculation",
-        "b": "A partial board cannot be used because the homography estimation requires all corner points to be visible — missing corners make the point correspondence set incomplete and the homography cannot be reliably computed",
+        "a": "The simulation skips partial boards only for display reasons - the partial data is still used in the calibration calculation",
+        "b": "A partial board cannot be used because the homography estimation requires all corner points to be visible - missing corners make the point correspondence set incomplete and the homography cannot be reliably computed",
         "c": "A partial board gives lower reprojection error than a full board, so it is excluded to keep the error high",
         "d": "The simulation excludes partial boards because the checkerboard pattern cannot be recognised unless all squares are visible"
       },
@@ -81,7 +81,7 @@
         "a": "Incorrect. The system isn't just ignoring it for looks. Without all the matched corner correspondences between the image and the known world positions, the math for the homography breaks down.",
         "b": "Correct. To build the homography H for a pose, the algorithm needs to match the detected image corners to their known real-world grid positions. When parts of the board fall off the frame, the correspondence set is left incomplete. OpenCV requires the entire inner grid of corners to be detectable; if not, you either get an invalid homography or it's rejected completely. The simulation correctly throws a warning and skips the bad pose.",
         "c": "Incorrect. Exposing a partial board doesn't give you better error scores; it ruins the corner detection entirely. It's skipped to maintain mathematical correctness, not to manipulate the metric.",
-        "d": "Incorrect. Visual recognition of the board isn't the problem—the software can see it's a checkerboard. The issue is that the calibration math explicitly demands a complete set of inner corners to build a uniquely solvable correspondence."
+        "d": "Incorrect. Visual recognition of the board isn't the problem-the software can see it's a checkerboard. The issue is that the calibration math explicitly demands a complete set of inner corners to build a uniquely solvable correspondence."
       },
       "correctAnswer": "b",
       "difficulty": "intermediate"
@@ -107,8 +107,8 @@
       "question": "Q7. After running calibration in the simulation with 18 diverse poses, you notice that the recovered K matrix shows fx = 694 px but fy = 712 px, even though the camera sensor has square pixels and should give fx = fy. What does this discrepancy most likely indicate?",
       "answers": {
         "a": "The camera has a manufacturing defect and must be replaced",
-        "b": "The calibration converged to a locally optimal but incorrect solution — likely due to insufficient vertical tilt diversity causing fy to be poorly estimated",
-        "c": "fx ≠ fy is normal and expected for all cameras — square pixels still produce different focal lengths in each axis",
+        "b": "The calibration converged to a locally optimal but incorrect solution - likely due to insufficient vertical tilt diversity causing fy to be poorly estimated",
+        "c": "fx ≠ fy is normal and expected for all cameras - square pixels still produce different focal lengths in each axis",
         "d": "The checkerboard square size entered in the simulation was incorrect"
       },
       "explanations": {
@@ -123,13 +123,13 @@
     {
       "question": "Q8. In the simulation you deliberately introduced an error: you entered square size = 28 mm in the calibration settings, but the actual simulated squares were 25 mm. The calibration completed with good reprojection error (0.38 px). How does this error in square size propagate into the depth measurements in Experiment 1?",
       "answers": {
-        "a": "No effect — reprojection error was low so the calibration is valid regardless of square size",
+        "a": "No effect - reprojection error was low so the calibration is valid regardless of square size",
         "b": "The principal point cx and cy will be shifted, causing the depth map to appear rotated",
         "c": "The recovered focal length f will be scaled by 28/25 = 1.12, meaning every depth computed from Z = fB/d will be 12% too large across the entire scene",
-        "d": "Only the distortion coefficients k1 and k2 will be affected — the focal length f remains correct"
+        "d": "Only the distortion coefficients k1 and k2 will be affected - the focal length f remains correct"
       },
       "explanations": {
-        "a": "Incorrect. A low reprojection error just proves the math is internally consistent with the pictures—it doesn't mean the scale is true to life. Since Zhang's method relies on the square size to define the world coordinate system, getting it wrong throws off your real-world metrics, regardless of how low the reprojection error is.",
+        "a": "Incorrect. A low reprojection error just proves the math is internally consistent with the pictures-it doesn't mean the scale is true to life. Since Zhang's method relies on the square size to define the world coordinate system, getting it wrong throws off your real-world metrics, regardless of how low the reprojection error is.",
         "b": "Incorrect. The principal point relates to where the optical axis hits the sensor and is determined by the projection rays, not the physical scale of the squares. Your focal length scale shifts, not the principal point.",
         "c": "Correct. The algorithm spits out focal length f in units of pixels-per-square-size. By telling the software the squares are 28 mm instead of the true 25 mm, you trick the algorithm into thinking the world is 12% larger. To make the math work, it spits out a focal length that is scaled up by 28/25 = 1.12. When you drop that inflated f into Z = fB/d, every depth reading across the whole scene balloons by 12%. Because the error is consistent across all poses, the reprojection error stays low.",
         "d": "Incorrect. Distortion coefficients are just dimensionless ratios defining the shape of the lens aberration. They ignore the absolute scale of the world. A square size error hits the metric quantities like focal length, leaving the distortion terms mostly untouched."
@@ -138,12 +138,12 @@
       "difficulty": "advanced"
     },
     {
-      "question": "Q9. You ran the simulation and observed that tangential distortion coefficient p1 = 0.07 produced a visible asymmetric shift in the corner overlay — the upper corners of the checkerboard appeared shifted more than the lower corners. What does this physically mean, and where would you see the most pronounced effect in a real camera?",
+      "question": "Q9. You ran the simulation and observed that tangential distortion coefficient p1 = 0.07 produced a visible asymmetric shift in the corner overlay - the upper corners of the checkerboard appeared shifted more than the lower corners. What does this physically mean, and where would you see the most pronounced effect in a real camera?",
       "answers": {
         "a": "p1 = 0.07 means the image is uniformly scaled by 7% and the effect is equal everywhere",
-        "b": "Tangential distortion from p1 indicates the lens is not perfectly parallel to the sensor plane — pixels are displaced by different amounts depending on their position, with the strongest effect along the vertical axis far from the principal point",
+        "b": "Tangential distortion from p1 indicates the lens is not perfectly parallel to the sensor plane - pixels are displaced by different amounts depending on their position, with the strongest effect along the vertical axis far from the principal point",
         "c": "p1 = 0.07 describes radial distortion along the y-axis only and has no effect on the x-axis",
-        "d": "The asymmetric shift is caused by the checkerboard not being flat — p1 measures board curvature, not lens properties"
+        "d": "The asymmetric shift is caused by the checkerboard not being flat - p1 measures board curvature, not lens properties"
       },
       "explanations": {
         "a": "Incorrect. Tangential distortion is not a flat scaling effect. It displaces pixels continuously based on their position, starting at zero near the principal point and growing asymmetrically further out.",
@@ -159,11 +159,11 @@
       "answers": {
         "a": "Calibration Y because its focal length values are closer to 700 px which is the standard camera focal length",
         "b": "Both calibrations give the same depth RMSE because their K matrix values are nearly identical",
-        "c": "Calibration X because its lower reprojection error means its K matrix is more accurately estimated, and the depth RMSE from sigma = 1 px noise at these settings is ΔZ = 1.5² × 1 / (700 × 0.12) ≈ 2.7 cm — which does not meet the ±5 mm requirement regardless of which calibration is used",
+        "c": "Calibration X because its lower reprojection error means its K matrix is more accurately estimated, and the depth RMSE from sigma = 1 px noise at these settings is ΔZ = 1.5² × 1 / (700 × 0.12) ≈ 2.7 cm - which does not meet the ±5 mm requirement regardless of which calibration is used",
         "d": "Calibration Y because higher reprojection error means the calibration was computed from more diverse poses, making it more robust"
       },
       "explanations": {
-        "a": "Incorrect. Cameras don't share a universal 'standard' focal length of 700 px—it relies entirely on the individual lens and sensor. You shouldn't pick between identical-looking K matrices based on an arbitrary number; you look at the reprojection error.",
+        "a": "Incorrect. Cameras don't share a universal 'standard' focal length of 700 px-it relies entirely on the individual lens and sensor. You shouldn't pick between identical-looking K matrices based on an arbitrary number; you look at the reprojection error.",
         "b": "Incorrect. Although the K matrices look similar, the underlying question requires a deeper math check. Even using the better calibration, the depth RMSE hits about 2.7 cm, completely failing the ±5 mm requirement. The physics limitation is a bigger deal than the minor difference between the calibrations.",
         "c": "Correct. You'd pick Calibration X since its 0.35 px reprojection error proves it's a more accurate model. But the critical takeaway here is the math: ΔZ = Z²σ/(fB) = (1.5² × 1)/(700 × 0.12) ≈ 2.7 cm. Even with a stellar calibration, your baseline setup inherently produces 2.7 cm of noise, blowing right past the ±5 mm accuracy requirement. No calibration tweak can fix an inadequate physical setup. <a href='https://ieeexplore.ieee.org/document/888718'>Zhang 2000 calibration accuracy analysis</a>",
         "d": "Incorrect. A higher reprojection error doesn't signal robustness; it signals poor parameter estimation, usually caused by fewer or weaker poses. Always aim for a lower reprojection error to ensure accurate parameter estimation."
