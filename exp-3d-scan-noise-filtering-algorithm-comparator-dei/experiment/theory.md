@@ -2,7 +2,7 @@
 
 ### 1. Why Do We Need Filtering?
 
-Imagine you just used a 3D scanner—like a stereo camera or a LiDAR—to capture a beautiful sculpture. You might expect a perfect digital replica, but the reality is a bit messier. Every scanning technology introduces imperfections. You might see "flying pixels" hovering mid-air at sharp edges (like we saw in Experiment 3), stray points caused by random sensor reflections, or just general fuzziness (Gaussian noise). 
+Imagine you just used a 3D scanner-like a stereo camera or a LiDAR-to capture a beautiful sculpture. You might expect a perfect digital replica, but the reality is a bit messier. Every scanning technology introduces imperfections. You might see "flying pixels" hovering mid-air at sharp edges (like we saw in Experiment 3), stray points caused by random sensor reflections, or just general fuzziness (Gaussian noise). 
 
 If we don't clean this up, our downstream tasks will suffer. Registering two scans together (Experiment 4) will fail if the surfaces are too rough, and generating a 3D mesh (Experiment 7) will result in jagged, spiky models. Noise filtering is our digital broom. However, every filter faces a tough balancing act: we need to scrub away the noise without accidentally erasing genuine surface details like sharp corners or delicate textures.
 
@@ -16,8 +16,8 @@ If we don't clean this up, our downstream tasks will suffer. Registering two sca
 Statistical Outlier Removal (SOR) relies on a simple idea: true surface points have friends nearby, while noise points are lonely. On a solid surface, every point is surrounded by neighbours at roughly similar distances. But an isolated noise point floating in space will be much farther from its closest neighbours.
 
 Here is how SOR works:
-**Step 1** — For every point *p*, calculate its mean distance to its *k* nearest neighbours. Let's call this <i>d̄(p)</i>.
-**Step 2** — Compute the overall average (mean, <i>μ</i>) and standard deviation (<i>σ</i>) of these neighbour distances for the entire point cloud:
+**Step 1** - For every point *p*, calculate its mean distance to its *k* nearest neighbours. Let's call this <i>d̄(p)</i>.
+**Step 2** - Compute the overall average (mean, <i>μ</i>) and standard deviation (<i>σ</i>) of these neighbour distances for the entire point cloud:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   <i>&mu;</i>&nbsp;=&nbsp;
@@ -40,7 +40,7 @@ Here is how SOR works:
   </span>
 </div>
 
-**Step 3** — Toss out any point that is too far away from its neighbours, based on a threshold multiplier (<i>&alpha;</i>):
+**Step 3** - Toss out any point that is too far away from its neighbours, based on a threshold multiplier (<i>&alpha;</i>):
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   Reject <i>p</i> if <i>d&#772;(p)</i> &gt; <i>&mu;</i> &plus; <i>&alpha;</i> &times; <i>&sigma;</i>
@@ -52,7 +52,7 @@ A smaller <i>&alpha;</i> (like 1.0) is aggressive and will delete a lot of point
 
 Radius Outlier Removal (ROR) takes a more direct approach. Instead of calculating statistical distributions, it just counts neighbours.
 
-**Rule** — Draw a sphere of radius <i>r</i> around a point <i>p</i>. If there aren't at least <i>n<sub>min</sub></i> other points inside that sphere, delete the point:
+**Rule** - Draw a sphere of radius <i>r</i> around a point <i>p</i>. If there aren't at least <i>n<sub>min</sub></i> other points inside that sphere, delete the point:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   Reject <i>p</i> if |{<i>q</i> &isin; cloud : ||<i>q</i> &minus; <i>p</i>|| &lt; <i>r</i>}| &lt; <i>n<sub>min</sub></i>
@@ -64,14 +64,14 @@ ROR is faster than SOR because it doesn't need to compute global statistics. It 
 
 While SOR and ROR delete problematic points, Moving Least Squares (MLS) acts like a digital rolling pin. It repositions points to smooth them out along an estimated surface, rather than deleting them.
 
-**Step 1** — Gather the local neighbours around a point <i>p</i>.
-**Step 2** — Fit a smooth polynomial surface (usually a quadratic curve) through these neighbours. To do this, MLS assigns weights to the neighbours, giving higher priority to points that are physically closer to <i>p</i>. The weighting function is controlled by a bandwidth parameter <i>h</i>:
+**Step 1** - Gather the local neighbours around a point <i>p</i>.
+**Step 2** - Fit a smooth polynomial surface (usually a quadratic curve) through these neighbours. To do this, MLS assigns weights to the neighbours, giving higher priority to points that are physically closer to <i>p</i>. The weighting function is controlled by a bandwidth parameter <i>h</i>:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   <i>w(d)</i>&nbsp;=&nbsp;<i>e</i><sup>&minus;<i>d</i><sup>2</sup> / <i>h</i><sup>2</sup></sup>
 </div>
 
-**Step 3** — Shift point <i>p</i> onto this beautifully smooth fitted surface.
+**Step 3** - Shift point <i>p</i> onto this beautifully smooth fitted surface.
 
 MLS is fantastic at ironing out high-frequency jitter to reveal a smooth surface. However, there's a catch: if you set the bandwidth <i>h</i> too high, MLS will violently smooth over everything, rounding off genuine sharp corners and destroying fine details. 
 
@@ -113,7 +113,7 @@ To strike a balance, we use the F1 Score, which combines Precision and Recall in
   </span>
 </div>
 
-A high F1 score proves your filter is in the "Goldilocks zone"—not too aggressive, not too weak.
+A high F1 score proves your filter is in the "Goldilocks zone"-not too aggressive, not too weak.
 
 ### 7. Which Filter Should You Choose?
 

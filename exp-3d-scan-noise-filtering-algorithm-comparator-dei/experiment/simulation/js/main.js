@@ -1,6 +1,6 @@
 /* ================================================================
-   EXPERIMENT 8 — NOISE FILTERING ALGORITHM COMPARATOR
-   main.js — Three.js 3D setup scene + real SOR / ROR / MLS math
+   EXPERIMENT 8 - NOISE FILTERING ALGORITHM COMPARATOR
+   main.js - Three.js 3D setup scene + real SOR / ROR / MLS math
    ================================================================
    Updated to Unified 3-Column UI Layout
    ================================================================ */
@@ -37,13 +37,13 @@ const WIZ = [
   },
   {
     title: 'Switch to ROR',
-    text:  'ROR uses a fixed physical radius instead of statistics. On this cloud it behaves differently — test whether it out- or under-performs SOR.',
+    text:  'ROR uses a fixed physical radius instead of statistics. On this cloud it behaves differently - test whether it out- or under-performs SOR.',
     task:  '▶ Set Active Algorithm to ROR and compare its F1 score to SOR\'s best result.',
     lit:   'pg-algo',
   },
   {
     title: 'Push ROR Radius Too Far',
-    text:  'A radius too large relative to fine surface detail starts erasing legitimate features, not just outliers — exactly the effect described in the theory.',
+    text:  'A radius too large relative to fine surface detail starts erasing legitimate features, not just outliers - exactly the effect described in the theory.',
     task:  '▶ Set ROR radius above 40mm and inspect the classification map for wrongly-removed real points.',
     lit:   'pg-radius',
   },
@@ -200,7 +200,7 @@ function computeMetrics(keep, isOutlier) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS — SETUP SCENE
+   THREE.JS - SETUP SCENE
 ────────────────────────────────────────────────────────────── */
 let renderer, scene, camera3d, animFrame;
 let cloudGood, cloudBad, knnSphere, highlightPoint;
@@ -357,7 +357,7 @@ function updateNeighbourhoodViz() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — NAVIGATION
+   SETUP PAGE - NAVIGATION
 ────────────────────────────────────────────────────────────── */
 let setupRunResult = null;
 
@@ -394,9 +394,9 @@ function populateResults() {
   
   if (SETUP.filterType === 2) {
     pLbl.textContent = 'Precision';
-    document.getElementById('r-precision').textContent = '—';
+    document.getElementById('r-precision').textContent = '-';
     rLbl.textContent = 'Recall';
-    document.getElementById('r-recall').textContent = '—';
+    document.getElementById('r-recall').textContent = '-';
     fLbl.textContent = 'RMSE (Surface Error)';
     document.getElementById('r-f1').textContent = (setupRunResult.metrics.rmse*1000).toFixed(2) + ' mm';
   } else {
@@ -522,9 +522,9 @@ function resetSetup() {
 
   document.getElementById('processed-count').textContent='0';
   document.getElementById('processed-fill').style.width='0%';
-  document.getElementById('r-precision').textContent='—';
-  document.getElementById('r-recall').textContent='—';
-  document.getElementById('r-f1').textContent='—';
+  document.getElementById('r-precision').textContent='-';
+  document.getElementById('r-recall').textContent='-';
+  document.getElementById('r-f1').textContent='-';
   setupRunResult=null;
   gotoSetupStep(0);
 }
@@ -790,7 +790,7 @@ function renderGauge(canvas, metrics) {
     document.getElementById('quality-label').style.color = colour;
     document.getElementById('quality-sub').textContent =
       quality>70 ? 'Balanced precision & recall' :
-      quality>40 ? 'One-sided — adjust threshold' :
+      quality>40 ? 'One-sided - adjust threshold' :
                    'Poor separation of noise vs signal';
   }
 }
@@ -854,15 +854,15 @@ function updateSim() {
     fLbl.textContent = 'RMSE (Surface)';
     tLbl.textContent = 'Removed';
 
-    document.getElementById('ro-precision').textContent = '—';
-    document.getElementById('ro-recall').textContent = '—';
+    document.getElementById('ro-precision').textContent = '-';
+    document.getElementById('ro-recall').textContent = '-';
     document.getElementById('ro-removed').textContent = '0';
     document.getElementById('ro-f1').className = 'ro-val good';
 
-    document.getElementById('cm-tp').textContent = '—';
-    document.getElementById('cm-fp').textContent = '—';
-    document.getElementById('cm-fn').textContent = '—';
-    document.getElementById('cm-tn').textContent = '—';
+    document.getElementById('cm-tp').textContent = '-';
+    document.getElementById('cm-fp').textContent = '-';
+    document.getElementById('cm-fn').textContent = '-';
+    document.getElementById('cm-tn').textContent = '-';
   }
 
   const sorRes = runSOR(SIM_DATA.pts, SIM.k, SIM.alpha);
@@ -886,7 +886,7 @@ function updateSim() {
     document.getElementById('ro-f1').textContent = rmseStr;
     metrics = { f1: 0, rmse: rmse };
   } else {
-    document.getElementById('bb-mlsrmse').textContent = '—';
+    document.getElementById('bb-mlsrmse').textContent = '-';
   }
 
   renderBeforeAfter(document.getElementById('cvs-beforeafter'));

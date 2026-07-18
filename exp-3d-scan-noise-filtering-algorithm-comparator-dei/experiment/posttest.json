@@ -28,7 +28,7 @@
       },
       "explanations": {
         "a": "SOR isn't universally better. In fact, it's pretty bad at handling uniform Gaussian noise. But it happens to shine in this specific variable-density scenario.",
-        "b": "Correct! ROR is inflexible—it demands 6 points within exactly 15mm. If the scan naturally spaces out, valid edge points fail this rigid test. SOR, however, is adaptive. It just finds the 10 closest points (even if they are spread out) and checks if their distance is a statistical outlier compared to the rest of the cloud. This flexibility saves the sparse edges.",
+        "b": "Correct! ROR is inflexible-it demands 6 points within exactly 15mm. If the scan naturally spaces out, valid edge points fail this rigid test. SOR, however, is adaptive. It just finds the 10 closest points (even if they are spread out) and checks if their distance is a statistical outlier compared to the rest of the cloud. This flexibility saves the sparse edges.",
         "c": "This isn't random chance; it's a direct, predictable consequence of how the two algorithms calculate their neighbourhoods.",
         "d": "15mm is a perfectly valid radius. The problem is that no single fixed radius works for both dense and sparse regions simultaneously."
       },
@@ -147,7 +147,7 @@
       },
       "explanations": {
         "a": "It's very possible! A point-deletion algorithm can absolutely make features disappear if it deletes the specific points that define that feature.",
-        "b": "Exactly. This is a crucial danger of using oversized radii. A tiny raised detail (like a letter) consists of a few points sitting slightly above the surface. If you use a massive 40mm radius, the algorithm demands a high density of neighbours. The points on the letter are relatively isolated compared to the dense flat base, so ROR ruthlessly deletes them. The feature isn't smoothed—it's chopped off.",
+        "b": "Exactly. This is a crucial danger of using oversized radii. A tiny raised detail (like a letter) consists of a few points sitting slightly above the surface. If you use a massive 40mm radius, the algorithm demands a high density of neighbours. The points on the letter are relatively isolated compared to the dense flat base, so ROR ruthlessly deletes them. The feature isn't smoothed-it's chopped off.",
         "c": "ROR never switches algorithms. It's just aggressively deleting points.",
         "d": "The total point count doesn't matter; it's the ratio of the radius size to the physical feature size that causes the problem."
       },
@@ -155,7 +155,7 @@
       "difficulty": "advanced"
     },
     {
-      "question": "Q10. You test 6 different filtering pipelines on a messy, highly detailed mechanical part. Pipeline 4 (SOR then MLS) scores the absolute highest. Pipeline 6 (MLS then SOR) scores the absolute lowest—worse than just running a single filter! Why?",
+      "question": "Q10. You test 6 different filtering pipelines on a messy, highly detailed mechanical part. Pipeline 4 (SOR then MLS) scores the absolute highest. Pipeline 6 (MLS then SOR) scores the absolute lowest-worse than just running a single filter! Why?",
       "answers": {
         "a": "The ranking is just random noise.",
         "b": "Single filters (like just SOR) only solve half the problem. Pipeline 4 wins because SOR perfectly deletes the outliers first, leaving a clean canvas for MLS to iron out the fuzz. Pipeline 6 is a disaster because MLS runs first, grabbing the extreme outliers and using them to mathematically warp the surface. Running SOR afterward deletes the outlier, but the surface remains permanently warped.",

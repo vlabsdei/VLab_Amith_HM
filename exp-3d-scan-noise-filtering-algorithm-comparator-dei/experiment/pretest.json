@@ -4,7 +4,7 @@
     {
       "question": "Q1. Why is noise filtering so important before we use a point cloud to build a 3D mesh or align it with another scan?",
       "answers": {
-        "a": "It's not really needed—most meshing software just ignores the noisy points automatically.",
+        "a": "It's not really needed-most meshing software just ignores the noisy points automatically.",
         "b": "Raw scans are messy! They have flying pixels and random fuzziness. If we don't clean it up, later steps get confused, leading to spiky, broken 3D models.",
         "c": "We only filter to make the file size smaller so it loads faster.",
         "d": "Filtering is only necessary if you are using a LiDAR scanner; other scanners produce perfect data."
@@ -24,7 +24,7 @@
         "a": "Balancing the file size against the loading speed.",
         "b": "Being aggressive enough to scrub away the noise, while being careful enough not to erase sharp, genuine surface details.",
         "c": "Balancing the vibrant colours of the scan against its 3D structural accuracy.",
-        "d": "There is no trade-off—a good algorithm easily deletes 100% of the noise while keeping 100% of the details."
+        "d": "There is no trade-off-a good algorithm easily deletes 100% of the noise while keeping 100% of the details."
       },
       "explanations": {
         "a": "Incorrect. File size is an engineering problem, not a geometric filtering challenge.",
@@ -44,7 +44,7 @@
         "d": "It counts how many times a point is duplicated in the file."
       },
       "explanations": {
-        "a": "SOR doesn't look at colour at all—it only cares about spatial geometry.",
+        "a": "SOR doesn't look at colour at all-it only cares about spatial geometry.",
         "b": "Yes! SOR calculates the mean distance from every point to its neighbours. It then finds the overall average (μ) across the whole cloud. If a point is sitting way too far from its friends (beyond the threshold μ + α×σ), SOR flags it as an outlier and deletes it.",
         "c": "SOR dynamically adapts to the data. If the scan is perfectly clean, it might remove 0 points. If it's incredibly noisy, it might remove thousands.",
         "d": "Point clouds generally don't have duplicated points, and SOR certainly doesn't work by counting them."
@@ -90,7 +90,7 @@
       "question": "Q6. Why does Radius Outlier Removal (ROR) sometimes struggle with point clouds that get sparser further away from the camera?",
       "answers": {
         "a": "Because ROR simply can't process files with too many points.",
-        "b": "Because the fixed radius might have plenty of neighbours up close, but naturally fails to find enough neighbours in the sparse areas—accidentally deleting perfectly good surface points.",
+        "b": "Because the fixed radius might have plenty of neighbours up close, but naturally fails to find enough neighbours in the sparse areas-accidentally deleting perfectly good surface points.",
         "c": "Because ROR only works on LiDAR data.",
         "d": "It actually causes the algorithm to freeze and crash."
       },
@@ -123,7 +123,7 @@
     {
       "question": "Q8. In MLS, what happens if you set the smoothing bandwidth parameter (<i>h</i>) way too high?",
       "answers": {
-        "a": "Nothing to the geometry—it just slows down your computer.",
+        "a": "Nothing to the geometry-it just slows down your computer.",
         "b": "It smooths everything too aggressively! It will average out a wide area, completely flattening sharp edges and rounding off crisp corners.",
         "c": "It will cause MLS to start aggressively deleting points.",
         "d": "It only blurs the point colours."
@@ -146,7 +146,7 @@
         "d": "A point that the algorithm accidentally duplicated."
       },
       "explanations": {
-        "a": "That would be a True Positive (TP)—a successful removal of bad data.",
+        "a": "That would be a True Positive (TP)-a successful removal of bad data.",
         "b": "Exactly! The 'Positive' action here is deleting a point. A False Positive means the filter thought it found noise, but it was actually real surface data. This is over-filtering.",
         "c": "That's a False Negative (FN). The filter 'negatively' decided not to delete it, but it was wrong.",
         "d": "None of these filtering algorithms duplicate points."
@@ -158,7 +158,7 @@
       "question": "Q10. We use the F1 Score to judge our filters: <br><div style=\"text-align: center; margin: 10px 0;\"><i>F1</i> = 2 &times; (<i>Precision</i> &times; <i>Recall</i>) / (<i>Precision</i> &plus; <i>Recall</i>)</div><br>What does a really high F1 score tell you?",
       "answers": {
         "a": "It means the filter successfully deleted almost every point in the cloud.",
-        "b": "It means the filter found the 'Goldilocks zone'—both Precision and Recall are high, meaning it deleted the noise without ruining the real surface.",
+        "b": "It means the filter found the 'Goldilocks zone'-both Precision and Recall are high, meaning it deleted the noise without ruining the real surface.",
         "c": "It just means the algorithm ran really fast.",
         "d": "It means the filter had 100% Precision, even if its Recall was terrible."
       },
