@@ -1,6 +1,6 @@
 ## Theory
 
-### 1. How Humans See Depth — The Biological Inspiration
+### 1. How Humans See Depth - The Biological Inspiration
 
 The human visual system uses two eyes placed a few centimetres apart to perceive depth. Each eye sees the same scene from a slightly different angle. When you hold a finger close to your face and alternately close each eye, the finger appears to shift position against the background. This shift is larger when the object is closer, and smaller when the object is farther away. The brain uses this difference to calculate how far away objects are. This natural ability is called **binocular vision**, and stereo camera systems are designed to replicate it mathematically.
 
@@ -15,8 +15,8 @@ A stereo camera consists of two cameras mounted side by side at a fixed, known h
 **Disparity (d)** is the horizontal difference in pixel position of the same scene point between the left and right camera images.
 
 - If a point appears at pixel column 320 in the left image and pixel column 280 in the right image, the disparity is 40 pixels.
-- Objects that are **close** to the camera shift a lot — they have **high disparity**.
-- Objects that are **far** from the camera shift very little — they have **low disparity**.
+- Objects that are **close** to the camera shift a lot - they have **high disparity**.
+- Objects that are **far** from the camera shift very little - they have **low disparity**.
 - Objects at infinite distance show **zero disparity**.
 
 This inverse relationship between disparity and distance is the core concept of stereo vision.
@@ -39,7 +39,7 @@ Where:
 - **B** = baseline in metres (the physical horizontal separation between the two cameras)
 - **d** = disparity in pixels (the horizontal pixel shift measured between the two images)
 
-The formula has a few things worth noticing. Because **d** sits in the denominator, halving the disparity doubles the computed depth — the relationship is strictly inverse. Making the baseline wider pushes up the numerator, which means the system can tell apart objects at similar depths more reliably. Cranking up the focal length helps in the same way, though the trade-off is a narrower field of view.
+The formula has a few things worth noticing. Because **d** sits in the denominator, halving the disparity doubles the computed depth - the relationship is strictly inverse. Making the baseline wider pushes up the numerator, which means the system can tell apart objects at similar depths more reliably. Cranking up the focal length helps in the same way, though the trade-off is a narrower field of view.
 
 ### 5. 3D Point Reconstruction
 
@@ -62,14 +62,14 @@ Once depth Z is known for a pixel at position (u, v) in the image, its full 3D p
 
 Where:
 - **(u, v)** = pixel coordinates (column, row) in the image
-- **(<i>c</i><sub><i>x</i></sub>, <i>c</i><sub><i>y</i></sub>)** = principal point — the pixel at the centre of the image (optical axis)
+- **(<i>c</i><sub><i>x</i></sub>, <i>c</i><sub><i>y</i></sub>)** = principal point - the pixel at the centre of the image (optical axis)
 - **<i>f</i><sub><i>x</i></sub>, <i>f</i><sub><i>y</i></sub>** = focal lengths in pixels along the horizontal and vertical axes
 
 These equations convert every valid pixel in the depth map into a point in 3D space. Applying this to all pixels produces a **point cloud**.
 
-### 6. Depth Uncertainty — Why Depth Accuracy Drops with Distance
+### 6. Depth Uncertainty - Why Depth Accuracy Drops with Distance
 
-The depth measurement is not perfectly accurate — it has uncertainty that grows with distance. The depth uncertainty formula is:
+The depth measurement is not perfectly accurate - it has uncertainty that grows with distance. The depth uncertainty formula is:
 
 <div style="text-align: center; margin: 15px 0; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
   &Delta;<i>Z</i>&nbsp;=&nbsp;
@@ -86,7 +86,7 @@ This shows that depth error grows with the **square** of the distance Z. A point
 A **depth map** is a 2D image where each pixel stores the computed depth value Z instead of a colour. In visualisation, depth maps are usually displayed as colour-coded images where:
 - **Warm colours** (red, orange) represent objects that are close to the camera.
 - **Cool colours** (blue, green) represent objects that are farther away.
-- **Black** pixels indicate regions where the disparity was too small or zero, making depth unmeasurable — known as the **stereo blind zone**.
+- **Black** pixels indicate regions where the disparity was too small or zero, making depth unmeasurable - known as the **stereo blind zone**.
 
 ### 8. The Stereo Blind Zone
 
@@ -96,9 +96,9 @@ Similarly, when objects are very far away, disparity drops to near zero (below 1
 
 ### 9. Applications of Stereo Vision
 
-Stereo vision is one of the most widely used 3D sensing technologies because it requires no special light source — only two cameras and computation. It is used in:
-- **Autonomous vehicles** — detecting obstacles at short to medium range
-- **Robotics** — helping a robot arm judge where to grab an object
-- **Industrial inspection** — checking whether a machined surface matches spec
-- **Augmented reality headsets** — anchoring virtual objects to real-world surfaces
-- **Surgical robotics** — giving the surgeon a live depth view during keyhole procedures 
+Stereo vision is one of the most widely used 3D sensing technologies because it requires no special light source - only two cameras and computation. It is used in:
+- **Autonomous vehicles** - detecting obstacles at short to medium range
+- **Robotics** - helping a robot arm judge where to grab an object
+- **Industrial inspection** - checking whether a machined surface matches spec
+- **Augmented reality headsets** - anchoring virtual objects to real-world surfaces
+- **Surgical robotics** - giving the surgeon a live depth view during keyhole procedures 

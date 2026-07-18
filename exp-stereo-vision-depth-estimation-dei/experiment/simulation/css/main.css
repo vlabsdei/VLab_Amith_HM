@@ -45,7 +45,7 @@ body {
    ================================================================ */
 
 /* ================================================================
-   SETUP PAGE — STYLESHEET v2
+   SETUP PAGE - STYLESHEET v2
    Matches simulation main.css design system + professional polish
    ================================================================ */
 :root {
@@ -730,7 +730,7 @@ body {
    SIMULATION SPECIFIC STYLES
    ================================================================ */
 /* ================================================================
-   STEREO VISION SIMULATION — STYLESHEET
+   STEREO VISION SIMULATION - STYLESHEET
    ================================================================ */
 
 
@@ -896,7 +896,7 @@ body {
   line-height: 1.65;
 }
 
-/* Task box — hidden when empty */
+/* Task box - hidden when empty */
 .task-box {
   background: #eff6ff;
   border: 1px solid #bfdbfe;
@@ -984,7 +984,7 @@ body {
   min-height: 0;
 }
 
-/* canvas card — flex-grow to fill space */
+/* canvas card - flex-grow to fill space */
 .canvas-card {
   background: var(--white);
   border: 1px solid var(--slate-200);
