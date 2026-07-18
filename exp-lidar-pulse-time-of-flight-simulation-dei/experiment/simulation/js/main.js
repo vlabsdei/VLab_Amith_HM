@@ -1,27 +1,27 @@
 /* ================================================================
-   EXPERIMENT 5 — LIDAR PULSE TIME-OF-FLIGHT SIMULATION
-   main.js — Three.js 3D setup scene + real ray-casting LiDAR engine
+   EXPERIMENT 5 - LIDAR PULSE TIME-OF-FLIGHT SIMULATION
+   main.js - Three.js 3D setup scene + real ray-casting LiDAR engine
    ================================================================
 
    ARCHITECTURE
    ────────────
    SETUP PAGE
-     ThreeScene    → renderer, camera, orbit controls, room + sensor
-     Components    → tracks mounted equipment (lidar, tripod, walls, pole)
-     RoomBuilder   → rectangular room with adjustable size + obstacle pole
-     SetupWizard   → step navigation (0→4)
+     ThreeScene     renderer, camera, orbit controls, room + sensor
+     Components     tracks mounted equipment (lidar, tripod, walls, pole)
+     RoomBuilder    rectangular room with adjustable size + obstacle pole
+     SetupWizard    step navigation (04)
 
    SIMULATION PAGE
-     RoomGeometry  → wall segments (line segments) + pole (circle) as
+     RoomGeometry   wall segments (line segments) + pole (circle) as
                      ray-intersection targets, built fresh per shape config
-     RayCast       → for each angular step, cast a ray from sensor centre,
+     RayCast        for each angular step, cast a ray from sensor centre,
                      find nearest intersected segment, apply reflectivity
                      probability + noise to decide hit/miss and distance
-     render*()     → polar map, distance-vs-angle, coverage timeline,
+     render*()      polar map, distance-vs-angle, coverage timeline,
                      completeness breakdown
-     WizardSim     → 4-step guided walkthrough
+     WizardSim      4-step guided walkthrough
 
-   CORE MATH (Experiment 5 theory) — all genuinely computed, not faked
+   CORE MATH (Experiment 5 theory) - all genuinely computed, not faked
    ────────────────────────────────────────────────────────────────────
      Distance:        d = (c × t_return) / 2     (modelled directly as d)
      Cartesian conv:  x = d·cos(θ),  y = d·sin(θ)
@@ -64,7 +64,7 @@ let ROOM = {
   halfW: 3.5,
   halfD: 3.5,
   poleDist: 2.5,
-  poleRadius: 0.02,     /* 4cm diameter → 2cm radius */
+  poleRadius: 0.02,     /* 4cm diameter  2cm radius */
   wallReflect: { near: 0.9, far: 0.9, left: 0.9, right: 0.9 },
 };
 
@@ -81,7 +81,7 @@ const SIM_WIZARD = [
   },
   {
     title: 'Coarsen the Resolution',
-    text:  'Increase angular resolution well above 5° and look for the narrow pole disappearing from the map — the angular steps now jump past its thin profile.',
+    text:  'Increase angular resolution well above 5° and look for the narrow pole disappearing from the map - the angular steps now jump past its thin profile.',
     task:  '▶ Set resolution to 8° and run a full scan. Check if the pole is detected.',
     lit:   'pg-angres',
   },
@@ -93,7 +93,7 @@ const SIM_WIZARD = [
   },
   {
     title: 'Darken a Wall',
-    text:  'Reduce far wall reflectivity and observe intermittent detection — some pulses return successfully, others do not, even at a fixed, unchanging distance.',
+    text:  'Reduce far wall reflectivity and observe intermittent detection - some pulses return successfully, others do not, even at a fixed, unchanging distance.',
     task:  '▶ Set far wall reflectivity to 0.08 and run a full scan.',
     lit:   'pg-reflect',
   },
@@ -113,7 +113,7 @@ function degToRad(d) { return d * Math.PI / 180; }
 function fmtNum(n) { return n.toLocaleString('en-IN'); }
 
 /* ──────────────────────────────────────────────────────────────
-   RAY-CASTING ENGINE — finds true distance + which wall/object
+   RAY-CASTING ENGINE - finds true distance + which wall/object
    a beam at angle θ would strike, plus that surface's reflectivity
 ────────────────────────────────────────────────────────────── */
 
@@ -151,7 +151,7 @@ function castRay(thetaRad) {
     if (Math.abs(x) <= ROOM.halfW) candidates.push({ t, reflect: ROOM.wallReflect.near, wall:'near' });
   }
 
-  /* Intersect with pole — a circle of radius poleRadius centred at (0, poleDist) */
+  /* Intersect with pole - a circle of radius poleRadius centred at (0, poleDist) */
   const pcx = 0, pcy = ROOM.poleDist;
   /* solve |t*dir - (pcx,pcy)|^2 = r^2 */
   const bq = -2*(dx*pcx + dy*pcy);
@@ -189,7 +189,7 @@ function firePulse(angleDeg) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS SCENE — SETUP PAGE
+   THREE.JS SCENE - SETUP PAGE
 ────────────────────────────────────────────────────────────── */
 
 let renderer, scene, camera, animFrame;
@@ -464,7 +464,7 @@ function rebuildRoomFromSetup() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
+   SETUP PAGE - STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
 
 let currentSetupStep = 0;
@@ -473,7 +473,7 @@ const WIZARD_STEPS = [
   {
     title: "Components",
     text: "These are the components used in a rotating LiDAR scanning session. Click Mount to bring each one into the workspace.",
-    task: "Select <strong>Component</strong> from the apparatus list → Click <strong>Mount Component</strong>."
+    task: "Select <strong>Component</strong> from the apparatus list  Click <strong>Mount Component</strong>."
   },
   {
     title: "Room Settings",
@@ -592,7 +592,7 @@ function mountComponent(name) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP STEP 3/4 — CONFIRM + RESULTS
+   SETUP STEP 3/4 - CONFIRM + RESULTS
 ────────────────────────────────────────────────────────────── */
 
 function confirmConfiguration() {
@@ -638,7 +638,7 @@ function showSetup() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — SWEEP ENGINE
+   SIMULATION - SWEEP ENGINE
 ────────────────────────────────────────────────────────────── */
 
 let sweepTimer = null;
@@ -759,7 +759,7 @@ function renderDistAngle(canvas) {
   for (let i=0;i<=4;i++){ const y=padT+gH-(i/4)*gH; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+gW,y); ctx.stroke(); }
 
   ctx.fillStyle='#64748b'; ctx.font='9px DM Sans'; ctx.textAlign='center';
-  ctx.fillText('Angle (0–360°)', padL+gW/2, H-4);
+  ctx.fillText('Angle (0-360°)', padL+gW/2, H-4);
 
   SCAN_POINTS.forEach(pt => {
     const x = padL + (pt.angleDeg/360)*gW;
@@ -897,11 +897,11 @@ function renderGauge(canvas) {
   document.getElementById('quality-sub').textContent =
     completeness>80 ? 'Room outline reliably captured' :
     completeness>50 ? 'Noticeable gaps in the map' :
-                       'Severely incomplete — check coverage and reflectivity';
+                       'Severely incomplete - check coverage and reflectivity';
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — MAIN UPDATE
+   SIMULATION - MAIN UPDATE
 ────────────────────────────────────────────────────────────── */
 
 function updateReadouts() {
@@ -948,13 +948,13 @@ function updateReadouts() {
     document.getElementById('bb-width').textContent = (maxX*2).toFixed(2)+' m';
     document.getElementById('bb-depth').textContent = (maxY*2).toFixed(2)+' m';
   } else {
-    document.getElementById('bb-width').textContent = '—';
-    document.getElementById('bb-depth').textContent = '—';
+    document.getElementById('bb-width').textContent = '-';
+    document.getElementById('bb-depth').textContent = '-';
   }
 
   const poleDetected = SCAN_POINTS.some(p=>p.hit && p.isPole);
   const poleEl = document.getElementById('bb-pole');
-  poleEl.textContent = poleDetected ? 'Yes' : (total>0 ? 'No' : '—');
+  poleEl.textContent = poleDetected ? 'Yes' : (total>0 ? 'No' : '-');
   poleEl.style.color = poleDetected ? '#16a34a' : '#dc2626';
 }
 
@@ -968,7 +968,7 @@ function renderAllSimCanvases() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — WIZARD
+   SIMULATION - WIZARD
 ────────────────────────────────────────────────────────────── */
 
 function updateSimWizard() {
@@ -993,7 +993,7 @@ function updateSimWizard() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — INIT & CONTROLS
+   SIMULATION - INIT & CONTROLS
 ────────────────────────────────────────────────────────────── */
 
 function initSimulation() {
@@ -1066,7 +1066,7 @@ function resetSimulationFull() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — RESET
+   SETUP PAGE - RESET
 ────────────────────────────────────────────────────────────── */
 
 function resetSetup() {

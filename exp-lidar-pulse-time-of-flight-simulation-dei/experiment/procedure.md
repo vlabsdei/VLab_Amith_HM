@@ -15,7 +15,7 @@
 
 4. **Experiment with Environmental Factors:**
    - Modify the **Far Wall Reflectivity**. Lower the reflectivity to simulate dark or absorptive surfaces (e.g., black velvet). Observe how the return signal becomes unreliable, leading to gaps in the scanned wall.
-   - Notice the glass panel in the room. Observe how the LiDAR pulse passes through or reflects away from it, mapping the glass as an open space—a real-world limitation of LiDAR sensors.
+   - Notice the glass panel in the room. Observe how the LiDAR pulse passes through or reflects away from it, mapping the glass as an open space-a real-world limitation of LiDAR sensors.
 
 5. **Examine Measurement Noise:**
    - Increase the **Range Noise** slider.

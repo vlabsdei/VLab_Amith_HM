@@ -23,7 +23,7 @@ Where:
 - **<i>c</i>** = speed of light (approx. 3 &times; 10<sup>8</sup> m/s)
 - **<i>t</i><sub>return</sub>** = time taken for the pulse to return in seconds
 
-We divide by 2 because the light travels the distance twice—once to the object, and once back to the sensor. Light moves so quickly that returning from 1.5 metres away takes only 10 nanoseconds. This speed makes direct observation impossible, which is why we simulate the process here.
+We divide by 2 because the light travels the distance twice-once to the object, and once back to the sensor. Light moves so quickly that returning from 1.5 metres away takes only 10 nanoseconds. This speed makes direct observation impossible, which is why we simulate the process here.
 
 <div style="text-align: center; margin: 30px 0;">
   <img src="images/lidar_tof.png" alt="LiDAR Time-of-Flight Principle" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -69,9 +69,9 @@ Rotation speed determines how often the map updates. The time for one full rotat
   </span>
 </div>
 
-At 600 RPM, the sensor takes 0.1 seconds to rotate, giving a refresh rate of 10 scans per second—perfect for tracking a moving environment.
+At 600 RPM, the sensor takes 0.1 seconds to rotate, giving a refresh rate of 10 scans per second-perfect for tracking a moving environment.
 
-### 6. Coverage Check — Pulses per Rotation
+### 6. Coverage Check - Pulses per Rotation
 
 For the sensor to actually hit its target angular resolution, it has to fire pulses fast enough to cover every angular step within the rotation time:
 
@@ -85,7 +85,7 @@ Here, **<i>P</i>** must be greater than or equal to **<i>N</i>**. If the pulse f
 
 Not all surfaces bounce light back equally. A white, matte wall strongly reflects the laser, yielding a clear signal. A dark, matte object absorbs the energy, returning a weak signal that the sensor might miss, creating gaps in the map.
 
-Glass and mirrors pose unique challenges. Glass lets the pulse pass through, while mirrors reflect it away. In both cases, the sensor gets no return signal, mapping a solid obstacle as empty space—a classic problem in robotics.
+Glass and mirrors pose unique challenges. Glass lets the pulse pass through, while mirrors reflect it away. In both cases, the sensor gets no return signal, mapping a solid obstacle as empty space-a classic problem in robotics.
 
 ### 8. Measurement Noise and Map Accuracy
 
@@ -93,4 +93,4 @@ Real-world LiDAR data is always a bit noisy. Random errors make the distance mea
 
 ### 9. Connection to the Broader Pipeline
 
-If you tilt a 2D LiDAR up and down, or stack multiple lasers vertically, you get a full 3D point cloud—similar to what we saw in Experiment 3. LiDAR is crucial for autonomous navigation because, unlike cameras, it brings its own light source and works reliably over long ranges and in total darkness.
+If you tilt a 2D LiDAR up and down, or stack multiple lasers vertically, you get a full 3D point cloud-similar to what we saw in Experiment 3. LiDAR is crucial for autonomous navigation because, unlike cameras, it brings its own light source and works reliably over long ranges and in total darkness.

@@ -12,7 +12,7 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════════════
-     PAGE A — SETUP LAB (shown first)
+     PAGE A - SETUP LAB (shown first)
 ═══════════════════════════════════════════════════════ -->
 <div id="page-setup" class="page active">
   <main id="app-main">
@@ -23,7 +23,7 @@
         <h2 id="wizard-title">Components</h2>
         <p id="wizard-text">These are the components used in a rotating LiDAR scanning session. Click Mount to bring each one into the workspace.</p>
         <div id="wizard-task" class="task-box">
-          Select <strong>Component</strong> from the apparatus list → Click <strong>Mount Component</strong>.
+          Select <strong>Component</strong> from the apparatus list  Click <strong>Mount Component</strong>.
         </div>
       </div>
       <!-- 3D View Controls -->
@@ -62,17 +62,17 @@
           <div class="card-header">
             <span class="card-title">
               <svg class="card-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-              3D Rig Setup — Interactive View
+              3D Rig Setup - Interactive View
             </span>
             <span class="card-sub" id="canvas-status">Mount components sequentially to build the setup</span>
           </div>
           <div id="setup-canvas-container" style="position: relative; width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;">
             <canvas id="three-canvas" style="flex: 1; min-height: 0; width: 100%; display: block;"></canvas>
             <div class="obs-overlay" id="obs-overlay" style="display:none; position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
-              <div class="obs-row"><span class="obs-key">Angular resolution</span><span class="obs-val" id="obs-angres">—</span></div>
-              <div class="obs-row"><span class="obs-key">Points per rotation</span><span class="obs-val" id="obs-ptsrot">—</span></div>
-              <div class="obs-row"><span class="obs-key">Rotation period</span><span class="obs-val" id="obs-trot">—</span></div>
-              <div class="obs-row"><span class="obs-key">Coverage check</span><span class="obs-val" id="obs-coverage">—</span></div>
+              <div class="obs-row"><span class="obs-key">Angular resolution</span><span class="obs-val" id="obs-angres">-</span></div>
+              <div class="obs-row"><span class="obs-key">Points per rotation</span><span class="obs-val" id="obs-ptsrot">-</span></div>
+              <div class="obs-row"><span class="obs-key">Rotation period</span><span class="obs-val" id="obs-trot">-</span></div>
+              <div class="obs-row"><span class="obs-key">Coverage check</span><span class="obs-val" id="obs-coverage">-</span></div>
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@
           <div class="pc-num" id="reflect-display" style="font-size:24px; font-weight:bold; color:#2563eb;">90%</div>
           <div class="pc-label" style="font-size:12px; color:#64748b;">return signal strength</div>
           <div class="pc-bar"><div class="pc-fill" id="reflect-fill" style="width:90%"></div></div>
-          <div class="pc-sub" style="font-size:10px; color:#94a3b8;">Below 20% — frequent missed detections expected</div>
+          <div class="pc-sub" style="font-size:10px; color:#94a3b8;">Below 20% - frequent missed detections expected</div>
         </div>
         <div class="step-nav" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
           <button class="btn-secondary" id="btn-capture">Confirm Config</button>
@@ -210,13 +210,13 @@
         <h3 class="panel-heading">Live Observations</h3>
         <p class="panel-p">This is the scan configuration that will launch in the simulation. Review the angular coverage calculation before proceeding.</p>
         <div class="result-grid" id="result-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
-          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Room Width</div><div class="rcard-val" id="r-roomw" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">m</div></div>
-          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Pole Dist.</div><div class="rcard-val" id="r-poled" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">m</div></div>
-          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Far Wall Ref.</div><div class="rcard-val" id="r-reflect" style="font-size:16px; font-weight:bold;">—</div><div class="rcard-unit">ratio</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Room Width</div><div class="rcard-val" id="r-roomw" style="font-size:16px; font-weight:bold;">-</div><div class="rcard-unit">m</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Pole Dist.</div><div class="rcard-val" id="r-poled" style="font-size:16px; font-weight:bold;">-</div><div class="rcard-unit">m</div></div>
+          <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Far Wall Ref.</div><div class="rcard-val" id="r-reflect" style="font-size:16px; font-weight:bold;">-</div><div class="rcard-unit">ratio</div></div>
           <div class="rcard" style="background:#f8fafc; padding:8px; border-radius:4px;"><div class="rcard-label">Default Res.</div><div class="rcard-val" id="r-angres" style="font-size:16px; font-weight:bold;">0.5&deg;</div><div class="rcard-unit">deg</div></div>
           <div class="rcard full-span" style="grid-column: span 2; background:#ebf8ff; padding:12px; border-radius:4px;">
             <div class="rcard-label" style="color:#1d4ed8;">Points Generated Per Rotation</div>
-            <div class="rcard-val large" id="r-pts" style="font-size:24px; font-weight:bold; color:#1e40af;">—</div>
+            <div class="rcard-val large" id="r-pts" style="font-size:24px; font-weight:bold; color:#1e40af;">-</div>
             <div class="rcard-unit">points (N = 360&deg; / resolution)</div>
           </div>
         </div>
@@ -241,7 +241,7 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     PAGE B — SIMULATION
+     PAGE B - SIMULATION
 ═══════════════════════════════════════════════════════ -->
 <div id="page-sim" class="page">
 
@@ -261,7 +261,7 @@
         <div class="wiz-btns">
           <button class="btn-primary" id="wiz-next">Next Step</button>
           <button class="btn-ghost" id="wiz-skip">Skip to Free Explore</button>
-          <button class="btn-secondary" id="btn-back-setup" style="margin-top: 8px; width: 100%;">← Back to Setup</button>
+          <button class="btn-secondary" id="btn-back-setup" style="margin-top: 8px; width: 100%;"> Back to Setup</button>
           <button id="btn-sim-reset" style="display:none;"></button>
         </div>
       </div>
@@ -279,9 +279,9 @@
         <div class="params-title">Live Readouts</div>
         <div class="ro-grid">
           <div class="ro-card"><div class="ro-label">Points/Rotation</div><div class="ro-val" id="ro-pts">720</div><div class="ro-unit">pts</div></div>
-          <div class="ro-card"><div class="ro-label">T_rotation</div><div class="ro-val" id="ro-trot">—</div><div class="ro-unit">sec</div></div>
-          <div class="ro-card"><div class="ro-label">Coverage P/N</div><div class="ro-val" id="ro-coverage">—</div><div class="ro-unit">ratio</div></div>
-          <div class="ro-card"><div class="ro-label">Completeness</div><div class="ro-val" id="ro-complete">—</div><div class="ro-unit">%</div></div>
+          <div class="ro-card"><div class="ro-label">T_rotation</div><div class="ro-val" id="ro-trot">-</div><div class="ro-unit">sec</div></div>
+          <div class="ro-card"><div class="ro-label">Coverage P/N</div><div class="ro-val" id="ro-coverage">-</div><div class="ro-unit">ratio</div></div>
+          <div class="ro-card"><div class="ro-label">Completeness</div><div class="ro-val" id="ro-complete">-</div><div class="ro-unit">%</div></div>
         </div>
       </div>
 
@@ -290,19 +290,19 @@
       <div class="k-panel">
         <div class="kp-title">Scan Statistics</div>
         <div class="dist-grid">
-          <div class="dist-card"><div class="dc-label">Total Pulses</div><div class="dc-val" id="st-pulses">—</div></div>
-          <div class="dist-card"><div class="dc-label">Hits</div><div class="dc-val" id="st-hits">—</div></div>
-          <div class="dist-card"><div class="dc-label">Dead Zones</div><div class="dc-val" id="st-dead">—</div></div>
-          <div class="dist-card"><div class="dc-label">Gaps</div><div class="dc-val" id="st-gaps">—</div></div>
+          <div class="dist-card"><div class="dc-label">Total Pulses</div><div class="dc-val" id="st-pulses">-</div></div>
+          <div class="dist-card"><div class="dc-label">Hits</div><div class="dc-val" id="st-hits">-</div></div>
+          <div class="dist-card"><div class="dc-label">Dead Zones</div><div class="dc-val" id="st-dead">-</div></div>
+          <div class="dist-card"><div class="dc-label">Gaps</div><div class="dc-val" id="st-gaps">-</div></div>
         </div>
 
         <div class="sim-divider"></div>
 
         <div class="kp-title">Detected Room Dimensions</div>
         <div class="bbox-grid">
-          <div class="bbox-row"><span>Measured width</span><span id="bb-width">—</span></div>
-          <div class="bbox-row"><span>Measured depth</span><span id="bb-depth">—</span></div>
-          <div class="bbox-row"><span>Pole detected</span><span id="bb-pole">—</span></div>
+          <div class="bbox-row"><span>Measured width</span><span id="bb-width">-</span></div>
+          <div class="bbox-row"><span>Measured depth</span><span id="bb-depth">-</span></div>
+          <div class="bbox-row"><span>Pole detected</span><span id="bb-pole">-</span></div>
         </div>
       </div>
 
@@ -408,7 +408,7 @@
         <div class="kp-title">Map Completeness Gauge</div>
         <div class="quality-wrap">
           <div class="quality-arc"><canvas id="gauge-canvas" width="160" height="90"></canvas></div>
-          <div class="quality-label" id="quality-label">—</div>
+          <div class="quality-label" id="quality-label">-</div>
           <div class="quality-sub" id="quality-sub">Start the sweep to begin</div>
         </div>
       </div>
