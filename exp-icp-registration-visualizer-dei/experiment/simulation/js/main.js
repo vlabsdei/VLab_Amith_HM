@@ -1,23 +1,23 @@
 /* ================================================================
-   EXPERIMENT 4 — ICP REGISTRATION VISUALIZER
-   main.js — Three.js 3D setup scene + real ICP algorithm + 2D canvases
+   EXPERIMENT 4 - ICP REGISTRATION VISUALIZER
+   main.js - Three.js 3D setup scene + real ICP algorithm + 2D canvases
    ================================================================
 
    ARCHITECTURE
    ────────────
    SETUP PAGE
-     ThreeScene    → renderer, camera, orbit controls, two point clouds
-     Components    → tracks mounted equipment (source, target, frame, shape)
-     Misalignment  → rotation/translation sliders applied to source cloud
-     SetupWizard   → step navigation (0→4)
+     ThreeScene     renderer, camera, orbit controls, two point clouds
+     Components     tracks mounted equipment (source, target, frame, shape)
+     Misalignment   rotation/translation sliders applied to source cloud
+     SetupWizard    step navigation (04)
 
    SIMULATION PAGE
-     PointCloudGen → generates L-shape / arc / sphere-like point sets
-     ICP Engine    → real nearest-neighbour + SVD-based rigid registration
-     render*()     → 3D overlay, RMSE graph, correspondence lines, before/after
-     WizardSim     → 4-step guided walkthrough
+     PointCloudGen  generates L-shape / arc / sphere-like point sets
+     ICP Engine     real nearest-neighbour + SVD-based rigid registration
+     render*()      3D overlay, RMSE graph, correspondence lines, before/after
+     WizardSim      4-step guided walkthrough
 
-   CORE MATH (Experiment 4 theory) — all implemented for real, not faked
+   CORE MATH (Experiment 4 theory) - all implemented for real, not faked
    ────────────────────────────────────────────────────────────────────
      Objective:     E(R,t) = Σ ||qᵢ - (R*pᵢ + t)||²
      Centroids:     p̄ = mean(P), q̄ = mean(Q)
@@ -357,7 +357,7 @@ function transformPoints(pts, rotDeg, transMag) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   ICP ENGINE — single iteration
+   ICP ENGINE - single iteration
 ────────────────────────────────────────────────────────────── */
 
 function nearestNeighbour(p, targetPts) {
@@ -407,7 +407,7 @@ function icpStep() {
     for (let r=0;r<3;r++) for (let c=0;c<3;c++) H[r][c] += pc[r]*qc[c];
   }
 
-  /* SVD: H = U S Vᵗ  →  R = V Uᵗ */
+  /* SVD: H = U S Vᵗ    R = V Uᵗ */
   const { U, V } = svd3(H);
   let R = matMul3(V, matTranspose3(U));
 
@@ -453,7 +453,7 @@ function icpStep() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   THREE.JS SCENE — SETUP PAGE
+   THREE.JS SCENE - SETUP PAGE
 ────────────────────────────────────────────────────────────── */
 
 let renderer, scene, camera, animFrame;
@@ -644,7 +644,7 @@ function updateSourceTransformPreview() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — STEP NAVIGATION
+   SETUP PAGE - STEP NAVIGATION
 ────────────────────────────────────────────────────────────── */
 
 let currentSetupStep = 0;
@@ -668,7 +668,7 @@ function gotoSetupStep(n) {
   if (badge) badge.textContent = `STEP ${n + 1} OF 5`;
   
   const wizardSteps = [
-      { title: "Mount Components", text: "Mount the source/target point clouds, coordinate frame, and reference object into the 3D workspace.", task: 'Select Component → Click <strong>Mount Component</strong> sequentially.' },
+      { title: "Mount Components", text: "Mount the source/target point clouds, coordinate frame, and reference object into the 3D workspace.", task: 'Select Component  Click <strong>Mount Component</strong> sequentially.' },
       { title: "Load the Two Scans", text: "Both point clouds are sampled from the same object. Review the color coding and point count before proceeding.", task: 'Review the cloud info and click <strong>Next</strong> to proceed.' },
       { title: "Introduce Misalignment", text: "Apply rotation and translation to the source cloud to simulate scan-to-scan misalignment.", task: 'Adjust the rotation and translation sliders, then click <strong>Next</strong>.' },
       { title: "Set Overlap Region", text: "Control what fraction of the two scans share surface area. Lower overlap makes ICP harder.", task: 'Set overlap %, click <strong>Confirm Config</strong>, then <strong>Next</strong>.' },
@@ -741,7 +741,7 @@ function mountComponent(name) {
 function mountAll() { Object.keys(MOUNTED).forEach(mountComponent); }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP STEP 3 — CONFIRM CONFIG / STEP 4 RESULTS
+   SETUP STEP 3 - CONFIRM CONFIG / STEP 4 RESULTS
 ────────────────────────────────────────────────────────────── */
 
 function confirmConfiguration() {
@@ -861,7 +861,7 @@ function renderOverlay(canvas) {
   });
 
   ctx.fillStyle = '#64748b'; ctx.font = 'bold 9px JetBrains Mono';
-  ctx.fillText(`iter ${ICP.iteration}  |  RMSE ${ICP.rmseHistory[ICP.rmseHistory.length-1]?.toFixed(3) ?? '—'}`, 8, H-8);
+  ctx.fillText(`iter ${ICP.iteration}  |  RMSE ${ICP.rmseHistory[ICP.rmseHistory.length-1]?.toFixed(3) ?? '-'}`, 8, H-8);
 }
 
 function setupOverlayDrag(canvas) {
@@ -1080,15 +1080,15 @@ function renderGauge(canvas) {
   ctx.fillStyle='#334155'; ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
 
   document.getElementById('quality-label').textContent =
-    ICP.converged ? (quality>70 ? `${quality.toFixed(0)}% — Converged well` : `${quality.toFixed(0)}% — Converged (check overlay)`)
-                  : `${quality.toFixed(0)}% — Running`;
+    ICP.converged ? (quality>70 ? `${quality.toFixed(0)}% - Converged well` : `${quality.toFixed(0)}% - Converged (check overlay)`)
+                  : `${quality.toFixed(0)}% - Running`;
   document.getElementById('quality-label').style.color = colour;
   document.getElementById('quality-sub').textContent =
     ICP.converged ? 'Inspect 3D overlay to confirm correctness' : 'Iterating toward alignment';
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — MAIN UPDATE
+   SIMULATION - MAIN UPDATE
 ────────────────────────────────────────────────────────────── */
 
 function updateReadouts() {
@@ -1096,8 +1096,8 @@ function updateReadouts() {
   const prevRmse  = ICP.rmseHistory[ICP.rmseHistory.length-2];
 
   document.getElementById('ro-iter').textContent = ICP.iteration;
-  document.getElementById('ro-rmse').textContent = lastRmse!==undefined ? lastRmse.toFixed(3) : '—';
-  document.getElementById('ro-drmse').textContent = (prevRmse!==undefined && lastRmse!==undefined) ? (lastRmse-prevRmse).toFixed(4) : '—';
+  document.getElementById('ro-rmse').textContent = lastRmse!==undefined ? lastRmse.toFixed(3) : '-';
+  document.getElementById('ro-drmse').textContent = (prevRmse!==undefined && lastRmse!==undefined) ? (lastRmse-prevRmse).toFixed(4) : '-';
   document.getElementById('ro-status').textContent = ICP.converged ? 'Converged' : (ICP.iteration>0 ? 'Iterating' : 'Idle');
 
   /* R matrix display in LaTeX */
@@ -1117,8 +1117,8 @@ function updateReadouts() {
   document.getElementById('dc-tz').textContent = ICP.t[2].toFixed(3);
   document.getElementById('dc-tmag').textContent = Math.sqrt(ICP.t[0]**2+ICP.t[1]**2+ICP.t[2]**2).toFixed(3);
 
-  document.getElementById('bb-conviter').textContent = ICP.convergedAt ?? '—';
-  document.getElementById('bb-finalrmse').textContent = ICP.converged ? lastRmse.toFixed(3) : '—';
+  document.getElementById('bb-conviter').textContent = ICP.convergedAt ?? '-';
+  document.getElementById('bb-finalrmse').textContent = ICP.converged ? lastRmse.toFixed(3) : '-';
 
   const riskLevel = SIM.rotDeg > 45 || SIM.overlap < 35 || SIM.shapeIdx > 0 ? 'Elevated' : 'Low';
   const riskEl = document.getElementById('bb-risk');
@@ -1151,7 +1151,7 @@ function runToConvergence() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — WIZARD
+   SIMULATION - WIZARD
 ────────────────────────────────────────────────────────────── */
 
 function updateSimWizard() {
@@ -1176,7 +1176,7 @@ function updateSimWizard() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SIMULATION — INIT & CONTROLS
+   SIMULATION - INIT & CONTROLS
 ────────────────────────────────────────────────────────────── */
 
 function initSimulation() {
@@ -1248,7 +1248,7 @@ function resetSimulationFull() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   SETUP PAGE — RESET
+   SETUP PAGE - RESET
 ────────────────────────────────────────────────────────────── */
 
 function resetSetup() {

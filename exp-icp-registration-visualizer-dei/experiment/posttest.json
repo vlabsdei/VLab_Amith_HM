@@ -73,7 +73,7 @@
       "question": "Q5. Why is a perfectly smooth, symmetrical sphere a total nightmare for the ICP algorithm?",
       "answers": {
         "a": "Because spheres have too many points for a computer to handle",
-        "b": "Because the algorithm can't tell the top of the sphere from the bottom—there are infinite valid alignments",
+        "b": "Because the algorithm can't tell the top of the sphere from the bottom-there are infinite valid alignments",
         "c": "Because scanner lasers bounce off curved surfaces",
         "d": "Because spheres cannot be mathematically represented in 3D space"
       },
@@ -130,7 +130,7 @@
       },
       "explanations": {
         "a": "Incorrect. ICP is notoriously bad at handling large initial offsets.",
-        "b": "Correct! ICP is 'greedy'—it looks for the closest matches *right now*. If you start 150 degrees off, the front of the source might mistakenly pair with the back of the target. ICP will lock these wrong pieces together, completely breaking the model.",
+        "b": "Correct! ICP is 'greedy'-it looks for the closest matches *right now*. If you start 150 degrees off, the front of the source might mistakenly pair with the back of the target. ICP will lock these wrong pieces together, completely breaking the model.",
         "c": "Incorrect. Algorithms don't delete data just because they fail.",
         "d": "Incorrect. Rotation does not change file size."
       },

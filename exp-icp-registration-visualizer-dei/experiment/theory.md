@@ -2,7 +2,7 @@
  
 ### 1. Why Registration Is Needed
  
-Imagine taking a single photograph of a coffee mug. You can see the front, but the handle and the back are completely hidden. 3D scanning works the exact same way—a single scan from one camera position captures only the visible side of an object. 
+Imagine taking a single photograph of a coffee mug. You can see the front, but the handle and the back are completely hidden. 3D scanning works the exact same way-a single scan from one camera position captures only the visible side of an object. 
 
 To build a complete, 3D digital replica, you need to scan the object from multiple different angles. However, each resulting "partial point cloud" is captured in its own local coordinate space, essentially anchored to wherever the scanner happened to be pointing at that moment. Before these puzzle pieces can be merged into a solid 3D model, they must all be mathematically transformed into one shared coordinate system. 
 
@@ -14,7 +14,7 @@ The **Iterative Closest Point (ICP)** algorithm is the industry standard for sti
 
 ICP is brilliantly simple in concept. It repeats a four-step loop until the alignment stops getting better:
  
-1. **Find Correspondences:** For every point in the "source" cloud, the algorithm looks for its nearest neighbouring point in the "target" cloud. These pairs are temporarily treated as matching points—representing the exact same spot on the physical surface.
+1. **Find Correspondences:** For every point in the "source" cloud, the algorithm looks for its nearest neighbouring point in the "target" cloud. These pairs are temporarily treated as matching points-representing the exact same spot on the physical surface.
 2. **Compute the Transformation:** Using all these matched pairs, the algorithm calculates the optimal rotation (R) and translation (t) that would perfectly slide the source points onto their target partners, minimizing the overall distance between them.
 3. **Apply the Transformation:** The entire source cloud is then physically moved according to the rotation and translation we just calculated.
 4. **Measure the Error (RMSE):** Finally, we measure the Root Mean Square Error (RMSE) between the newly moved source cloud and the target cloud. If the error hasn't dropped much since the last loop, we say the algorithm has **converged**, and we stop. Otherwise, we jump back to Step 1 and repeat the process with our newly moved cloud.
@@ -147,7 +147,7 @@ Once the change in error falls below this threshold, we can confidently say the 
  
 ICP is greedy. It always takes the mathematically best step based on the *current* matched points. However, it is completely blind to the overall, big-picture shape of the objects.
 
-This leads to its biggest weakness: **Local Minima**. If the two point clouds start out way too far apart, the "nearest neighbour" search will mistakenly pair up points that don't actually belong together on the real object. ICP will proudly crunch the numbers, perfectly align these wrong points, and proudly report that it has converged—resulting in an alignment that is mathematically stable but visually broken.
+This leads to its biggest weakness: **Local Minima**. If the two point clouds start out way too far apart, the "nearest neighbour" search will mistakenly pair up points that don't actually belong together on the real object. ICP will proudly crunch the numbers, perfectly align these wrong points, and proudly report that it has converged-resulting in an alignment that is mathematically stable but visually broken.
 
 This trap is particularly dangerous for highly symmetrical shapes like spheres or flat planes, where one rotation looks just as valid as another. Asymmetrical, complex shapes with lots of unique bumps and grooves are much easier for ICP to lock onto correctly.
  
@@ -161,7 +161,7 @@ If the overlap between the two scans is very small (say, only 20%), the nearest 
  
 In the real world, 3D scanners aren't perfect. They capture data with slight inaccuracies and static noise (as you may have seen in Experiment 3). 
 
-Because of this noise, you will almost never achieve a perfect RMSE of exactly `0.0`. Even when the two clouds are perfectly aligned, the noisy, jittered points won't overlap flawlessly. This noise essentially establishes a hard floor for the RMSE—no amount of extra iterations will push the error below the baseline noise level of your hardware.
+Because of this noise, you will almost never achieve a perfect RMSE of exactly `0.0`. Even when the two clouds are perfectly aligned, the noisy, jittered points won't overlap flawlessly. This noise essentially establishes a hard floor for the RMSE-no amount of extra iterations will push the error below the baseline noise level of your hardware.
  
 ### 9. Tying it all Together
  

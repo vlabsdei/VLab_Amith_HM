@@ -106,7 +106,7 @@
     {
       "question": "Q7. Why does ICP absolutely require the two point clouds to physically overlap?",
       "answers": {
-        "a": "It doesn't—ICP works perfectly fine on completely disjointed scans",
+        "a": "It doesn't-ICP works perfectly fine on completely disjointed scans",
         "b": "Because if they don't overlap, the algorithm will be forced to match points that don't actually belong together, ripping the alignment apart",
         "c": "To ensure the final file size remains small",
         "d": "So the software can easily blend their colors together"
@@ -130,7 +130,7 @@
       },
       "explanations": {
         "a": "Incorrect. This is a geometry trap, not a hardware limit.",
-        "b": "Correct! ICP is greedy—it blindly takes whatever looks like the best step right now. If your starting position is way off, it might match the wrong parts of the object together, creating a perfectly stable, but entirely incorrect, alignment.",
+        "b": "Correct! ICP is greedy-it blindly takes whatever looks like the best step right now. If your starting position is way off, it might match the wrong parts of the object together, creating a perfectly stable, but entirely incorrect, alignment.",
         "c": "Incorrect. Even massive point clouds can fall into local minima traps.",
         "d": "Incorrect. This is an algorithm flaw, not a scanning flaw."
       },
@@ -138,7 +138,7 @@
       "difficulty": "beginner"
     },
     {
-      "question": "Q9. What ultimately sets the 'floor'—the lowest possible error (RMSE)—that ICP can achieve?",
+      "question": "Q9. What ultimately sets the 'floor'-the lowest possible error (RMSE)-that ICP can achieve?",
       "answers": {
         "a": "The graphics card of your computer",
         "b": "The inherent static and noise captured by the 3D scanner",
